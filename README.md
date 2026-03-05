@@ -1,3 +1,5 @@
+# Tech Stack
+
 ## Frontend
 
 - React
@@ -9,25 +11,48 @@
 - Python FastAPI
 - PyMongo
 
-## DB
+## Database
 
 - MongoDB
 
-## Enter backend virtual env
+# Starting the Backend
 
+Before entering virtual environment, the system Python will be used:
+
+```bash
 which python3
-`/usr/bin/python3`
+```
 
+Output example: `/usr/bin/python3`
+
+## Enter the backend virtual environment
+
+```bash
 cd ~/assetManager/backend/
-`source venv/bin/activate`.
-To leave the venv: `deactivate`
+source venv/bin/activate
+```
 
+Now the Python interpreter from the virtual environment will be used:
+
+```bash
 which python3
-`/home/jenny/assetManager/backend/venv/bin/python3`
+```
 
-## Start backend
+Output example: `/home/user/assetManager/backend/venv/bin/python3`
 
-`uvicorn main:app --reload`
+## Exit the virtual environment
+
+```bash
+deactivate
+```
+
+## Start the backend server
+
+```bash
+uvicorn main:app --reload
+```
+
+<hr>
 
 ### TODO
 
