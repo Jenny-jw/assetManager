@@ -73,3 +73,36 @@ uvicorn main:app --reload
 - 看指令來源: `which uvicorn`
 - 看venv中有哪些工具: `ls venv/bin/`
 - 指定安裝套件在本虛擬環境: `python -m pip install {}`
+
+## Frontend Pages Design
+
+### Dashboard
+
+- Path: `/`
+- Total asset
+- Assets added recently
+- Recent activities
+
+### Asset List
+
+- Path: `/assets`
+- List out all the assets, such as, Name, Type, Owner, Value
+- Functions: search, filter, sort
+
+### Aseet Detail
+
+- Path: `/assets/:id`
+- Present single asset details
+
+### Create Asset
+
+- Path: `/assets/new`
+- Create an asset: Name, Origin, HarvestTime, Cost, Price
+
+### Edit Asset
+
+- Path: `/assets/:id/edit`
+
+### Login (if there's user)
+
+- Path: `/login`
