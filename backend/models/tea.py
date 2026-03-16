@@ -13,7 +13,7 @@ class TeaCreate(BaseModel):
     weight: int | None = Field(None, json_schema_extra={"example": 600})
     quantity: int | None = Field(None, json_schema_extra={"example": 3})
     created_at: datetime = Field(default_factory=utcnow)
-    owner_id: str
+    # owner_id: str
 
 class TeaUpdate(BaseModel):
     name: str | None = None
