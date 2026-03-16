@@ -7,7 +7,7 @@ def utcnow():
 class TeaCreate(BaseModel):
     name: str = Field(..., json_schema_extra={"example": "High mountain oolong tea"})
     origin: str | None = Field(None, json_schema_extra={"example": "Alishan"})
-    genre: str | None = Field(None, json_schema_extra={"example": "oolong"})
+    genre: str | None = Field(None, json_schema_extra={"example": "Oolong"})
     roastLevel: int | None = Field(None, json_schema_extra={"example": 50})
     harvestTime: int | None = Field(None, json_schema_extra={"example": 202506})
     weight: int | None = Field(None, json_schema_extra={"example": 600})

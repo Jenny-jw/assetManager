@@ -22,6 +22,7 @@ def list_teas():
             id=str(tea["_id"]),
             name=tea["name"],
             origin=tea["origin"],
+            genre=tea["genre"],
             roastLevel=tea["roastLevel"],
             harvestTime=tea["harvestTime"],
             weight=tea["weight"],
