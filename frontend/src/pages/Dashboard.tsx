@@ -5,9 +5,11 @@ import GenreDistribution from "../components/GenreDistribution";
 import RecentAssets from "../components/RecentAssets";
 import axios from "axios";
 import type { Asset } from "../types/Asset";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios.get("/api/tea").then((res) => {
@@ -25,6 +27,17 @@ const Dashboard = () => {
       </div>
       <div className="grid md:grid-cols-6 gap-6">
         <RecentAssets assets={assets} className="md:col-span-4" />
+        <div className="md:col-span-2 flex flex-col gap-4">
+          <button
+            className="flex-1 rounded-xl bg-lime-700 text-white"
+            onClick={() => navigate("/assets/new")}
+          >
+            Add Asset
+          </button>
+          <button className="flex-1 rounded-xl bg-lime-500 text-white">
+            Manage Inventory
+          </button>
+        </div>
       </div>
     </div>
   );
