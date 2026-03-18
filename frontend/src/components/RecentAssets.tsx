@@ -6,7 +6,7 @@ type Props = {
 };
 
 const RecentAssets = ({ assets, className }: Props) => {
-  const recent = assets.slice(0, 5);
+  const recent = assets.slice(-3);
 
   return (
     <div
