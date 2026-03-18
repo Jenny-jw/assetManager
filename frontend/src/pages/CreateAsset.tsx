@@ -1,4 +1,5 @@
 import React, { useState, FormEvent } from "react";
+import { Link } from "react-router-dom";
 import type { CreateAsset } from "../types/Asset";
 import axios from "axios";
 
@@ -7,7 +8,7 @@ const CreateAsset = () => {
     name: "",
     origin: "",
     genre: "",
-    roastLevel: 50,
+    roastLevel: 30,
     harvestTime: undefined,
     weight: 150,
     quantity: 1,
@@ -53,15 +54,15 @@ const CreateAsset = () => {
               className="w-full border rounded-lg p-2"
             />
           </div>
-
           {/* Genre dropdown */}
           <div>
-            <label className="block font-medium mb-1">Genre</label>
+            <label className="block font-medium mb-1">Genre *</label>
             <select
               name="genre"
               value={form.genre || ""}
               onChange={handleChange}
               className="w-full border rounded-lg p-2"
+              required
             >
               <option value="">Select genre</option>
               <option value="Green">Green</option>
@@ -76,7 +77,6 @@ const CreateAsset = () => {
           <label className="block font-medium mb-2">
             Roast Level: {form.roastLevel}
           </label>
-
           <input
             type="range"
             name="roastLevel"
@@ -86,7 +86,6 @@ const CreateAsset = () => {
             onChange={handleChange}
             className="w-full"
           />
-
           <div className="flex justify-between text-sm text-gray-500">
             <span>Light</span>
             <span>Medium</span>
@@ -104,7 +103,6 @@ const CreateAsset = () => {
               className="w-full border rounded-lg p-2"
             />
           </div>
-
           <div>
             <label className="block font-medium mb-1">Quantity</label>
             <input
@@ -115,6 +113,8 @@ const CreateAsset = () => {
               className="w-full border rounded-lg p-2"
             />
           </div>
+        </div>
+        <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="block font-medium mb-1">Harvest Time</label>
             <input
@@ -130,16 +130,23 @@ const CreateAsset = () => {
                   harvestTime: Number(formatted),
                 }));
               }}
-              className="border rounded-lg p-2"
+              className="w-full border rounded-lg p-2"
             />
           </div>
-
           <button
             type="submit"
             className="bg-lime-500 text-white px-6 py-2 rounded-lg"
           >
             Create Asset
           </button>
+        </div>
+        <div className="pt-2">
+          <Link
+            to="/"
+            className="text-lime-700 hover:underline hover:text-lime-800 transition"
+          >
+            ← Go back to Dashboard
+          </Link>
         </div>
       </form>
     </div>
