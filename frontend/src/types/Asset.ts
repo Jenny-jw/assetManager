@@ -1,6 +1,5 @@
-export type Asset = {
-  id?: string;
-  name?: string;
+export type AssetBase = {
+  name: string;
   origin?: string;
   genre?: string;
   roastLevel?: number;
@@ -8,3 +7,11 @@ export type Asset = {
   weight?: number;
   quantity?: number;
 };
+
+export type Asset = AssetBase & {
+  id: string;
+};
+
+export type CreateAsset = AssetBase;
+
+export type UpdateAsset = Partial<AssetBase>;
