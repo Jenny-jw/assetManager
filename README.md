@@ -40,16 +40,23 @@ which python3
 
 Output example: `/home/user/assetManager/backend/venv/bin/python3`
 
+## Start the backend server
+
+```bash
+uvicorn main:app --reload
+```
+
 ## Exit the virtual environment
 
 ```bash
 deactivate
 ```
 
-## Start the backend server
+# Starting the Frontend
 
 ```bash
-uvicorn main:app --reload
+cd ~/assetManager/frontend/
+npm run dev
 ```
 
 <hr>
