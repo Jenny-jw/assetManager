@@ -34,7 +34,10 @@ const Dashboard = () => {
           >
             Add Asset
           </button>
-          <button className="flex-1 rounded-xl bg-lime-500 text-white">
+          <button
+            className="flex-1 rounded-xl bg-lime-500 text-white"
+            onClick={() => navigate("/assets")}
+          >
             Manage Inventory
           </button>
         </div>
