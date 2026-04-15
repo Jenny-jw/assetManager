@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from models.tea import TeaCreate, TeaResponse, TeaUpdate
-from db import db
+from core.db import db
 from bson.objectid import ObjectId
 from pymongo import ReturnDocument
 
@@ -26,7 +26,8 @@ def list_teas():
             roastLevel=tea["roastLevel"],
             harvestTime=tea["harvestTime"],
             weight=tea["weight"],
-            quantity=tea["quantity"]
+            quantity=tea["quantity"],
+            created_at=tea["created_at"]
         )
         for tea in teas
     ]
