@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 def utcnow():
     return datetime.now(timezone.utc)
 
-class TeaCreate(BaseModel):
+class TeaBase(BaseModel):
     name: str = Field(..., json_schema_extra={"example": "High mountain oolong tea"})
     origin: str | None = Field(None, json_schema_extra={"example": "Alishan"})
     genre: str | None = Field(None, json_schema_extra={"example": "Oolong"})
@@ -12,8 +12,9 @@ class TeaCreate(BaseModel):
     harvestTime: int | None = Field(None, json_schema_extra={"example": 202506})
     weight: int | None = Field(None, json_schema_extra={"example": 600})
     quantity: int | None = Field(None, json_schema_extra={"example": 3})
+
+class TeaCreate(TeaBase):
     created_at: datetime = Field(default_factory=utcnow)
-    # owner_id: str
 
 class TeaUpdate(BaseModel):
     name: str | None = None
@@ -23,16 +24,11 @@ class TeaUpdate(BaseModel):
     harvestTime: int | None = None
     weight: int | None = None
     quantity: int | None = None
+    updated_at: datetime = Field(default_factory=utcnow)
 
-class TeaResponse(BaseModel):
+class TeaResponse(TeaBase):
     id: str
-    name: str
-    origin: str | None = None
-    genre: str | None = None
-    roastLevel: int | None = None
-    harvestTime: int | None = None
-    weight: int | None = None
-    quantity: int | None = None
+    created_at: datetime
 
 # cost: int = Field(..., json_schema_extra={"example": 300})
 # price: int | None = Field(None, json_schema_extra={"example": 300}) 
