@@ -13,7 +13,6 @@ const AssetList = () => {
 
   useEffect(() => {
     axios.get("/api/tea").then((res) => {
-      console.log(res.data);
       setAssets(res.data);
     });
   }, []);

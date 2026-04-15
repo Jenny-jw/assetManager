@@ -1,4 +1,4 @@
 const EditAsset = () => {
-    return();
-}
+  return <></>;
+};
 export default EditAsset;

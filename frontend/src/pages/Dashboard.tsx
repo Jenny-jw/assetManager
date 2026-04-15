@@ -29,13 +29,13 @@ const Dashboard = () => {
         <RecentAssets assets={assets} className="md:col-span-4" />
         <div className="md:col-span-2 flex flex-col gap-4">
           <button
-            className="flex-1 rounded-xl bg-lime-700 text-white"
+            className="flex-1 rounded-xl bg-lime-700 hover:border-lime-200 text-white"
             onClick={() => navigate("/assets/new")}
           >
             Add Asset
           </button>
           <button
-            className="flex-1 rounded-xl bg-lime-500 text-white"
+            className="flex-1 rounded-xl bg-lime-500 hover:border-lime-100 text-white"
             onClick={() => navigate("/assets")}
           >
             Manage Inventory
