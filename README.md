@@ -64,6 +64,8 @@ npm run dev
 ### TODO
 
 1. Add backend-starting command into bash: In `/backend/run.sh`, write `uvicorn main:app --reload`
+2. Edit and delete functions in AssetList page
+3. User: Admin
 
 ## Elements
 
