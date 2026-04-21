@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from models.user import User
-from db import db
+from backend.core.db import db
 
 router = APIRouter(prefix="/user", tags=["User"])
 
