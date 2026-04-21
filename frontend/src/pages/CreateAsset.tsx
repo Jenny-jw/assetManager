@@ -142,7 +142,7 @@ const CreateAsset = () => {
         </div>
         <div className="pt-2">
           <Link
-            to="/"
+            to="/dashboard"
             className="text-lime-700 hover:underline hover:text-lime-800 transition"
           >
             ← Go back to Dashboard
