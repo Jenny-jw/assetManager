@@ -1,5 +1,6 @@
 # Define the User structure in database
 from enum import Enum
+from typing import Optional
 from pydantic import BaseModel, Field, EmailStr
 from datetime import datetime, timezone
 
@@ -9,12 +10,22 @@ def utcnow():
 class UserRole(str, Enum):
     admin = "admin"
     user = "user"
+    guest = "guest"
     
-class UserInDB(BaseModel):
-    id: str
+class UserBase(BaseModel):
     name: str
     email: EmailStr
-    hashed_password: str
     role: UserRole = UserRole.user
+    is_active: bool = True
+
+class UserCreate(UserBase):
+    password: str
+    
+class UserInDB(UserBase):
+    id: Optional[str] = None
+    hashed_password: str
     created_at: datetime = Field(default_factory=utcnow)
-    is_active: bool = False
+
+class UserResponse(UserBase):
+    id: str
+    created_at: datetime
