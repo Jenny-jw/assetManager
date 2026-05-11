@@ -2,10 +2,11 @@ import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard.tsx";
 import AssetList from "./pages/AssetList.tsx";
-import CreateAsset from "./pages/CreateAsset.tsx";
+import CreateAsset from "./pages/CreateAsset";
 import EditAsset from "./pages/EditAsset.tsx";
 import Login from "./pages/Login.tsx";
 import SignUp from "./pages/SignUp.tsx";
+import ProtectedRoute from "./routes/ProtectedRoute.tsx";
 
 function App() {
   return (
@@ -15,8 +16,22 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/assets" element={<AssetList />} />
-        <Route path="/assets/new" element={<CreateAsset />} />
-        <Route path="/assets/:id/edit" element={<EditAsset />} />
+        <Route
+          path="/assets/new"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <CreateAsset />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/assets/:id/edit"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <EditAsset />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </main>
   );

@@ -1,10 +1,10 @@
-import React, { useState, FormEvent } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import type { CreateAsset } from "../types/Asset";
+import type { CreateAssetType } from "../types/Asset";
 import axios from "axios";
 
 const CreateAsset = () => {
-  const [form, setForm] = useState<CreateAsset>({
+  const [form, setForm] = useState<CreateAssetType>({
     name: "",
     origin: "",
     genre: "",
@@ -19,7 +19,7 @@ const CreateAsset = () => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value === "" ? undefined : value }));
   };
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       await axios.post("/api/tea", form);

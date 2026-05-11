@@ -12,6 +12,6 @@ export type Asset = AssetBase & {
   id: string;
 };
 
-export type CreateAsset = AssetBase;
+export type CreateAssetType = AssetBase;
 
-export type UpdateAsset = Partial<AssetBase>;
+export type UpdateAssetType = Partial<AssetBase>;
