@@ -2,6 +2,7 @@
 from pydantic import BaseModel, Field, EmailStr
 from models.user import UserRole
 from datetime import datetime, timezone
+from typing import Optional
 
 def utcnow():
     return datetime.now(timezone.utc)
@@ -18,7 +19,7 @@ class UserLogin(BaseModel):
     password: str
 
 class UserResponse(UserBase):
-    id: str
+    id: Optional[str] = None
     role: UserRole
     created_at: datetime = Field(default_factory=utcnow)
     is_active: bool
