@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from models.user import UserRole, UserCreate, UserResponse
-from backend.core.db import db
-from routes.auth import hash_password, get_current_user
+from models.user import UserRole
+from schemas.user import UserCreate, UserResponse
+from core.db import db
+from core.security import hash_password, get_current_user
 from datetime import datetime, timezone
 
 router = APIRouter(prefix="/user", tags=["User"])
@@ -29,5 +30,5 @@ def create_user(user: UserCreate, current_user = Depends(get_current_user)):
     }
     
     res = db.users.insert_one(user_doc)
-    user_response = UserResponse(id=str(res.inserted_id), name=user_doc["name"], email=user_doc["email"], role=user_doc["role"], is_active=user_doc["is_active"], created_at=user_doc["created_at"])
+    user_response = UserResponse(id=str(res.inserted_id), name=user_doc["name"], email=user_doc["email"], role=UserRole(user_doc["role"]), is_active=user_doc["is_active"], created_at=user_doc["created_at"])
     return user_response
