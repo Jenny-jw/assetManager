@@ -11,21 +11,12 @@ class UserRole(str, Enum):
     admin = "admin"
     user = "user"
     guest = "guest"
-    
-class UserBase(BaseModel):
+   
+class UserInDB(BaseModel):
+    id: Optional[str] = None
     name: str
     email: EmailStr
     role: UserRole = UserRole.user
-    is_active: bool = True
-
-class UserCreate(UserBase):
-    password: str
-    
-class UserInDB(UserBase):
-    id: Optional[str] = None
     hashed_password: str
+    is_active: bool = True
     created_at: datetime = Field(default_factory=utcnow)
-
-class UserResponse(UserBase):
-    id: str
-    created_at: datetime
