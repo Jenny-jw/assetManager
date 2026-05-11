@@ -1,29 +1,40 @@
 # /login、/signup、/logout
 from fastapi import APIRouter, HTTPException, Response
+from models.user import UserRole
 from schemas.user import UserLogin, UserCreate, UserResponse
 from core.db import db
 from core.security import hash_password, verify_password, create_token
-from datetime import datetime
+from datetime import datetime, timezone
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
+def utcnow():
+    return datetime.now(timezone.utc)
+
 @router.post("/signup", response_model=UserResponse)
 def signup(user: UserCreate):
-    existing_user = db.users.find_one({"email": user.email})
+    # Only admin can assign admin role
+    # if user.role == UserRole.admin:
+    #     raise HTTPException(status_code=403, detail="Only admins can create admin users")
     
-    if existing_user:
+    if db.users.find_one({"email": user.email}):
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    user_dict = user.model_dump()
-    hashed_pwd = hash_password(user_dict.pop("password"))
-    user_dict["hashed_password"] = hashed_pwd
-    user_dict["created_at"] = datetime.now()
-    user_dict["role"] = "user"
-    user_dict["is_active"] = True
-    result = db.users.insert_one(user_dict)
-    user_dict['id'] = str(result.inserted_id)
+    hashedpw = hash_password(user.password)
+    user_doc = {
+        "name": user.name,
+        "email": user.email,
+        "hashed_password": hashedpw,
+        "role": UserRole.user,
+        "created_at": utcnow(),
+        "is_active": True
+    }
     
-    return user_dict 
+    res = db.users.insert_one(user_doc)
+    return {
+        "id": str(res.inserted_id),
+        **user_doc
+    }
 
 @router.post("/login")
 def login(user: UserLogin, response: Response):
