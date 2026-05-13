@@ -1,6 +1,6 @@
 # 處理密碼雜湊與 Token 生成
 from passlib.context import CryptContext
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import jwt
 from fastapi import APIRouter, HTTPException, Request
 from schemas.user import UserResponse
@@ -20,7 +20,7 @@ def verify_password(pwd_input, hashed):
 
 def create_token(data: dict):
     payload = data.copy()
-    expiredAt = datetime.now(datetime.UTC) + timedelta(hours=1)
+    expiredAt = datetime.now(timezone.utc) + timedelta(hours=1)
     payload.update({"exp": expiredAt})
    
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
