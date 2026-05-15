@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from routes.tea import router as tea_router
 from routes.user import router as user_router
 from routes.auth import router as auth_router
+from core.security import router as security_router
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
@@ -15,6 +16,7 @@ app = FastAPI()
 app.include_router(tea_router, prefix="/api")
 app.include_router(user_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
+app.include_router(security_router, prefix="/api")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
