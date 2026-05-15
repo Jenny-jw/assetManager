@@ -70,7 +70,7 @@ const Dashboard = () => {
           {role === "user" && (
             <button
               className="flex-1 rounded-xl bg-lime-500 hover:border-lime-100 text-white"
-              onClick={() => navigate("/orders/new")}
+              onClick={() => navigate("/assets")}
             >
               Order
             </button>
