@@ -1,21 +1,27 @@
 import type { Asset } from "../types/Asset";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../lib/axios";
+import { useAuth } from "../context/useAuth";
 
 const AssetList = () => {
+  const { user, loading } = useAuth();
   const [assets, setAssets] = useState<Asset[]>([]);
-  const handleEdit = (assetId) => {
+  const handleEdit = (assetId: string) => {
     console.log(assetId);
   };
-  const handleDelete = (assetId) => {
+  const handleDelete = (assetId: string) => {
     console.log(assetId);
   };
 
   useEffect(() => {
-    axios.get("/api/tea").then((res) => {
+    axios.get("/tea").then((res) => {
       setAssets(res.data);
     });
   }, []);
+
+  useEffect(() => {
+    // if (!loading &&)
+  }, [loading, user]);
 
   return (
     <div className="p-6 space-y-6">
@@ -47,23 +53,43 @@ const AssetList = () => {
                 <td className="px-4 py-3">{asset.quantity ?? "-"}</td>
                 {/* Actions */}
                 <td className="px-4 py-3">
-                  <div className="flex justify-end gap-2">
+                  {user?.role === "admin" && (
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => handleEdit(asset.id)}
+                        className="px-3 py-1 text-sm rounded-lg bg-lime-700 text-white border 
+                           border-gray-300 hover:bg-lime-900 hover:border-gray-500 transition"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(asset.id)}
+                        className="px-3 py-1 text-sm rounded-lg 
+                           bg-red-500 text-white 
+                           hover:bg-red-700 hover:border-gray-500 transition"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                  {user?.role === "user" && (
                     <button
                       onClick={() => handleEdit(asset.id)}
                       className="px-3 py-1 text-sm rounded-lg bg-lime-700 text-white border 
                            border-gray-300 hover:bg-lime-900 hover:border-gray-500 transition"
                     >
-                      Edit
+                      Order
                     </button>
+                  )}
+                  {user?.role === "guest" && (
                     <button
-                      onClick={() => handleDelete(asset.id)}
-                      className="px-3 py-1 text-sm rounded-lg 
-                           bg-red-500 text-white 
-                           hover:bg-red-700 hover:border-gray-500 transition"
+                      onClick={() => handleEdit(asset.id)}
+                      className="px-3 py-1 text-sm rounded-lg bg-lime-700 text-white border 
+                           border-gray-300 hover:bg-lime-900 hover:border-gray-500 transition"
                     >
-                      Delete
+                      Order
                     </button>
-                  </div>
+                  )}
                 </td>
               </tr>
             ))}
