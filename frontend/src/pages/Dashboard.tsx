@@ -6,11 +6,11 @@ import RecentAssets from "../components/RecentAssets";
 import axios from "../lib/axios";
 import type { Asset } from "../types/Asset";
 import { useNavigate } from "react-router-dom";
-import type { UserRole } from "../types/User";
+import { useAuth } from "../context/useAuth";
 
 const Dashboard = () => {
+  const { user, loading } = useAuth();
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [role, setRole] = useState<UserRole>("guest");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,23 +20,8 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    let mounted = true;
-    axios
-      .get("/security/me", { withCredentials: true })
-      .then((res) => {
-        if (!mounted) return;
-        const userRole = res?.data?.role as UserRole | undefined;
-        setRole(userRole ?? "guest");
-      })
-      .catch((err) => {
-        if (!mounted) return;
-        console.error("Failed to fetch user role:", err);
-        setRole("guest");
-      });
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    // if (!loading &&)
+  }, [loading, user]);
 
   return (
     <div className="p-6 space-y-6">
@@ -49,7 +34,7 @@ const Dashboard = () => {
       <div className="grid md:grid-cols-6 gap-6">
         <RecentAssets assets={assets} className="md:col-span-4" />
         <div className="md:col-span-2 flex flex-col gap-4">
-          {role === "admin" && (
+          {user?.role === "admin" && (
             <>
               <button
                 className="flex-1 rounded-xl bg-lime-700 hover:border-lime-200 text-white"
@@ -65,7 +50,7 @@ const Dashboard = () => {
               </button>
             </>
           )}
-          {role === "user" && (
+          {user?.role === "user" && (
             <button
               className="flex-1 rounded-xl bg-lime-500 hover:border-lime-100 text-white"
               onClick={() => navigate("/assets")}
@@ -73,7 +58,7 @@ const Dashboard = () => {
               Order
             </button>
           )}
-          {role === "guest" && (
+          {user?.role === "guest" && (
             <button
               className="flex-1 rounded-xl bg-lime-500 hover:border-lime-100 text-white"
               onClick={() => navigate("/assets")}
