@@ -1,11 +1,20 @@
+type Producer = {
+  name: string;
+  factory?: string;
+  location?: string;
+};
+
 export type AssetBase = {
   name: string;
   origin?: string;
   genre?: string;
-  roastLevel?: number;
-  harvestTime?: number;
+  roast_level?: number;
+  harvest_time?: number;
   weight?: number;
   quantity?: number;
+  score?: number;
+  comment?: string;
+  producer?: Producer;
 };
 
 export type Asset = AssetBase & {
