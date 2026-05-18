@@ -1,32 +1,33 @@
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
-from models.tea import TeaCreate, TeaResponse, TeaUpdate
+from schemas.tea import TeaCreate, TeaResponsePublic, TeaUpdate
 from core.db import db
 from bson.objectid import ObjectId
 from pymongo import ReturnDocument
 
 router = APIRouter(prefix="/tea", tags=["Tea"])
 
-@router.post("/", response_model=TeaResponse)
+@router.post("/", response_model=TeaResponsePublic)
 def create_tea(tea: TeaCreate):
     tea_dict = tea.model_dump()
     result = db.teas.insert_one(tea_dict)
     tea_dict["id"] = str(result.inserted_id) # type: bson.ObjectId
     return tea_dict
 
-@router.get("/", response_model=list[TeaResponse])
+@router.get("/", response_model=list[TeaResponsePublic])
 def list_teas():
     teas = db.teas.find()
     return [
-        TeaResponse(
+        TeaResponsePublic(
             id=str(tea["_id"]),
             name=tea["name"],
             origin=tea["origin"],
             genre=tea["genre"],
-            roastLevel=tea["roastLevel"],
-            harvestTime=tea["harvestTime"],
+            roast_level=tea["roast_level"],
+            harvest_time=tea["harvest_time"],
             weight=tea["weight"],
             quantity=tea["quantity"],
+            score=tea["score"],
             created_at=tea["created_at"]
         )
         for tea in teas
