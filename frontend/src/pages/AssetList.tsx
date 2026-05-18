@@ -48,7 +48,7 @@ const AssetList = () => {
                 <td className="px-4 py-3 font-medium">{asset.name}</td>
                 <td className="px-4 py-3">{asset.origin || "-"}</td>
                 <td className="px-4 py-3">{asset.genre}</td>
-                <td className="px-4 py-3">{asset.roastLevel}</td>
+                <td className="px-4 py-3">{asset.roast_level}</td>
                 <td className="px-4 py-3">{asset.weight ?? "-"}</td>
                 <td className="px-4 py-3">{asset.quantity ?? "-"}</td>
                 {/* Actions */}
