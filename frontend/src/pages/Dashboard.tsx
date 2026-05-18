@@ -25,8 +25,6 @@ const Dashboard = () => {
       .get("/security/me", { withCredentials: true })
       .then((res) => {
         if (!mounted) return;
-        console.log("When GET /security/me res is: ", res);
-
         const userRole = res?.data?.role as UserRole | undefined;
         setRole(userRole ?? "guest");
       })
