@@ -8,10 +8,17 @@ const CreateAsset = () => {
     name: "",
     origin: "",
     genre: "",
-    roastLevel: 30,
-    harvestTime: undefined,
+    roast_level: 30,
+    harvest_time: undefined,
     weight: 150,
     quantity: 1,
+    score: 80,
+    comment: "",
+    producer: {
+      name: "",
+      factory: "",
+      location: "",
+    },
   });
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -73,16 +80,47 @@ const CreateAsset = () => {
             </select>
           </div>
         </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          {/* Score */}
+          <div>
+            <label className="block font-medium mb-1">Score</label>
+            <input
+              name="score"
+              value={form.score || ""}
+              onChange={handleChange}
+              className="w-full border rounded-lg p-2"
+            />
+          </div>
+          {/* Producer */}
+          <div>
+            <label className="block font-medium mb-1">Producer</label>
+            <input
+              name="producer.name"
+              value={form.producer?.name || ""}
+              onChange={handleChange}
+              className="w-full border rounded-lg p-2"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block font-medium mb-1">Comment</label>
+          <input
+            name="comment"
+            value={form.comment}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-2"
+          />
+        </div>
         <div>
           <label className="block font-medium mb-2">
-            Roast Level: {form.roastLevel}
+            Roast Level: {form.roast_level}
           </label>
           <input
             type="range"
-            name="roastLevel"
+            name="roast_level"
             min="0"
             max="100"
-            value={form.roastLevel ?? 0}
+            value={form.roast_level ?? 0}
             onChange={handleChange}
             className="w-full"
           />
@@ -119,7 +157,7 @@ const CreateAsset = () => {
             <label className="block font-medium mb-1">Harvest Time</label>
             <input
               type="month"
-              name="harvestTime"
+              name="harvest_time"
               onChange={(e) => {
                 const value = e.target.value;
                 if (!value) return;
@@ -127,7 +165,7 @@ const CreateAsset = () => {
                 const formatted = value.replace("-", "");
                 setForm((prev) => ({
                   ...prev,
-                  harvestTime: Number(formatted),
+                  harvest_time: Number(formatted),
                 }));
               }}
               className="w-full border rounded-lg p-2"
