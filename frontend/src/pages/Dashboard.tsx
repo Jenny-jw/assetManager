@@ -15,12 +15,13 @@ const Dashboard = () => {
 
   useEffect(() => {
     axios.get("/tea").then((res) => {
-      setAssets(res.data);
+      setAssets(res.data.data);
     });
   }, []);
 
   useEffect(() => {
     // if (!loading &&)
+    console.log("Current user: ", user?.role);
   }, [loading, user]);
 
   return (
