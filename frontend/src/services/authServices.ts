@@ -21,10 +21,10 @@ export const login = async (email: string, password: string) => {
 };
 
 export const logout = async () => {
-  await api.post("/auth/logout");
+  await api.post("/auth/logout", { withCredentials: true });
 };
 
 export const getCurrentUser = async () => {
-  const response = await api.get("/security/me");
+  const response = await api.get("/security/me", { withCredentials: true });
   return response.data;
 };
