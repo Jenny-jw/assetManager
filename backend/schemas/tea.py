@@ -50,6 +50,10 @@ class TeaResponsePublic(TeaBase):
     id: str
     created_at: datetime
 
+class TeaResponseList(BaseModel):
+    data: list[TeaResponsePublic]
+    errors: list[dict] = []
+
 class TeaResponseInternal(TeaResponsePublic):
     owner_id: Optional[str]
     updated_at: Optional[datetime]
