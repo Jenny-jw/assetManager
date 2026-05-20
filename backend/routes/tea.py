@@ -1,9 +1,13 @@
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
-from schemas.tea import TeaCreate, TeaResponsePublic, TeaUpdate
+from schemas.tea import TeaCreate, TeaResponsePublic, TeaResponseList, TeaUpdate
 from core.db import db
 from bson.objectid import ObjectId
 from pymongo import ReturnDocument
+from starlette.status import HTTP_206_PARTIAL_CONTENT
+import json
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/tea", tags=["Tea"])
 
@@ -14,24 +18,43 @@ def create_tea(tea: TeaCreate):
     tea_dict["id"] = str(result.inserted_id) # type: bson.ObjectId
     return tea_dict
 
-@router.get("/", response_model=list[TeaResponsePublic])
+@router.get("/", response_model=TeaResponseList)
 def list_teas():
     teas = db.teas.find()
-    return [
-        TeaResponsePublic(
-            id=str(tea["_id"]),
-            name=tea["name"],
-            origin=tea["origin"],
-            genre=tea["genre"],
-            roast_level=tea["roast_level"],
-            harvest_time=tea["harvest_time"],
-            weight=tea["weight"],
-            quantity=tea["quantity"],
-            score=tea["score"],
-            created_at=tea["created_at"]
-        )
-        for tea in teas
-    ]
+    result = []
+    errors = []
+    for i, tea in enumerate(teas):
+        if not isinstance(tea, dict):
+            errors.append({"index": i, "id": None, "error": "not a dict"})
+            logger.warning("Non-dict tea at index %s: %r", i, tea)
+            continue
+        required = ["name", "genre"]
+        if not all(field in tea for field in required):
+            errors.append(f"Missing fields in tea at index {i}, id={tea.get('_id')}")
+            logger.warning("Missing fields for tea id=%s missing=%s", tea.get("_id"), tea)
+            continue
+        try:
+            tr = TeaResponsePublic(
+                id=str(tea.get("_id") or ""),
+                name=tea.get("name", ""),
+                origin=tea.get("origin", ""),
+                genre=tea.get("genre", ""),
+                roast_level=tea.get("roast_level"),
+                harvest_time=tea.get("harvest_time"),
+                weight=tea.get("weight"),
+                quantity=tea.get("quantity"),
+                score=tea.get("score", 0),
+                created_at=tea.get("created_at")
+            )
+            result.append(tr)
+        except Exception as e:
+            errors.append({"index": i, "id": str(tea.get("_id")), "error": str(e)})
+            logger.exception("Failed to build TeaResponsePublic for tea id=%s", tea.get("_id"))
+            continue
+    
+    status_code = HTTP_206_PARTIAL_CONTENT if errors else status.HTTP_200_OK
+    data = [json.loads(t.json()) for t in result]   # Pydantic 會把 datetime 序列化為 ISO string
+    return JSONResponse(content={"data": data, "errors": errors}, status_code=status_code)
 
 @router.patch("/{tea_id}")
 def edit_tea(tea_id: str, tea: TeaUpdate):
