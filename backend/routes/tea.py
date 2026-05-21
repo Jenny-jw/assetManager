@@ -15,7 +15,7 @@ router = APIRouter(prefix="/tea", tags=["Tea"])
 def create_tea(tea: TeaCreate):
     tea_dict = tea.model_dump()
     result = db.teas.insert_one(tea_dict)
-    tea_dict["id"] = str(result.inserted_id) # type: bson.ObjectId
+    tea_dict["id"] = str(result.inserted_id)
     return tea_dict
 
 @router.get("/", response_model=TeaResponseList)
@@ -34,18 +34,10 @@ def list_teas():
             logger.warning("Missing fields for tea id=%s missing=%s", tea.get("_id"), tea)
             continue
         try:
-            tr = TeaResponsePublic(
-                id=str(tea.get("_id") or ""),
-                name=tea.get("name", ""),
-                origin=tea.get("origin", ""),
-                genre=tea.get("genre", ""),
-                roast_level=tea.get("roast_level"),
-                harvest_time=tea.get("harvest_time"),
-                weight=tea.get("weight"),
-                quantity=tea.get("quantity"),
-                score=tea.get("score", 0),
-                created_at=tea.get("created_at")
-            )
+            tea["id"] = str(tea["_id"])
+            tea["created_at"] = tea.get("created_at")
+            tea.pop("_id", None)
+            tr = TeaResponsePublic.model_validate(tea)
             result.append(tr)
         except Exception as e:
             errors.append({"index": i, "id": str(tea.get("_id")), "error": str(e)})
