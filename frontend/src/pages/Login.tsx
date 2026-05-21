@@ -1,8 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { login } from "../services/authServices";
+import { useAuth } from "../context/useAuth";
 
 const Login = () => {
+  const { refresh } = useAuth();
   const [errMsg, setErrMsg] = useState<string>("");
   const navigate = useNavigate();
 
@@ -15,10 +17,8 @@ const Login = () => {
     const password = formData.get("password") as string;
 
     try {
-      const data = await login(email, password);
-
-      console.log("Data: ", data);
-
+      await login(email, password);
+      await refresh();
       navigate("/dashboard");
     } catch (err) {
       if (err instanceof Error && err.message) {
