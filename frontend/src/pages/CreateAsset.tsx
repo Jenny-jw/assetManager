@@ -47,7 +47,7 @@ const CreateAsset = () => {
             value={form.name}
             onChange={handleChange}
             required
-            className="w-full border rounded-lg p-2"
+            className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
           />
         </div>
         <div className="grid md:grid-cols-2 gap-4">
@@ -58,7 +58,7 @@ const CreateAsset = () => {
               name="origin"
               value={form.origin || ""}
               onChange={handleChange}
-              className="w-full border rounded-lg p-2"
+              className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
             />
           </div>
           {/* Genre dropdown */}
@@ -68,7 +68,7 @@ const CreateAsset = () => {
               name="genre"
               value={form.genre || ""}
               onChange={handleChange}
-              className="w-full border rounded-lg p-2"
+              className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
               required
             >
               <option value="">Select genre</option>
@@ -88,7 +88,7 @@ const CreateAsset = () => {
               name="score"
               value={form.score || ""}
               onChange={handleChange}
-              className="w-full border rounded-lg p-2"
+              className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
             />
           </div>
           {/* Producer */}
@@ -98,7 +98,7 @@ const CreateAsset = () => {
               name="producer.name"
               value={form.producer?.name || ""}
               onChange={handleChange}
-              className="w-full border rounded-lg p-2"
+              className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
             />
           </div>
         </div>
@@ -108,7 +108,7 @@ const CreateAsset = () => {
             name="comment"
             value={form.comment}
             onChange={handleChange}
-            className="w-full border rounded-lg p-2"
+            className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
           />
         </div>
         <div>
@@ -138,7 +138,7 @@ const CreateAsset = () => {
               name="weight"
               value={form.weight ?? ""}
               onChange={handleChange}
-              className="w-full border rounded-lg p-2"
+              className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
             />
           </div>
           <div>
@@ -148,7 +148,7 @@ const CreateAsset = () => {
               name="quantity"
               value={form.quantity ?? ""}
               onChange={handleChange}
-              className="w-full border rounded-lg p-2"
+              className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
             />
           </div>
         </div>
@@ -168,7 +168,7 @@ const CreateAsset = () => {
                   harvest_time: Number(formatted),
                 }));
               }}
-              className="w-full border rounded-lg p-2"
+              className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
             />
           </div>
           <button

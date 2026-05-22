@@ -11,15 +11,15 @@ const Summary = ({ assets }: Props) => {
 
   return (
     <div className="grid grid-cols-3 gap-4">
-      <div className="bg-[#ffffffCC] p-4 shadow rounded-xl text-gray-500">
+      <div className="bg-[#ffffffE6] p-4 shadow rounded-xl text-gray-500">
         <p className="text-sm">Total Assets</p>
         <p className="text-2xl font-bold">{totalAssets}</p>
       </div>
-      <div className="bg-[#ffffffCC] p-4 shadow rounded-xl text-gray-500">
+      <div className="bg-[#ffffffE6] p-4 shadow rounded-xl text-gray-500">
         <p className="text-sm">Total Quantity</p>
         <p className="text-2xl font-bold">{totalQuantity}</p>
       </div>
-      <div className="bg-[#ffffffCC] p-4 shadow rounded-xl text-gray-500">
+      <div className="bg-[#ffffffE6] p-4 shadow rounded-xl text-gray-500">
         <p className="text-sm">Total Weight (g)</p>
         <p className="text-2xl font-bold">{totalWeight}</p>
       </div>

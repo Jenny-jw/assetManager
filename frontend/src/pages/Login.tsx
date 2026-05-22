@@ -54,13 +54,13 @@ const Login = () => {
             type="email"
             name="email"
             placeholder="Email"
-            className="w-full border p-3 rounded bg-[#d3d4be80]"
+            className="w-full border p-3 rounded bg-[#d3d4be80] text-[#ffffffE6]"
           />
           <input
             type="password"
             name="password"
             placeholder="Password"
-            className="w-full border p-3 rounded bg-[#d3d4be80]"
+            className="w-full border p-3 rounded bg-[#d3d4be80] text-[#ffffffE6]"
           />
           {errMsg && (
             <p className="text-red-300 text-sm text-center">{errMsg}</p>
