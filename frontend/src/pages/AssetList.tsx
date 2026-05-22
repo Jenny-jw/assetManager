@@ -161,15 +161,21 @@ const AssetList = () => {
             onClick={() => setSelectedAsset(asset)}
             className="bg-white rounded-2xl border shadow-sm p-4 cursor-pointer active:scale-[0.99] transition"
           >
-            <div className="flex justify-between items-start gap-4">
-              <div>
-                <h2 className="font-semibold text-lg">{asset.name}</h2>
-                <p className="text-sm text-gray-500">{asset.origin || "-"}</p>
+            <div className="flex justify-between items-start gap-4 ">
+              <div className="min-w-0 text-left">
+                <h2 className="text-[#9f655d] font-semibold text-lg wrap-break-word">
+                  {asset.name}
+                </h2>
+                <p className="text-sm text-gray-500 wrap-break-word">
+                  {asset.origin || "-"}
+                </p>
               </div>
 
-              <div className="text-right">
+              <div className="shrink-0 text-right">
                 <p className="text-xs text-gray-400">Score</p>
-                <p className="font-bold text-lg">{asset.score ?? "-"}</p>
+                <p className="font-bold text-lg text-[#9f655d]">
+                  {asset.score ?? "-"}
+                </p>
               </div>
             </div>
           </div>
