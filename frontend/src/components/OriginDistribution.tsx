@@ -13,7 +13,7 @@ const OriginDistribution = ({ assets }: Props) => {
   });
 
   return (
-    <div className="bg-white p-4 shadow rounded-xl text-gray-500">
+    <div className="bg-[#ffffffCC] p-4 shadow rounded-xl text-gray-500">
       <h2 className="font-semibold mb-3">Assets by Origin</h2>
       <ul>
         {Object.entries(map).map(([origin, count]) => (

@@ -122,9 +122,9 @@ const CreateAsset = () => {
             max="100"
             value={form.roast_level ?? 0}
             onChange={handleChange}
-            className="w-full"
+            className="w-full accent-[#b8cb75]"
           />
-          <div className="flex justify-between text-sm text-gray-500">
+          <div className="flex justify-between text-sm text-[#ccd989]">
             <span>Light</span>
             <span>Medium</span>
             <span>Dark</span>
@@ -173,7 +173,7 @@ const CreateAsset = () => {
           </div>
           <button
             type="submit"
-            className="bg-lime-500 text-white px-6 py-2 rounded-lg"
+            className="bg-[#78a043] text-white px-6 py-2 rounded-lg"
           >
             Create Asset
           </button>
@@ -181,7 +181,7 @@ const CreateAsset = () => {
         <div className="pt-2">
           <Link
             to="/dashboard"
-            className="text-lime-700 hover:underline hover:text-lime-800 transition"
+            className="text-[#ccd989] hover:text-[#b8cb75] hover:underline transition"
           >
             ← Go back to Dashboard
           </Link>

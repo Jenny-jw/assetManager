@@ -38,13 +38,13 @@ const Dashboard = () => {
           {user?.role === "admin" && (
             <>
               <button
-                className="flex-1 rounded-xl bg-lime-700 hover:border-lime-200 text-white"
+                className="flex-1 rounded-xl bg-[#78a043] hover:border-lime-200 text-white"
                 onClick={() => navigate("/assets/new")}
               >
                 Add Asset
               </button>
               <button
-                className="flex-1 rounded-xl bg-lime-500 hover:border-lime-100 text-white"
+                className="flex-1 rounded-xl bg-[#b8cb75] hover:border-lime-100 text-white"
                 onClick={() => navigate("/assets")}
               >
                 Manage Inventory
@@ -53,7 +53,7 @@ const Dashboard = () => {
           )}
           {user?.role === "user" && (
             <button
-              className="flex-1 rounded-xl bg-lime-500 hover:border-lime-100 text-white"
+              className="flex-1 rounded-xl bg-bg-[#78a043] hover:border-lime-100 text-white"
               onClick={() => navigate("/assets")}
             >
               Order
@@ -61,7 +61,7 @@ const Dashboard = () => {
           )}
           {user?.role === "guest" && (
             <button
-              className="flex-1 rounded-xl bg-lime-500 hover:border-lime-100 text-white"
+              className="flex-1 rounded-xl bg-[#b8cb75] hover:border-lime-100 text-white"
               onClick={() => navigate("/assets")}
             >
               Asset List

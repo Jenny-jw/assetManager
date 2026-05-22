@@ -10,7 +10,7 @@ const RecentAssets = ({ assets, className }: Props) => {
 
   return (
     <div
-      className={`col-start-1 col-end-4 bg-white p-4 shadow rounded-xl text-gray-500 ${className ?? ""}`}
+      className={`col-start-1 col-end-4 bg-[#ffffffCC] p-4 shadow rounded-xl text-gray-500 ${className ?? ""}`}
     >
       <h2 className="font-semibold mb-3">Recent Assets</h2>
 

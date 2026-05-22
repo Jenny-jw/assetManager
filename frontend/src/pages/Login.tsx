@@ -33,13 +33,13 @@ const Login = () => {
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
       {/* Intro on the left */}
       <div className="hidden md:flex flex-col justify-center p-12">
-        <h1 className="text-4xl font-bold mb-4">Tea Keeper 🌿</h1>
-        <p className="text-gray-400 mb-6">
+        <h1 className="text-4xl font-bold mb-4 text-left">Tea Keeper 🌿</h1>
+        <p className="text-[#d6d1c5] mb-8 text-left">
           Manage and track your yummy tea collection.
         </p>
         <Link
           to="/dashboard"
-          className="text-lime-500 hover:text-lime-700 font-semibold"
+          className="text-[#ccd989] hover:text-[#b8cb75] font-semibold text-left"
         >
           View Dashboard as Guest →
         </Link>
@@ -54,27 +54,27 @@ const Login = () => {
             type="email"
             name="email"
             placeholder="Email"
-            className="w-full border p-3 rounded"
+            className="w-full border p-3 rounded bg-[#d3d4be80]"
           />
           <input
             type="password"
             name="password"
             placeholder="Password"
-            className="w-full border p-3 rounded"
+            className="w-full border p-3 rounded bg-[#d3d4be80]"
           />
           {errMsg && (
             <p className="text-red-300 text-sm text-center">{errMsg}</p>
           )}
           <button
             type="submit"
-            className="w-full bg-lime-600 text-white py-3 rounded"
+            className="w-full bg-[#bdcd68] text-white py-3 rounded"
           >
             Log In
           </button>
 
           <p className="text-center text-sm">
             Don’t have an account?{" "}
-            <Link to="/signup" className="text-lime-600 hover:text-lime-800">
+            <Link to="/signup" className="text-[#ccd989] hover:text-[#b8cb75]">
               Sign Up
             </Link>
           </p>

@@ -13,7 +13,7 @@ const GenreDistribution = ({ assets }: Props) => {
   });
 
   return (
-    <div className="bg-white p-4 shadow rounded-xl text-gray-500">
+    <div className="bg-[#ffffffCC] p-4 shadow rounded-xl text-gray-500">
       <h2 className="font-semibold mb-3">Assets by Genre</h2>
 
       <ul>
