@@ -18,7 +18,7 @@ class ProducerInfo(BaseModel):
 class TeaBase(BaseModel):
     name: str = Field(..., example="High mountain oolong tea")
     origin: Optional[str] = Field(None, example="Alishan")
-    genre: Optional[str] = Field(None, example="Oolong")
+    genre: str = Field(..., example="Oolong")
     roast_level: Optional[Score] = Field(None, example=50)
     harvest_time: Optional[int] = Field(None, example=202506)  # YYYYMM
     weight: Optional[weightRange] = Field(None, example=600)   # grams
