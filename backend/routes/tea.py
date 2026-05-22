@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, HTTPException
 from fastapi.responses import JSONResponse
 from schemas.tea import TeaCreate, TeaResponsePublic, TeaResponseList, TeaUpdate
 from core.db import db
@@ -48,12 +48,30 @@ def list_teas():
     data = [json.loads(t.json()) for t in result]   # Pydantic 會把 datetime 序列化為 ISO string
     return JSONResponse(content={"data": data, "errors": errors}, status_code=status_code)
 
-@router.patch("/{tea_id}")
+@router.get("/{tea_id}", response_model=TeaResponsePublic)
+def get_tea(tea_id: str):
+    if not ObjectId.is_valid(tea_id):
+        raise HTTPException(status_code=400, detail="Invalid tea id")
+
+    tea = db.teas.find_one({"_id": ObjectId(tea_id)})
+
+    if not tea:
+        raise HTTPException(status_code=404, detail="Tea not found")
+
+    tea["id"] = str(tea["_id"])
+    tea.pop("_id", None)
+
+    return tea
+
+@router.patch("/{tea_id}", response_model=TeaResponsePublic)
 def edit_tea(tea_id: str, tea: TeaUpdate):
+    if not ObjectId.is_valid(tea_id):
+        raise HTTPException(status_code=400, detail="Invalid tea id")
+    
     update_data = tea.model_dump(exclude_unset=True, exclude_none=True)
     
     if not update_data:
-        return {"message": "No fields to update"}
+        raise HTTPException(status_code=400, detail="No fields to update")
     
     updated = db.teas.find_one_and_update(
         {"_id": ObjectId(tea_id)},
@@ -62,17 +80,21 @@ def edit_tea(tea_id: str, tea: TeaUpdate):
     )
     
     if not updated:
-        return {"message": "Tea not found"}
+        raise HTTPException(status_code=404, detail="Tea not found")
     
     updated["id"] = str(updated["_id"])
+    updated.pop("_id", None)
     
     return updated
 
 @router.delete("/{tea_id}")
 def remove_tea(tea_id: str):
+    if not ObjectId.is_valid(tea_id):
+        raise HTTPException(status_code=400, detail="Invalid tea id")
+    
     res = db.teas.delete_one({"_id": ObjectId(tea_id)})
     
     if (res.deleted_count == 1):
         return {"message": "Tea deleted"}
-    else:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Tea not found"})
+    
+    raise HTTPException(status_code=404, detail="Tea not found")
