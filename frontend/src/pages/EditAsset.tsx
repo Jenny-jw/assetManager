@@ -8,6 +8,9 @@ type EditForm = {
   name: string;
   origin: string;
   genre: string;
+  producer: string;
+  harvest_time: string;
+  roast_time: string;
   roast_level: string;
   weight: string;
   quantity: string;
@@ -23,6 +26,9 @@ const EditAsset = () => {
     name: "",
     origin: "",
     genre: "",
+    producer: "",
+    harvest_time: "",
+    roast_time: "",
     roast_level: "",
     weight: "",
     quantity: "",
@@ -50,7 +56,10 @@ const EditAsset = () => {
           name: asset.name ?? "",
           origin: asset.origin ?? "",
           genre: asset.genre ?? "",
-          roast_level: asset.roast_level ?? "",
+          producer: asset.producer ?? "",
+          harvest_time: asset.harvest_time?.toString() ?? "",
+          roast_time: asset.roast_time?.toString() ?? "",
+          roast_level: asset.roast_level?.toString() ?? "",
           weight: asset.weight?.toString() ?? "",
           quantity: asset.quantity?.toString() ?? "",
           score: asset.score?.toString() ?? "",
@@ -84,9 +93,14 @@ const EditAsset = () => {
 
     const payload = {
       name: form.name,
-      origin: form.origin || undefined,
       genre: form.genre,
-      roast_level: form.roast_level || undefined,
+      origin: form.origin || undefined,
+      producer: form.producer || undefined,
+      harvest_time:
+        form.harvest_time === "" ? undefined : Number(form.harvest_time),
+      roast_time: form.roast_time === "" ? undefined : Number(form.roast_time),
+      roast_level:
+        form.roast_level === "" ? undefined : Number(form.roast_level),
       weight: form.weight === "" ? undefined : Number(form.weight),
       quantity: form.quantity === "" ? undefined : Number(form.quantity),
       score: form.score === "" ? undefined : Number(form.score),
@@ -152,16 +166,6 @@ const EditAsset = () => {
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium text-gray-600">Origin</span>
-            <input
-              name="origin"
-              value={form.origin}
-              onChange={handleChange}
-              className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
-            />
-          </label>
-
-          <label className="space-y-2">
             <span className="text-sm font-medium text-gray-600">Genre</span>
             <input
               name="genre"
@@ -173,50 +177,107 @@ const EditAsset = () => {
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium text-gray-600">Roast</span>
+            <span className="text-sm font-medium text-gray-600">Origin</span>
             <input
-              name="roast_level"
-              value={form.roast_level}
+              name="origin"
+              value={form.origin}
               onChange={handleChange}
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium text-gray-600">Weight</span>
+            <span className="text-sm font-medium text-gray-600">Producer</span>
             <input
-              type="number"
-              name="weight"
-              value={form.weight}
+              name="producer"
+              value={form.producer}
               onChange={handleChange}
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium text-gray-600">Quantity</span>
+            <span className="text-sm font-medium text-gray-600">
+              Harvest Time
+            </span>
             <input
               type="number"
-              name="quantity"
-              value={form.quantity}
+              name="harvest_time"
+              value={form.harvest_time}
+              onChange={handleChange}
+              className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
+            />
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-gray-600">
+              Roast Time
+            </span>
+            <input
+              type="number"
+              name="roast_time"
+              value={form.roast_time}
               onChange={handleChange}
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
           </label>
 
           <label className="space-y-2 md:col-span-2">
-            <span className="text-sm font-medium text-gray-600">Score</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <span className="text-sm font-medium text-gray-600">
+                  Weight
+                </span>
+                <input
+                  type="number"
+                  name="weight"
+                  value={form.weight}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-sm font-medium text-gray-600">
+                  Quantity
+                </span>
+                <input
+                  type="number"
+                  name="quantity"
+                  value={form.quantity}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-sm font-medium text-gray-600">Score</span>
+                <input
+                  type="number"
+                  name="score"
+                  value={form.score}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
+                />
+              </div>
+            </div>
+          </label>
+
+          <label className="space-y-2 md:col-span-2">
+            <span className="text-sm font-medium text-gray-600">
+              Roast Level
+            </span>
             <input
               type="range"
-              name="score"
+              name="roast_level"
               min="0"
               max="100"
-              value={form.score}
+              value={form.roast_level}
               onChange={handleChange}
               className="w-full accent-[#78a043]"
             />
             <p className="text-right text-sm font-semibold text-[#9f655d]">
-              {form.score || "-"}
+              {form.roast_level || "-"}
             </p>
           </label>
 
