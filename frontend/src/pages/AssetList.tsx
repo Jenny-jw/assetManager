@@ -146,7 +146,7 @@ const AssetList = () => {
                     <td className="px-4 py-3">{asset.weight ?? "-"}</td>
                     <td className="px-4 py-3">{asset.quantity ?? "-"}</td>
                     <td className="px-4 py-3">{asset.score ?? "-"}</td>
-                    <td className="px-4 py-3">{asset.producer?.name ?? "-"}</td>
+                    <td className="px-4 py-3">{asset.producer ?? "-"}</td>
                     <td className="px-4 py-3 max-w-[240px] truncate text-left">
                       {asset.comment ?? "-"}
                     </td>
@@ -251,10 +251,7 @@ const AssetList = () => {
                 <DetailRow label="Weight" value={selectedAsset.weight} />
                 <DetailRow label="Quantity" value={selectedAsset.quantity} />
                 <DetailRow label="Score" value={selectedAsset.score} />
-                <DetailRow
-                  label="Producer"
-                  value={selectedAsset.producer?.name}
-                />
+                <DetailRow label="Producer" value={selectedAsset.producer} />
                 <DetailRow label="Comment" value={selectedAsset.comment} />
               </div>
 
