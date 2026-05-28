@@ -1,16 +1,11 @@
 import type { Asset } from "../types/Asset";
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import axios from "../lib/axios";
 import { useAuth } from "../context/useAuth";
 import { useNavigate } from "react-router-dom";
 
-const DetailRow = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) => (
+const DetailRow = ({ label, value }: { label: string; value: ReactNode }) => (
   <div className="flex justify-between gap-4 border-b pb-2">
     <span className="font-medium text-gray-600">{label}</span>
     <span className="text-gray-800 text-right wrap-break-words">
@@ -23,6 +18,7 @@ const AssetList = () => {
   const { user } = useAuth();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [detailsMode, setDetailsMode] = useState<"details" | "full">("full");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,13 +27,21 @@ const AssetList = () => {
     });
   }, []);
 
+  const openDesktopDetails = (asset: Asset) => {
+    setDetailsMode("details");
+    setSelectedAsset(asset);
+  };
+
+  const openFullDetails = (asset: Asset) => {
+    setDetailsMode("full");
+    setSelectedAsset(asset);
+  };
+
   const handleEdit = (assetId: string) => {
-    console.log("Edit:", assetId);
     navigate(`/assets/${assetId}/edit`);
   };
 
   const handleDelete = async (assetId: string) => {
-    console.log("Delete:", assetId);
     const confirmed = window.confirm(
       "Are you sure you want to delete this tea?",
     );
@@ -67,6 +71,16 @@ const AssetList = () => {
           <button
             onClick={(e) => {
               e.stopPropagation();
+              openDesktopDetails(asset);
+            }}
+            className="px-3 py-1 text-sm rounded-lg bg-[#bfc099] text-white hover:bg-[#bbbb82] transition"
+          >
+            Details
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
               handleEdit(asset.id);
             }}
             className="px-3 py-1 text-sm rounded-lg bg-[#78a043] text-white hover:bg-lime-900 transition"
@@ -88,11 +102,21 @@ const AssetList = () => {
     }
 
     return (
-      <div className="flex justify-end">
+      <div className="flex gap-2 justify-end">
         <button
           onClick={(e) => {
             e.stopPropagation();
-            handleEdit(asset.id); // or order
+            openDesktopDetails(asset);
+          }}
+          className="px-3 py-1 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
+        >
+          Details
+        </button>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleEdit(asset.id);
           }}
           className="px-3 py-1 text-sm rounded-lg bg-lime-700 text-white hover:bg-lime-900 transition"
         >
@@ -124,14 +148,13 @@ const AssetList = () => {
               <thead className="bg-[#dee8ae] text-[#64794d] uppercase text-xs">
                 <tr>
                   <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Origin</th>
                   <th className="px-4 py-3">Genre</th>
-                  <th className="px-4 py-3">Roast</th>
+                  <th className="px-4 py-3">Origin</th>
+                  <th className="px-4 py-3">Producer</th>
                   <th className="px-4 py-3">Weight</th>
                   <th className="px-4 py-3">Quantity</th>
                   <th className="px-4 py-3">Score</th>
-                  <th className="px-4 py-3">Producer</th>
-                  <th className="px-4 py-3">Comment</th>
+                  <th className="px-4 py-3">Roast</th>
                   <th className="px-4 py-3">Actions</th>
                 </tr>
               </thead>
@@ -140,16 +163,13 @@ const AssetList = () => {
                 {assets.map((asset) => (
                   <tr key={asset.id} className="hover:bg-[#fcf6de] transition">
                     <td className="px-4 py-3 font-medium">{asset.name}</td>
-                    <td className="px-4 py-3">{asset.origin || "-"}</td>
-                    <td className="px-4 py-3">{asset.genre}</td>
-                    <td className="px-4 py-3">{asset.roast_level}</td>
+                    <td className="px-4 py-3">{asset.genre ?? "-"}</td>
+                    <td className="px-4 py-3">{asset.origin ?? "-"}</td>
+                    <td className="px-4 py-3">{asset.producer ?? "-"}</td>
                     <td className="px-4 py-3">{asset.weight ?? "-"}</td>
                     <td className="px-4 py-3">{asset.quantity ?? "-"}</td>
                     <td className="px-4 py-3">{asset.score ?? "-"}</td>
-                    <td className="px-4 py-3">{asset.producer ?? "-"}</td>
-                    <td className="px-4 py-3 max-w-[240px] truncate text-left">
-                      {asset.comment ?? "-"}
-                    </td>
+                    <td className="px-4 py-3">{asset.roast_level ?? "-"}</td>
                     <td className="px-4 py-3">{renderActions(asset)}</td>
                   </tr>
                 ))}
@@ -175,13 +195,13 @@ const AssetList = () => {
               {assets.map((asset) => (
                 <tr
                   key={asset.id}
-                  onClick={() => setSelectedAsset(asset)}
+                  onClick={() => openFullDetails(asset)}
                   className="cursor-pointer hover:bg-gray-50 transition"
                 >
                   <td className="px-4 py-3 font-medium">{asset.name}</td>
-                  <td className="px-4 py-3">{asset.genre}</td>
-                  <td className="px-4 py-3">{asset.origin || "-"}</td>
-                  <td className="px-4 py-3">{asset.roast_level}</td>
+                  <td className="px-4 py-3">{asset.genre ?? "-"}</td>
+                  <td className="px-4 py-3">{asset.origin ?? "-"}</td>
+                  <td className="px-4 py-3">{asset.roast_level ?? "-"}</td>
                   <td className="px-4 py-3">{asset.score ?? "-"}</td>
                 </tr>
               ))}
@@ -194,16 +214,16 @@ const AssetList = () => {
           {assets.map((asset) => (
             <div
               key={asset.id}
-              onClick={() => setSelectedAsset(asset)}
+              onClick={() => openFullDetails(asset)}
               className="bg-white rounded-2xl border shadow-sm p-4 cursor-pointer active:scale-[0.99] transition"
             >
-              <div className="flex justify-between items-start gap-4 ">
+              <div className="flex justify-between items-start gap-4">
                 <div className="min-w-0 text-left">
                   <h2 className="text-[#9f655d] font-semibold text-lg wrap-break-word">
                     {asset.name}
                   </h2>
                   <p className="text-sm text-gray-500 wrap-break-word">
-                    {asset.origin || "-"}
+                    {asset.origin ?? "-"}
                   </p>
                 </div>
 
@@ -233,7 +253,7 @@ const AssetList = () => {
                   <h2 className="text-2xl font-bold text-gray-500">
                     {selectedAsset.name}
                   </h2>
-                  <p className="text-gray-500 text-left">Asset Details</p>
+                  <p className="text-gray-500 text-left">More details</p>
                 </div>
 
                 <button
@@ -245,13 +265,36 @@ const AssetList = () => {
               </div>
 
               <div className="space-y-3">
-                <DetailRow label="Origin" value={selectedAsset.origin} />
-                <DetailRow label="Genre" value={selectedAsset.genre} />
-                <DetailRow label="Roast" value={selectedAsset.roast_level} />
-                <DetailRow label="Weight" value={selectedAsset.weight} />
-                <DetailRow label="Quantity" value={selectedAsset.quantity} />
-                <DetailRow label="Score" value={selectedAsset.score} />
-                <DetailRow label="Producer" value={selectedAsset.producer} />
+                {detailsMode === "full" && (
+                  <>
+                    <DetailRow label="Name" value={selectedAsset.name} />
+                    <DetailRow label="Genre" value={selectedAsset.genre} />
+                    <DetailRow label="Origin" value={selectedAsset.origin} />
+                    <DetailRow
+                      label="Producer"
+                      value={selectedAsset.producer}
+                    />
+                    <DetailRow label="Weight" value={selectedAsset.weight} />
+                    <DetailRow
+                      label="Quantity"
+                      value={selectedAsset.quantity}
+                    />
+                    <DetailRow label="Score" value={selectedAsset.score} />
+                    <DetailRow
+                      label="Roast Level"
+                      value={selectedAsset.roast_level}
+                    />
+                  </>
+                )}
+
+                <DetailRow
+                  label="Harvest Time"
+                  value={selectedAsset.harvest_time}
+                />
+                <DetailRow
+                  label="Roast Time"
+                  value={selectedAsset.roast_time}
+                />
                 <DetailRow label="Comment" value={selectedAsset.comment} />
               </div>
 
