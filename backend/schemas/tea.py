@@ -9,20 +9,22 @@ def utcnow():
 Score = Annotated[int, Field(ge=0, le=100)]
 weightRange = Annotated[int, Field(ge=0)]
 quantityRange = Annotated[int, Field(ge=0)]
+harvestDate = Annotated[int, Field(ge=20100101, le=22001231)]
+priceRange = Annotated[int, Field(ge=0)]
 
 class TeaBase(BaseModel):
     name: str = Field(..., example="High mountain oolong tea")
     origin: Optional[str] = Field(None, example="Alishan")
     genre: str = Field(..., example="Oolong")
     roast_level: Optional[Score] = Field(None, example=50)
-    harvest_time: Optional[int] = Field(None, example=202506)  # YYYYMM
-    roast_time: Optional[int] = Field(None, example=202506)
-    weight: Optional[weightRange] = Field(None, example=600)   # grams
+    harvest_time: Optional[harvestDate] = Field(None, example=20260517)
+    weight: Optional[weightRange] = Field(None, example=600)
     quantity: Optional[quantityRange] = Field(None, example=3)
     score: Optional[Score] = Field(None, example=85)
+    price: Optional[priceRange] = Field(None, example=1200)
     comment: Optional[str] = Field(None, example="Fruity aroma with a hint of floral notes")
     producer: Optional[str] = None
-    owner_id: Optional[str] = None  # reference to user (UUID or str)
+    owner_id: Optional[str] = None # reference to user (UUID or str)
 
 class TeaCreate(TeaBase):
     created_at: datetime = Field(default_factory=utcnow)
@@ -32,11 +34,11 @@ class TeaUpdate(BaseModel):
     origin: Optional[str] = None
     genre: Optional[str] = None
     roast_level: Optional[Score] = None
-    harvest_time: Optional[int] = None
-    roast_time: Optional[int] = None
+    harvest_time: Optional[harvestDate] = None
     weight: Optional[weightRange] = None
     quantity: Optional[quantityRange] = None
     score: Optional[Score] = None
+    price: Optional[priceRange] = None
     comment: Optional[str] = None
     producer: Optional[str] = None
     owner_id: Optional[str] = None

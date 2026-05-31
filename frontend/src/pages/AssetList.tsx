@@ -108,7 +108,7 @@ const AssetList = () => {
             e.stopPropagation();
             openDesktopDetails(asset);
           }}
-          className="px-3 py-1 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
+          className="px-3 py-1 text-sm rounded-lg bg-[#bfc099] text-white hover:bg-[#bbbb82] transition"
         >
           Details
         </button>
@@ -130,7 +130,13 @@ const AssetList = () => {
     <>
       <div className="p-4 md:p-6 space-y-6">
         <div className="flex items-center justify-between gap-4 px-2">
-          <h1 className="text-3xl font-bold">Asset List</h1>
+          {/* <h1 className="text-3xl font-bold">Asset List</h1> */}
+          <div className="text-left">
+            <h1 className="text-3xl font-bold">Asset List</h1>
+            <p className="text-sm text-[#d6d1c5]">
+              Sort the rows by clicking on the column headers
+            </p>
+          </div>
 
           <button
             type="button"
@@ -145,17 +151,17 @@ const AssetList = () => {
         <div className="hidden lg:block bg-white rounded-2xl shadow-sm border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-[#dee8ae] text-[#64794d] uppercase text-xs">
+              <thead className="bg-[#dee8ae] text-[#64794d] text-xs">
                 <tr>
-                  <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Genre</th>
-                  <th className="px-4 py-3">Origin</th>
-                  <th className="px-4 py-3">Producer</th>
-                  <th className="px-4 py-3">Weight</th>
-                  <th className="px-4 py-3">Quantity</th>
-                  <th className="px-4 py-3">Score</th>
-                  <th className="px-4 py-3">Roast</th>
-                  <th className="px-4 py-3">Actions</th>
+                  <th className="px-4 py-3">NAME</th>
+                  <th className="px-4 py-3">GENRE</th>
+                  <th className="px-4 py-3">ORIGIN</th>
+                  <th className="px-4 py-3">PRODUCER</th>
+                  <th className="px-4 py-3">WEIGHT / PACKAGE (g)</th>
+                  <th className="px-4 py-3">QUANTITY</th>
+                  <th className="px-4 py-3">SCORE</th>
+                  <th className="px-4 py-3">ROAST LEVEL</th>
+                  <th className="px-4 py-3">ACTIONS</th>
                 </tr>
               </thead>
 
@@ -186,7 +192,7 @@ const AssetList = () => {
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Genre</th>
                 <th className="px-4 py-3">Origin</th>
-                <th className="px-4 py-3">Roast</th>
+                <th className="px-4 py-3">Roast Level</th>
                 <th className="px-4 py-3">Score</th>
               </tr>
             </thead>
@@ -290,10 +296,6 @@ const AssetList = () => {
                 <DetailRow
                   label="Harvest Time"
                   value={selectedAsset.harvest_time}
-                />
-                <DetailRow
-                  label="Roast Time"
-                  value={selectedAsset.roast_time}
                 />
                 <DetailRow label="Comment" value={selectedAsset.comment} />
               </div>

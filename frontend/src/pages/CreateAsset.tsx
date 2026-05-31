@@ -10,10 +10,10 @@ const CreateAsset = () => {
     genre: "",
     roast_level: 30,
     harvest_time: undefined,
-    roast_time: undefined,
     weight: 150,
     quantity: 1,
     score: 80,
+    price: undefined,
     comment: "",
     producer: "",
   });
@@ -25,10 +25,7 @@ const CreateAsset = () => {
     setForm((prev) => ({ ...prev, [name]: value === "" ? undefined : value }));
   };
 
-  const handleMonthChange = (
-    field: "harvest_time" | "roast_time",
-    value: string,
-  ) => {
+  const handleDateChange = (field: "harvest_time", value: string) => {
     setForm((prev) => ({
       ...prev,
       [field]: value ? Number(value.replace("-", "")) : undefined,
@@ -74,7 +71,6 @@ const CreateAsset = () => {
               <option value="Oolong">Oolong</option>
               <option value="Black">Black</option>
               <option value="White">White</option>
-              <option value="Dark">Dark</option>
             </select>
           </div>
         </div>
@@ -104,28 +100,26 @@ const CreateAsset = () => {
           <div>
             <label className="block font-medium mb-1">Harvest Time</label>
             <input
-              type="month"
+              type="date"
               name="harvest_time"
-              onChange={(e) =>
-                handleMonthChange("harvest_time", e.target.value)
-              }
+              onChange={(e) => handleDateChange("harvest_time", e.target.value)}
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
             />
           </div>
-          <div>
-            <label className="block font-medium mb-1">Roast Time</label>
-            <input
-              type="month"
-              name="roast_time"
-              onChange={(e) => handleMonthChange("roast_time", e.target.value)}
-              className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
-            />
-          </div>
+          <input
+            type="number"
+            name="price"
+            value={form.price ?? ""}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
+          />
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">
           <div>
-            <label className="block font-medium mb-1">Weight (g)</label>
+            <label className="block font-medium mb-1">
+              Weight per package (g)
+            </label>
             <input
               type="number"
               name="weight"

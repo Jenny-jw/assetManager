@@ -4,7 +4,7 @@ export type AssetBase = {
   genre?: string;
   roast_level?: number;
   harvest_time?: number;
-  roast_time?: number;
+  price?: number;
   weight?: number;
   quantity?: number;
   score?: number;
