@@ -48,4 +48,7 @@ def login(user: UserLogin, response: Response):
     
     return {"message": "Login successful"}
 
-# @router.post("/logout")
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie(key="token")
+    return {"message": "Logout successful"}

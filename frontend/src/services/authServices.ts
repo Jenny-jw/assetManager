@@ -21,7 +21,7 @@ export const login = async (email: string, password: string) => {
 };
 
 export const logout = async () => {
-  await api.post("/auth/logout", { withCredentials: true });
+  await api.post("/auth/logout", {}, { withCredentials: true });
 };
 
 export const getCurrentUser = async () => {

@@ -26,7 +26,17 @@ const Dashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Asset Manager Dashboard</h1>
+      <div className="flex items-center justify-between gap-4 px-2">
+        <h1 className="text-3xl font-bold">Tea Keeper Dashboard</h1>
+
+        <button
+          type="button"
+          onClick={() => navigate("/dashboard")}
+          className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
+        >
+          Log out
+        </button>
+      </div>
       <Summary assets={assets} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <OriginDistribution assets={assets} />
