@@ -1,15 +1,20 @@
-from fastapi import APIRouter, status, HTTPException
+from fastapi import APIRouter, status, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from schemas.tea import TeaCreate, TeaResponsePublic, TeaResponseList, TeaUpdate
 from core.db import db
 from bson.objectid import ObjectId
 from pymongo import ReturnDocument
 from starlette.status import HTTP_206_PARTIAL_CONTENT
+from middleware.auth import get_current_user
 import json
 import logging
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/tea", tags=["Tea"])
+router = APIRouter(
+    prefix="/tea",
+    tags=["Tea"],
+    dependencies=[Depends(get_current_user)],
+)
 
 @router.post("/", response_model=TeaResponsePublic)
 def create_tea(tea: TeaCreate):
