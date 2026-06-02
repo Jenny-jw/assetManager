@@ -5,7 +5,8 @@ from core.db import db
 from bson.objectid import ObjectId
 from pymongo import ReturnDocument
 from starlette.status import HTTP_206_PARTIAL_CONTENT
-from middleware.auth import get_current_user
+from middleware.auth import get_current_user, require_role
+from models.user import UserRole
 import json
 import logging
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ router = APIRouter(
 )
 
 @router.post("/", response_model=TeaResponsePublic)
-def create_tea(tea: TeaCreate):
+def create_tea(tea: TeaCreate, _: dict = Depends(require_role(UserRole.admin))):
     tea_dict = tea.model_dump()
     result = db.teas.insert_one(tea_dict)
     tea_dict["id"] = str(result.inserted_id)
@@ -69,7 +70,11 @@ def get_tea(tea_id: str):
     return tea
 
 @router.patch("/{tea_id}", response_model=TeaResponsePublic)
-def edit_tea(tea_id: str, tea: TeaUpdate):
+def edit_tea(
+    tea_id: str,
+    tea: TeaUpdate,
+    _: dict = Depends(require_role(UserRole.admin)),
+):
     if not ObjectId.is_valid(tea_id):
         raise HTTPException(status_code=400, detail="Invalid tea id")
     
@@ -93,7 +98,7 @@ def edit_tea(tea_id: str, tea: TeaUpdate):
     return updated
 
 @router.delete("/{tea_id}")
-def remove_tea(tea_id: str):
+def remove_tea(tea_id: str, _: dict = Depends(require_role(UserRole.admin))):
     if not ObjectId.is_valid(tea_id):
         raise HTTPException(status_code=400, detail="Invalid tea id")
     
