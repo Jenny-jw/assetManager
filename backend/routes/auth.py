@@ -3,6 +3,11 @@ from fastapi import APIRouter, HTTPException, Response
 from models.user import UserRole
 from schemas.user import UserLogin, UserCreate, UserResponse
 from core.db import db
+from core.config import (
+    JWT_COOKIE_MAX_AGE_SECONDS,
+    JWT_COOKIE_SAMESITE,
+    JWT_COOKIE_SECURE,
+)
 from core.security import hash_password, verify_password, create_token
 from datetime import datetime, timezone
 
@@ -44,11 +49,23 @@ def login(user: UserLogin, response: Response):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     token = create_token({"sub": str(db_user["_id"]), "role": db_user["role"]})
-    response.set_cookie(key="token", value=token, httponly=True)
+    response.set_cookie(
+        key="token",
+        value=token,
+        httponly=True,
+        secure=JWT_COOKIE_SECURE,
+        samesite=JWT_COOKIE_SAMESITE,
+        max_age=JWT_COOKIE_MAX_AGE_SECONDS,
+    )
     
     return {"message": "Login successful"}
 
 @router.post("/logout")
 def logout(response: Response):
-    response.delete_cookie(key="token")
+    response.delete_cookie(
+        key="token",
+        httponly=True,
+        secure=JWT_COOKIE_SECURE,
+        samesite=JWT_COOKIE_SAMESITE,
+    )
     return {"message": "Logout successful"}
