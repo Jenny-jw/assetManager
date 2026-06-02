@@ -2,10 +2,9 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 import jwt
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends
 from schemas.user import UserResponse
-from core.db import db
-from bson import ObjectId
+from middleware.auth import get_current_user
 
 router = APIRouter(prefix="/security", tags=["Security"])
 
@@ -27,18 +26,5 @@ def create_token(data: dict):
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 @router.get("/me", response_model=UserResponse)
-def get_current_user(request: Request):
-    token = request.cookies.get("token")
-    
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    user_id = payload.get("sub")
-    current_user = db.users.find_one({"_id": ObjectId(user_id)})
-    
-    if not current_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    current_user["id"] = str(current_user["_id"])
-    
+def me(current_user = Depends(get_current_user)):
     return current_user
