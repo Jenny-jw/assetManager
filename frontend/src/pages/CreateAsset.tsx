@@ -13,7 +13,7 @@ const CreateAsset = () => {
     weight: 150,
     quantity: 1,
     score: 80,
-    price: undefined,
+    price: 2000,
     comment: "",
     producer: "",
   });
@@ -58,39 +58,51 @@ const CreateAsset = () => {
             />
           </div>
           <div>
-            <label className="block font-medium mb-1">Genre *</label>
-            <select
-              name="genre"
-              value={form.genre || ""}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
-              required
-            >
-              <option value="">Select genre</option>
-              <option value="Green">Green</option>
-              <option value="Oolong">Oolong</option>
-              <option value="Black">Black</option>
-              <option value="White">White</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="block font-medium mb-1">Origin</label>
-            <input
-              name="origin"
-              value={form.origin || ""}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
-            />
-          </div>
-          <div>
             <label className="block font-medium mb-1">Producer</label>
             <input
               name="producer"
               value={form.producer || ""}
               onChange={handleChange}
+              className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
+            />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4">
+          <div>
+            <label className="block font-medium mb-1">Price per 斤 *</label>
+            <input
+              type="number"
+              name="price"
+              value={form.price ?? ""}
+              onChange={handleChange}
+              required
+              className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
+            />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">
+              Weight per Package (g) *
+            </label>
+            <input
+              type="number"
+              name="weight"
+              value={form.weight ?? ""}
+              onChange={handleChange}
+              required
+              className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
+            />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">
+              Number of Packages *
+            </label>
+            <input
+              type="number"
+              name="quantity"
+              value={form.quantity ?? ""}
+              onChange={handleChange}
+              required
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
             />
           </div>
@@ -106,38 +118,54 @@ const CreateAsset = () => {
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
             />
           </div>
-          <input
-            type="number"
-            name="price"
-            value={form.price ?? ""}
-            onChange={handleChange}
-            className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
-          />
+          <div>
+            <label className="block font-medium mb-2">
+              Roast Level: {form.roast_level}
+            </label>
+            <input
+              type="range"
+              name="roast_level"
+              min="0"
+              max="100"
+              value={form.roast_level ?? 0}
+              onChange={handleChange}
+              className="w-full accent-[#b8cb75]"
+            />
+            <div className="flex justify-between text-sm text-[#ccd989]">
+              <span>Light</span>
+              <span>Medium</span>
+              <span>Dark</span>
+            </div>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">
           <div>
-            <label className="block font-medium mb-1">
-              Weight per package (g)
-            </label>
+            <label className="block font-medium mb-1">Origin</label>
             <input
-              type="number"
-              name="weight"
-              value={form.weight ?? ""}
+              name="origin"
+              value={form.origin || ""}
               onChange={handleChange}
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
             />
           </div>
           <div>
-            <label className="block font-medium mb-1">Quantity</label>
-            <input
-              type="number"
-              name="quantity"
-              value={form.quantity ?? ""}
+            <label className="block font-medium mb-1">Genre *</label>
+            <select
+              name="genre"
+              value={form.genre || ""}
               onChange={handleChange}
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
-            />
+              required
+            >
+              <option value="">Select genre</option>
+              <option value="Green">Green</option>
+              <option value="Oolong">Oolong</option>
+              <option value="Black">Black</option>
+              <option value="White">White</option>
+            </select>
           </div>
+
           <div>
             <label className="block font-medium mb-1">Score</label>
             <input
@@ -146,26 +174,6 @@ const CreateAsset = () => {
               onChange={handleChange}
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
             />
-          </div>
-        </div>
-
-        <div>
-          <label className="block font-medium mb-2">
-            Roast Level: {form.roast_level}
-          </label>
-          <input
-            type="range"
-            name="roast_level"
-            min="0"
-            max="100"
-            value={form.roast_level ?? 0}
-            onChange={handleChange}
-            className="w-full accent-[#b8cb75]"
-          />
-          <div className="flex justify-between text-sm text-[#ccd989]">
-            <span>Light</span>
-            <span>Medium</span>
-            <span>Dark</span>
           </div>
         </div>
 
