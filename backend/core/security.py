@@ -5,7 +5,7 @@ import jwt
 from fastapi import APIRouter, Depends
 from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
 from schemas.user import UserResponse
-from backend.dependencies.auth import get_current_user
+from dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/security", tags=["Security"])
 
