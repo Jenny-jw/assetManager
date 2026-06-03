@@ -5,7 +5,7 @@ from core.db import db
 from bson.objectid import ObjectId
 from pymongo import ReturnDocument
 from starlette.status import HTTP_206_PARTIAL_CONTENT
-from middleware.auth import get_current_user, require_role
+from backend.dependencies.auth import get_current_user, require_role
 from models.user import UserRole
 import json
 import logging
