@@ -9,9 +9,18 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 
 const Dashboard = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [assets, setAssets] = useState<Asset[]>([]);
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   useEffect(() => {
     axios.get("/tea").then((res) => {
@@ -31,7 +40,7 @@ const Dashboard = () => {
 
         <button
           type="button"
-          onClick={() => navigate("/dashboard")}
+          onClick={handleLogout}
           className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
         >
           Log out
