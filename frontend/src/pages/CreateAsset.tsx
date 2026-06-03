@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import type { CreateAssetType } from "../types/Asset";
-import axios from "axios";
+import axios from "../lib/axios";
 
 const CreateAsset = () => {
   const [form, setForm] = useState<CreateAssetType>({
@@ -35,7 +35,7 @@ const CreateAsset = () => {
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await axios.post("/api/tea", form);
+      await axios.post("/tea", form);
       console.log("Tea added!");
     } catch (err) {
       console.log(err);
