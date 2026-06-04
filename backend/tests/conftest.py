@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+import os
+
+os.environ.setdefault("MONGO_URI", "mongodb://localhost:27017")
+os.environ.setdefault("JWT_SECRET_KEY", "test-secret")
+os.environ.setdefault("USE_DB_TRANSACTIONS", "false")
+
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -8,11 +14,13 @@ from typing import Any
 import pytest
 from bson import ObjectId
 from fastapi.testclient import TestClient
+from pymongo import ReturnDocument
 
 import main as app_module
 from dependencies.auth import get_current_user
 from main import app
 from routes import tea as tea_routes
+import services.order_service as order_service_module
 
 
 @dataclass
@@ -52,7 +60,7 @@ class FakeCollection:
     def create_index(self, *args, **kwargs):
         return None
 
-    def insert_one(self, doc: dict[str, Any]):
+    def insert_one(self, doc: dict[str, Any], **kwargs):
         doc_id = ObjectId()
         stored_doc = deepcopy(doc)
         stored_doc["_id"] = doc_id
@@ -73,23 +81,48 @@ class FakeCollection:
             1 for doc in self.docs.values() if self._matches(doc, filters or {})
         )
 
-    def find_one(self, filters: dict[str, Any]):
+    def find_one(self, filters: dict[str, Any], **kwargs):
         for doc in self.docs.values():
             if self._matches(doc, filters):
                 return deepcopy(doc)
         return None
 
     def find_one_and_update(
-        self, filters: dict[str, Any], update: dict[str, Any], return_document=None
+        self,
+        filters: dict[str, Any],
+        update: dict[str, Any],
+        return_document=None,
+        **kwargs,
     ):
         for doc_id, doc in self.docs.items():
             if self._matches(doc, filters):
-                doc.update(update.get("$set", {}))
+                before = deepcopy(doc)
+                if "$inc" in update:
+                    for field, delta in update["$inc"].items():
+                        doc[field] = doc.get(field, 0) + delta
+                if "$set" in update:
+                    doc.update(update["$set"])
                 self.docs[doc_id] = doc
+                if return_document == ReturnDocument.BEFORE:
+                    return before
                 return deepcopy(doc)
         return None
 
-    def delete_one(self, filters: dict[str, Any]):
+    def update_one(self, filters: dict[str, Any], update: dict[str, Any], **kwargs):
+        updated = self.find_one_and_update(filters, update)
+        return updated is not None
+
+    def delete_many(self, filters: dict[str, Any], **kwargs):
+        to_delete = [
+            doc_id
+            for doc_id, doc in self.docs.items()
+            if self._matches(doc, filters)
+        ]
+        for doc_id in to_delete:
+            del self.docs[doc_id]
+        return len(to_delete)
+
+    def delete_one(self, filters: dict[str, Any], **kwargs):
         for doc_id, doc in list(self.docs.items()):
             if self._matches(doc, filters):
                 del self.docs[doc_id]
@@ -116,6 +149,17 @@ class FakeCollection:
                     return False
                 continue
 
+            if isinstance(expected, dict):
+                value = doc.get(key)
+                if "$gte" in expected and (value is None or value < expected["$gte"]):
+                    return False
+                continue
+
+            if isinstance(expected, ObjectId):
+                if doc.get(key) != expected:
+                    return False
+                continue
+
             if doc.get(key) != expected:
                 return False
 
@@ -126,6 +170,9 @@ class FakeDB:
     def __init__(self):
         self.teas = FakeCollection()
         self.users = FakeCollection()
+        self.orders = FakeCollection()
+        self.order_items = FakeCollection()
+        self.stock_movements = FakeCollection()
 
 
 def _make_user(role: str) -> dict[str, Any]:
@@ -145,6 +192,8 @@ def fake_db():
 
 def _build_client(monkeypatch, fake_db: FakeDB, auth_user: dict[str, Any] | None):
     monkeypatch.setattr(tea_routes, "db", fake_db)
+    monkeypatch.setattr(order_service_module, "db", fake_db)
+    monkeypatch.setenv("USE_DB_TRANSACTIONS", "false")
     monkeypatch.setattr(app_module, "ensure_indexes", lambda: None)
 
     if auth_user is not None:
@@ -178,12 +227,17 @@ def client_guest(monkeypatch, fake_db: FakeDB):
 
 @pytest.fixture
 def seeded_tea_id(fake_db: FakeDB) -> str:
+    return seed_orderable_tea(fake_db, quantity=3)
+
+
+def seed_orderable_tea(fake_db: FakeDB, *, quantity: int = 5, price: int = 1200) -> str:
     fake_db.teas.seed(
         {
             "name": "Alishan Oolong",
             "genre": "Oolong",
             "origin": "Alishan",
-            "quantity": 3,
+            "quantity": quantity,
+            "price": price,
         }
     )
     return str(next(iter(fake_db.teas.docs)))
