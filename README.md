@@ -10,10 +10,14 @@
 
 - Python FastAPI
 - PyMongo
+- Structured JSON logging
+- Centralized API error handling
+- Server-side pagination, filtering, search, and sorting
 
 ## Database
 
 - MongoDB
+- Indexes for email uniqueness, tea filtering, and text search
 
 # Starting the Backend
 
@@ -51,6 +55,48 @@ uvicorn main:app --reload
 ```bash
 deactivate
 ```
+
+## Backend dependencies
+
+```bash
+cd backend
+python -m pip install -r requirements.txt
+```
+
+Copy `backend/.env.example` to `backend/.env` and set `MONGO_URI` and `JWT_SECRET_KEY`.
+
+## Tea API query examples
+
+```bash
+GET /api/tea?page=1&limit=20
+GET /api/tea?genre=Oolong&sort_by=score&sort_direction=desc
+GET /api/tea?search=Alishan
+```
+
+## Run backend tests
+
+```bash
+cd backend
+source venv/bin/activate
+pytest -v
+```
+
+Run pytest from the `backend/` folder (not the repo root). `backend/pytest.ini` adds this directory to Python's path so `import main` works.
+
+Auth tests cover tea mutations: `401` without cookie, `403` for non-admin (`user` / `guest`), `200` for admin.
+
+## GitHub Actions CI
+
+![Backend CI](https://github.com/Jenny-jw/assetManager/actions/workflows/backend-ci.yml/badge.svg)
+
+Workflow file: `.github/workflows/backend-ci.yml`
+
+It runs on every push/PR to `main` or `master`:
+
+1. Checkout code
+2. Install Python 3.10
+3. `pip install -r backend/requirements.txt`
+4. `pytest -v` in `backend/`
 
 # Starting the Frontend
 
