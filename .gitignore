@@ -1,7 +1,17 @@
+# Environment
 .env
+
+# Node
 node_modules/
+dist/
 
 # Python
 venv/
 __pycache__/
 *.pyc
+.pytest_cache/
+backend/.pytest_deps/
+
+# Test Coverage
+.coverage
+htmlcov/
