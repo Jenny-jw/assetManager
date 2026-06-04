@@ -51,6 +51,9 @@ class TeaResponsePublic(TeaBase):
 
 class TeaResponseList(BaseModel):
     data: list[TeaResponsePublic]
+    page: int
+    limit: int
+    total: int
     errors: list[dict] = []
 
 class TeaResponseInternal(TeaResponsePublic):

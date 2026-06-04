@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, HTTPException, Depends
+from fastapi import APIRouter, status, HTTPException, Depends, Query
 from fastapi.responses import JSONResponse
 from schemas.tea import TeaCreate, TeaResponsePublic, TeaResponseList, TeaUpdate
 from core.db import db
@@ -7,6 +7,7 @@ from pymongo import ReturnDocument
 from starlette.status import HTTP_206_PARTIAL_CONTENT
 from dependencies.auth import get_current_user, require_role
 from models.user import UserRole
+from datetime import datetime, timezone
 import json
 import logging
 logger = logging.getLogger(__name__)
@@ -25,8 +26,30 @@ def create_tea(tea: TeaCreate, _: dict = Depends(require_role(UserRole.admin))):
     return tea_dict
 
 @router.get("/", response_model=TeaResponseList)
-def list_teas():
-    teas = db.teas.find()
+def list_teas(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    search: str | None = None,
+    genre: str | None = None,
+    origin: str | None = None,
+    sort_by: str = Query(
+        "created_at",
+        pattern="^(created_at|name|genre|origin|quantity|score|price|harvest_time)$",
+    ),
+    sort_direction: str = Query("desc", pattern="^(asc|desc)$"),
+):
+    filters = {}
+    if search:
+        filters["$text"] = {"$search": search}
+    if genre:
+        filters["genre"] = genre
+    if origin:
+        filters["origin"] = origin
+
+    skip = (page - 1) * limit
+    direction = 1 if sort_direction == "asc" else -1
+    total = db.teas.count_documents(filters)
+    teas = db.teas.find(filters).sort(sort_by, direction).skip(skip).limit(limit)
     result = []
     errors = []
     for i, tea in enumerate(teas):
@@ -52,7 +75,16 @@ def list_teas():
     
     status_code = HTTP_206_PARTIAL_CONTENT if errors else status.HTTP_200_OK
     data = [json.loads(t.json()) for t in result]   # Pydantic 會把 datetime 序列化為 ISO string
-    return JSONResponse(content={"data": data, "errors": errors}, status_code=status_code)
+    return JSONResponse(
+        content={
+            "data": data,
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "errors": errors,
+        },
+        status_code=status_code,
+    )
 
 @router.get("/{tea_id}", response_model=TeaResponsePublic)
 def get_tea(tea_id: str):
@@ -85,7 +117,7 @@ def edit_tea(
     
     updated = db.teas.find_one_and_update(
         {"_id": ObjectId(tea_id)},
-        {"$set": update_data},
+        {"$set": {**update_data, "updated_at": datetime.now(timezone.utc)}},
         return_document=ReturnDocument.AFTER
     )
     
