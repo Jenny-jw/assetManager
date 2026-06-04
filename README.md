@@ -50,12 +50,6 @@ Output example: `/home/user/assetManager/backend/venv/bin/python3`
 uvicorn main:app --reload
 ```
 
-## Exit the virtual environment
-
-```bash
-deactivate
-```
-
 ## Backend dependencies
 
 ```bash
@@ -87,8 +81,6 @@ Auth tests cover tea mutations: `401` without cookie, `403` for non-admin (`user
 
 ## GitHub Actions CI
 
-![Backend CI](https://github.com/Jenny-jw/assetManager/actions/workflows/backend-ci.yml/badge.svg)
-
 Workflow file: `.github/workflows/backend-ci.yml`
 
 It runs on every push/PR to `main` or `master`:
@@ -98,6 +90,30 @@ It runs on every push/PR to `main` or `master`:
 3. `pip install -r backend/requirements.txt`
 4. `pytest -v` in `backend/`
 
+### One-time setup on GitHub
+
+1. Push this repository to GitHub (if not already).
+2. Open the repo on GitHub → **Actions** tab.
+3. If prompted, click **Enable workflows**.
+4. Push a commit or open a PR; you should see **Backend CI** running.
+5. Green check = all tests passed.
+
+No repository secrets are required for CI (tests use an in-memory fake DB, not Atlas).
+
+Optional: add a status badge to `README.md`:
+
+```markdown
+![Backend CI](https://github.com/<your-username>/assetManager/actions/workflows/backend-ci.yml/badge.svg)
+```
+
+Replace `<your-username>` with your GitHub username or org.
+
+## Exit the virtual environment
+
+```bash
+deactivate
+```
+
 # Starting the Frontend
 
 ```bash
@@ -105,7 +121,7 @@ cd ~/assetManager/frontend/
 npm run dev
 ```
 
-<hr>
+---
 
 ### TODO
 
@@ -123,7 +139,7 @@ npm run dev
 ## Note
 
 - Python模組檔案裡，所有「在頂層定義的名字」都自動成為該模組的對外成員
-  `router = APIRouter()` -> 建立一個物件、綁定到名字 router、放在 module 的最外層（不是在 function / class 裡）
+`router = APIRouter()` -> 建立一個物件、綁定到名字 router、放在 module 的最外層（不是在 function / class 裡）
 - 看套件實際裝在哪裡: `python -m pip show fastapi`
 - 看指令來源: `which uvicorn`
 - 看venv中有哪些工具: `ls venv/bin/`
@@ -161,3 +177,4 @@ npm run dev
 ### Login (if there's user)
 
 - Path: `/login`
+

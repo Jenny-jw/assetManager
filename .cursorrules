@@ -135,6 +135,11 @@ The following directories are implementation details and should generally be exc
 - `venv/`
 - `__pycache__/`
 
+# Code Formatting
+
+- Use **one** blank line between logical sections (imports, top-level classes/functions, module-level constants)—not two.
+- Do not add an extra empty line after imports before the first definition unless the language style guide requires it; in this project, prefer a single blank line only.
+
 # Things to Avoid
 
 ## Never Do
