@@ -121,6 +121,15 @@ cd ~/assetManager/frontend/
 npm run dev
 ```
 
+## Run frontend tests
+
+```bash
+cd frontend
+npm run test
+```
+
+Tests live in `frontend/tests/` (e.g. `tests/routes/ProtectedRoute.test.tsx`). Use `@/` imports for `src/` modules.
+
 ---
 
 ### TODO
