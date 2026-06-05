@@ -105,14 +105,12 @@ const AssetList = () => {
     setOrderingAssetId(asset.id);
 
     try {
-      const order = await createOrder({
+      await createOrder({
         items: [{ tea_id: asset.id, quantity }],
       });
       await refreshAssets();
       setSelectedAsset((prev) => (prev?.id === asset.id ? null : prev));
-      alert(
-        `Order placed successfully. Price: ${order.total_amount.toLocaleString()}`,
-      );
+      alert("Submitted, awaiting admin approval");
     } catch (error) {
       const message = isAxiosError(error)
         ? ((error.response?.data as { detail?: string })?.detail ??

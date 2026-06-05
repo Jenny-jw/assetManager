@@ -30,6 +30,10 @@ def _use_transactions() -> bool:
 def _normalize_role(role: Any) -> str:
     return role.value if hasattr(role, "value") else str(role)
 
+def _require_admin(current_user: dict[str, Any]) -> None:
+    if _normalize_role(current_user.get("role")) != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
 def _serialize_order(
     order_doc: dict[str, Any],
     item_docs: list[dict[str, Any]],
@@ -57,6 +61,29 @@ def _serialize_order(
 def _load_order_items(order_id: ObjectId) -> list[dict[str, Any]]:
     return list(db.order_items.find({"order_id": order_id}))
 
+def _get_pending_order(order_id: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    if not ObjectId.is_valid(order_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid order id")
+
+    order = db.orders.find_one({"_id": ObjectId(order_id)})
+    if not order:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+    if order.get("status") != OrderStatus.pending.value:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Order is not pending approval",
+        )
+
+    items = _load_order_items(order["_id"])
+    if not items:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Order has no items",
+        )
+
+    return order, items
+
 def get_order_for_user(order_id: str, current_user: dict[str, Any]) -> dict[str, Any]:
     if not ObjectId.is_valid(order_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid order id")
@@ -77,11 +104,18 @@ def list_orders_for_user(
     *,
     page: int = 1,
     limit: int = 20,
+    status_filter: str | None = None,
 ) -> dict[str, Any]:
     role = _normalize_role(current_user.get("role"))
     filters: dict[str, Any] = {}
+
     if role != "admin":
         filters["user_id"] = current_user["id"]
+
+    if status_filter:
+        if status_filter not in {s.value for s in OrderStatus}:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid status")
+        filters["status"] = status_filter
 
     skip = (page - 1) * limit
     total = db.orders.count_documents(filters)
@@ -96,44 +130,14 @@ def list_orders_for_user(
 
     return {"data": data, "total": total}
 
-def _reserve_tea_stock(
-    tea_oid: ObjectId,
-    quantity: int,
-    *,
-    session: ClientSession | None = None,
-) -> dict[str, Any]:
-    tea = db.teas.find_one_and_update(
-        {"_id": tea_oid, "quantity": {"$gte": quantity}},
-        {
-            "$inc": {"quantity": -quantity},
-            "$set": {"updated_at": utcnow()},
-        },
-        return_document=ReturnDocument.BEFORE,
-        session=session,
-    )
-    if not tea:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Insufficient stock for one or more items",
-        )
+def count_pending_orders() -> int:
+    return db.orders.count_documents({"status": OrderStatus.pending.value})
 
-    current_qty = tea.get("quantity")
-    if current_qty is None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Tea is not available for ordering",
-        )
-
-    return tea
-
-def _place_order_core(
+def _build_line_specs(
     payload: OrderCreate,
-    current_user: dict[str, Any],
     *,
     session: ClientSession | None = None,
-) -> dict[str, Any]:
-    user_id = current_user["id"]
-    now = utcnow()
+) -> list[dict[str, Any]]:
     line_specs: list[dict[str, Any]] = []
 
     for line in payload.items:
@@ -185,10 +189,79 @@ def _place_order_core(
             }
         )
 
+    return line_specs
+
+def _reserve_tea_stock(
+    tea_oid: ObjectId,
+    quantity: int,
+    *,
+    session: ClientSession | None = None,
+) -> dict[str, Any]:
+    tea = db.teas.find_one_and_update(
+        {"_id": tea_oid, "quantity": {"$gte": quantity}},
+        {
+            "$inc": {"quantity": -quantity},
+            "$set": {"updated_at": utcnow()},
+        },
+        return_document=ReturnDocument.BEFORE,
+        session=session,
+    )
+    if not tea:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Insufficient stock for one or more items",
+        )
+
+    current_qty = tea.get("quantity")
+    if current_qty is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Tea is not available for ordering",
+        )
+
+    return tea
+
+def _insert_order_items(
+    order_oid: ObjectId,
+    line_specs: list[dict[str, Any]],
+    *,
+    now: datetime,
+    session: ClientSession | None = None,
+) -> list[dict[str, Any]]:
+    item_docs: list[dict[str, Any]] = []
+    for spec in line_specs:
+        item_doc = {
+            "order_id": order_oid,
+            "tea_id": spec["tea_id"],
+            "tea_name": spec["tea_name"],
+            "quantity": spec["quantity"],
+            "unit_price": spec["unit_price"],
+            "line_total": spec["line_total"],
+            "created_at": now,
+        }
+        item_insert = db.order_items.insert_one(item_doc, session=session)
+        item_doc["_id"] = item_insert.inserted_id
+        item_docs.append(item_doc)
+    return item_docs
+
+def _rollback_order(order_oid: ObjectId, item_docs: list[dict[str, Any]]) -> None:
+    db.order_items.delete_many({"order_id": order_oid})
+    db.orders.delete_one({"_id": order_oid})
+
+def _place_order_core(
+    payload: OrderCreate,
+    current_user: dict[str, Any],
+    *,
+    session: ClientSession | None = None,
+) -> dict[str, Any]:
+    user_id = current_user["id"]
+    now = utcnow()
+    line_specs = _build_line_specs(payload, session=session)
     total_amount = sum(spec["line_total"] for spec in line_specs)
+
     order_doc = {
         "user_id": user_id,
-        "status": OrderStatus.confirmed.value,
+        "status": OrderStatus.pending.value,
         "total_amount": total_amount,
         "created_at": now,
         "updated_at": now,
@@ -198,38 +271,7 @@ def _place_order_core(
 
     item_docs: list[dict[str, Any]] = []
     try:
-        for spec in line_specs:
-            tea_before = _reserve_tea_stock(
-                spec["tea_oid"], spec["quantity"], session=session
-            )
-            qty_before = tea_before["quantity"]
-            qty_after = qty_before - spec["quantity"]
-
-            movement_doc = {
-                "tea_id": spec["tea_id"],
-                "delta": -spec["quantity"],
-                "quantity_before": qty_before,
-                "quantity_after": qty_after,
-                "reason": StockMovementReason.order.value,
-                "ref_type": "order",
-                "ref_id": str(order_oid),
-                "created_by": user_id,
-                "created_at": now,
-            }
-            db.stock_movements.insert_one(movement_doc, session=session)
-
-            item_doc = {
-                "order_id": order_oid,
-                "tea_id": spec["tea_id"],
-                "tea_name": spec["tea_name"],
-                "quantity": spec["quantity"],
-                "unit_price": spec["unit_price"],
-                "line_total": spec["line_total"],
-                "created_at": now,
-            }
-            item_insert = db.order_items.insert_one(item_doc, session=session)
-            item_doc["_id"] = item_insert.inserted_id
-            item_docs.append(item_doc)
+        item_docs = _insert_order_items(order_oid, line_specs, now=now, session=session)
     except Exception:
         if session is None:
             _rollback_order(order_oid, item_docs)
@@ -237,7 +279,7 @@ def _place_order_core(
 
     order_doc["_id"] = order_oid
     logger.info(
-        "order placed",
+        "order submitted for approval",
         extra={
             "order_id": str(order_oid),
             "user_id": user_id,
@@ -247,15 +289,92 @@ def _place_order_core(
     )
     return _serialize_order(order_doc, item_docs)
 
-def _rollback_order(order_oid: ObjectId, item_docs: list[dict[str, Any]]) -> None:
-    for item in item_docs:
-        db.teas.update_one(
-            {"_id": ObjectId(item["tea_id"])},
-            {"$inc": {"quantity": item["quantity"]}},
+def _fulfill_pending_order(
+    order: dict[str, Any],
+    items: list[dict[str, Any]],
+    *,
+    actor_id: str,
+    session: ClientSession | None = None,
+) -> None:
+    now = utcnow()
+    order_oid = order["_id"]
+
+    for item in items:
+        tea_oid = ObjectId(item["tea_id"])
+        tea_before = _reserve_tea_stock(
+            tea_oid, item["quantity"], session=session
         )
-    db.stock_movements.delete_many({"ref_type": "order", "ref_id": str(order_oid)})
-    db.order_items.delete_many({"order_id": order_oid})
-    db.orders.delete_one({"_id": order_oid})
+        qty_before = tea_before["quantity"]
+        qty_after = qty_before - item["quantity"]
+
+        movement_doc = {
+            "tea_id": item["tea_id"],
+            "delta": -item["quantity"],
+            "quantity_before": qty_before,
+            "quantity_after": qty_after,
+            "reason": StockMovementReason.order.value,
+            "ref_type": "order",
+            "ref_id": str(order_oid),
+            "created_by": actor_id,
+            "created_at": now,
+        }
+        db.stock_movements.insert_one(movement_doc, session=session)
+
+    db.orders.update_one(
+        {"_id": order_oid},
+        {"$set": {"status": OrderStatus.confirmed.value, "updated_at": now}},
+        session=session,
+    )
+
+def approve_order(order_id: str, current_user: dict[str, Any]) -> dict[str, Any]:
+    _require_admin(current_user)
+    order, items = _get_pending_order(order_id)
+
+    if _use_transactions():
+        try:
+            with client.start_session() as session:
+                with session.start_transaction():
+                    _fulfill_pending_order(
+                        order,
+                        items,
+                        actor_id=current_user["id"],
+                        session=session,
+                    )
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.warning("transactional approve failed, retrying sequential: %s", exc)
+            order, items = _get_pending_order(order_id)
+            _fulfill_pending_order(order, items, actor_id=current_user["id"], session=None)
+    else:
+        _fulfill_pending_order(order, items, actor_id=current_user["id"], session=None)
+
+    logger.info(
+        "order approved",
+        extra={"order_id": order_id, "admin_id": current_user["id"]},
+    )
+
+    updated = db.orders.find_one({"_id": ObjectId(order_id)})
+    updated_items = _load_order_items(updated["_id"])
+    return _serialize_order(updated, updated_items)
+
+def reject_order(order_id: str, current_user: dict[str, Any]) -> dict[str, Any]:
+    _require_admin(current_user)
+    order, items = _get_pending_order(order_id)
+    now = utcnow()
+
+    db.orders.update_one(
+        {"_id": order["_id"]},
+        {"$set": {"status": OrderStatus.cancelled.value, "updated_at": now}},
+    )
+
+    logger.info(
+        "order rejected",
+        extra={"order_id": order_id, "admin_id": current_user["id"]},
+    )
+
+    updated = db.orders.find_one({"_id": order["_id"]})
+    return _serialize_order(updated, items)
 
 def _place_order_transactional(
     payload: OrderCreate,

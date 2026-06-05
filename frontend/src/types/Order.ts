@@ -10,10 +10,12 @@ export type OrderItem = {
   line_total: number;
 };
 
+export type OrderStatus = "pending" | "confirmed" | "cancelled";
+
 export type Order = {
   id: string;
   user_id: string;
-  status: "confirmed" | "cancelled";
+  status: OrderStatus;
   total_amount: number;
   created_at: string;
   items: OrderItem[];

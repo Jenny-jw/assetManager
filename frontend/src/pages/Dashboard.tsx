@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Summary from "../components/Summary";
 import OriginDistribution from "../components/OriginDistribution";
 import GenreDistribution from "../components/GenreDistribution";
+import PendingOrdersInbox from "../components/PendingOrdersInbox";
 import RecentAssets from "../components/RecentAssets";
 import axios from "../lib/axios";
 import type { Asset } from "../types/Asset";
@@ -9,9 +10,18 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 
 const Dashboard = () => {
-  const { user, loading, logout } = useAuth();
+  const { user, logout } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [ordersRefresh, setOrdersRefresh] = useState(0);
   const navigate = useNavigate();
+
+  const refreshAssets = useCallback(() => {
+    axios.get("/tea").then((res) => {
+      setAssets(res.data.data);
+    });
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -23,20 +33,25 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    axios.get("/tea").then((res) => {
-      setAssets(res.data.data);
-    });
-  }, []);
+    refreshAssets();
+  }, [refreshAssets]);
 
-  useEffect(() => {
-    // if (!loading &&)
-    console.log("Current user: ", user?.role);
-  }, [loading, user]);
+  const handleInventoryChange = useCallback(() => {
+    refreshAssets();
+    setOrdersRefresh((token) => token + 1);
+  }, [refreshAssets]);
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between gap-4 px-2">
-        <h1 className="text-3xl font-bold">Tea Keeper Dashboard</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold">Tea Keeper Dashboard</h1>
+          {isAdmin && pendingCount > 0 && (
+            <span className="inline-flex items-center justify-center min-w-6 h-6 px-2 text-xs font-semibold rounded-full bg-[#894f45] text-white">
+              {pendingCount}
+            </span>
+          )}
+        </div>
 
         <button
           type="button"
@@ -46,15 +61,28 @@ const Dashboard = () => {
           Log out
         </button>
       </div>
-      <Summary assets={assets} showTotalValue={user?.role === "admin"} />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Summary assets={assets} showTotalValue={isAdmin} />
+      <div
+        className={
+          isAdmin
+            ? "grid grid-cols-1 lg:grid-cols-3 gap-6"
+            : "grid grid-cols-1 lg:grid-cols-2 gap-6"
+        }
+      >
         <OriginDistribution assets={assets} />
         <GenreDistribution assets={assets} />
+        {isAdmin && (
+          <PendingOrdersInbox
+            refreshToken={ordersRefresh}
+            onPendingCountChange={setPendingCount}
+            onInventoryChange={handleInventoryChange}
+          />
+        )}
       </div>
       <div className="grid md:grid-cols-6 gap-6">
         <RecentAssets assets={assets} className="md:col-span-4" />
         <div className="md:col-span-2 flex flex-col gap-4">
-          {user?.role === "admin" && (
+          {isAdmin && (
             <>
               <button
                 className="flex-1 rounded-xl bg-[#78a043] hover:border-lime-200 text-white"

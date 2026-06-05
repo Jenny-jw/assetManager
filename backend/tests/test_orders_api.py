@@ -1,6 +1,11 @@
-from tests.conftest import seed_orderable_tea
+from dependencies.auth import get_current_user
+from main import app
+from tests.conftest import _make_user, seed_orderable_tea
 
-def test_user_can_place_order_and_stock_is_reduced(client_user, fake_db):
+def _use_admin_auth() -> None:
+    app.dependency_overrides[get_current_user] = lambda: _make_user("admin")
+
+def test_user_place_order_creates_pending_without_stock_change(client_user, fake_db):
     tea_id = seed_orderable_tea(fake_db, quantity=5, price=1200)
 
     response = client_user.post(
@@ -10,18 +15,77 @@ def test_user_can_place_order_and_stock_is_reduced(client_user, fake_db):
 
     assert response.status_code == 201
     body = response.json()
-    # 150g pkg, 1200/斤 → 300/pkg × 2 packages = 600
+    assert body["status"] == "pending"
     assert body["total_amount"] == 600
     assert body["items"][0]["unit_price"] == 300
     assert len(body["items"]) == 1
-    assert body["items"][0]["tea_id"] == tea_id
+
+    tea = fake_db.teas.find_one({"_id": next(iter(fake_db.teas.docs))})
+    assert tea["quantity"] == 5
+    assert len(fake_db.stock_movements.docs) == 0
+
+def test_admin_approve_order_reduces_stock(client, client_user, fake_db):
+    tea_id = seed_orderable_tea(fake_db, quantity=5, price=1200)
+    placed = client_user.post(
+        "/api/orders/",
+        json={"items": [{"tea_id": tea_id, "quantity": 2}]},
+    )
+    order_id = placed.json()["id"]
+    _use_admin_auth()
+
+    response = client.patch(f"/api/orders/{order_id}/approve")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "confirmed"
 
     tea = fake_db.teas.find_one({"_id": next(iter(fake_db.teas.docs))})
     assert tea["quantity"] == 3
     assert len(fake_db.stock_movements.docs) == 1
-    movement = next(iter(fake_db.stock_movements.docs.values()))
-    assert movement["delta"] == -2
-    assert movement["reason"] == "order"
+
+def test_admin_reject_order_does_not_reduce_stock(client, client_user, fake_db):
+    tea_id = seed_orderable_tea(fake_db, quantity=5, price=1200)
+    placed = client_user.post(
+        "/api/orders/",
+        json={"items": [{"tea_id": tea_id, "quantity": 2}]},
+    )
+    order_id = placed.json()["id"]
+    _use_admin_auth()
+
+    response = client.patch(f"/api/orders/{order_id}/reject")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "cancelled"
+
+    tea = fake_db.teas.find_one({"_id": next(iter(fake_db.teas.docs))})
+    assert tea["quantity"] == 5
+    assert len(fake_db.stock_movements.docs) == 0
+
+def test_user_cannot_approve_order(client_user, fake_db):
+    tea_id = seed_orderable_tea(fake_db)
+    placed = client_user.post(
+        "/api/orders/",
+        json={"items": [{"tea_id": tea_id, "quantity": 1}]},
+    )
+    order_id = placed.json()["id"]
+
+    response = client_user.patch(f"/api/orders/{order_id}/approve")
+    assert response.status_code == 403
+
+def test_approve_fails_when_stock_insufficient_at_approval(client, client_user, fake_db):
+    tea_id = seed_orderable_tea(fake_db, quantity=5, price=1200)
+    placed = client_user.post(
+        "/api/orders/",
+        json={"items": [{"tea_id": tea_id, "quantity": 2}]},
+    )
+    order_id = placed.json()["id"]
+
+    tea_oid = next(iter(fake_db.teas.docs))
+    fake_db.teas.docs[tea_oid]["quantity"] = 1
+    _use_admin_auth()
+
+    response = client.patch(f"/api/orders/{order_id}/approve")
+    assert response.status_code == 409
 
 def test_guest_cannot_place_order(client_guest, fake_db):
     tea_id = seed_orderable_tea(fake_db)
@@ -59,6 +123,18 @@ def test_user_can_list_own_orders(client_user, fake_db):
     body = response.json()
     assert body["total"] == 1
     assert body["data"][0]["items"][0]["tea_name"] == "Alishan Oolong"
+    assert body["data"][0]["status"] == "pending"
+
+def test_admin_can_list_pending_orders(client, client_user, fake_db):
+    tea_id = seed_orderable_tea(fake_db)
+    client_user.post("/api/orders/", json={"items": [{"tea_id": tea_id, "quantity": 1}]})
+    _use_admin_auth()
+
+    response = client.get("/api/orders/", params={"status": "pending"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["data"][0]["status"] == "pending"
 
 def test_user_cannot_read_other_users_order(client_user, fake_db):
     from datetime import datetime, timezone
