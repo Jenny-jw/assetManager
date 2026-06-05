@@ -10,7 +10,7 @@ def utcnow() -> datetime:
 
 class OrderItemCreate(BaseModel):
     tea_id: str
-    quantity: Qty
+    quantity: Qty = Field(..., description="Number of packages to order")
 
 class OrderCreate(BaseModel):
     items: list[OrderItemCreate] = Field(..., min_length=1)
@@ -20,8 +20,8 @@ class OrderItemResponse(BaseModel):
     order_id: str
     tea_id: str
     tea_name: str
-    quantity: int
-    unit_price: int
+    quantity: int = Field(..., description="Number of packages ordered")
+    unit_price: int = Field(..., description="Price per package at time of order")
     line_total: int
 
 class StockMovementResponse(BaseModel):

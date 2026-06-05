@@ -2,8 +2,15 @@ import type { Asset } from "../types/Asset";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import axios from "../lib/axios";
+import { createOrder } from "../services/orderServices";
 import { useAuth } from "../context/useAuth";
 import { useNavigate } from "react-router-dom";
+import { isAxiosError } from "axios";
+import {
+  formatMoney,
+  lineTotalValue,
+  pricePerPackage,
+} from "../lib/teaPricing";
 
 type SortKey = "score" | "price" | "quantity" | "harvest_time" | "genre";
 type SortDirection = "asc" | "desc";
@@ -45,11 +52,14 @@ const SortableHeader = ({
 
 const AssetList = () => {
   const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [assets, setAssets] = useState<Asset[]>([]);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [detailsMode, setDetailsMode] = useState<"details" | "full">("full");
   const [sortKey, setSortKey] = useState<SortKey>("score");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [orderingAssetId, setOrderingAssetId] = useState<string | null>(null);
+  const isOrdering = orderingAssetId !== null;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,6 +80,48 @@ const AssetList = () => {
 
   const handleEdit = (assetId: string) => {
     navigate(`/assets/${assetId}/edit`);
+  };
+
+  const refreshAssets = async () => {
+    const res = await axios.get("/tea");
+    setAssets(res.data.data);
+  };
+
+  const handleOrder = async (asset: Asset) => {
+    if (isOrdering) return;
+
+    const qtyInput = window.prompt(
+      `How many packages of "${asset.name}" would you like to order?`,
+      "1",
+    );
+    if (qtyInput === null) return;
+
+    const quantity = Number(qtyInput);
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      alert("Please enter a valid number of packages (1 or more).");
+      return;
+    }
+
+    setOrderingAssetId(asset.id);
+
+    try {
+      const order = await createOrder({
+        items: [{ tea_id: asset.id, quantity }],
+      });
+      await refreshAssets();
+      setSelectedAsset((prev) => (prev?.id === asset.id ? null : prev));
+      alert(
+        `Order placed successfully. Price: ${order.total_amount.toLocaleString()}`,
+      );
+    } catch (error) {
+      const message = isAxiosError(error)
+        ? ((error.response?.data as { detail?: string })?.detail ??
+          "Failed to place order.")
+        : "Failed to place order.";
+      alert(message);
+    } finally {
+      setOrderingAssetId(null);
+    }
   };
 
   const handleDelete = async (assetId: string) => {
@@ -147,11 +199,12 @@ const AssetList = () => {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            handleEdit(asset.id);
+            void handleOrder(asset);
           }}
-          className="px-3 py-1 text-sm rounded-lg bg-lime-700 text-white hover:bg-lime-900 transition"
+          disabled={isOrdering}
+          className="px-3 py-1 text-sm rounded-lg bg-lime-700 text-white hover:bg-lime-900 transition disabled:opacity-60 disabled:cursor-not-allowed min-w-[5.5rem]"
         >
-          Order
+          {orderingAssetId === asset.id ? "Ordering…" : "Order"}
         </button>
       </div>
     );
@@ -217,8 +270,9 @@ const AssetList = () => {
                   onSort={handleSort}
                 />
                 <th className="px-4 py-3">ORIGIN</th>
+                <th className="px-4 py-3">WEIGHT/ PKG (G)</th>
                 <SortableHeader
-                  label="QUANTITY"
+                  label="PACKAGES"
                   sortKey="quantity"
                   currentSortKey={sortKey}
                   sortDirection={sortDirection}
@@ -232,12 +286,14 @@ const AssetList = () => {
                   onSort={handleSort}
                 />
                 <SortableHeader
-                  label="PRICE per 斤"
+                  label="PRICE PER 斤"
                   sortKey="price"
                   currentSortKey={sortKey}
                   sortDirection={sortDirection}
                   onSort={handleSort}
                 />
+                <th className="px-4 py-3">PRICE/ PKG</th>
+                {isAdmin && <th className="px-4 py-3">TOTAL VALUE</th>}
                 <SortableHeader
                   label="HARVEST TIME"
                   sortKey="harvest_time"
@@ -255,9 +311,18 @@ const AssetList = () => {
                   <td className="px-4 py-3 font-medium">{asset.name}</td>
                   <td className="px-4 py-3">{asset.genre ?? "-"}</td>
                   <td className="px-4 py-3">{asset.origin ?? "-"}</td>
+                  <td className="px-4 py-3">{asset.weight ?? "-"}</td>
                   <td className="px-4 py-3">{asset.quantity ?? "-"}</td>
                   <td className="px-4 py-3">{asset.score ?? "-"}</td>
-                  <td className="px-4 py-3">{asset.price ?? "-"}</td>
+                  <td className="px-4 py-3">{formatMoney(asset.price)}</td>
+                  <td className="px-4 py-3">
+                    {formatMoney(pricePerPackage(asset.price, asset.weight))}
+                  </td>
+                  {isAdmin && (
+                    <td className="px-4 py-3 font-medium">
+                      {formatMoney(lineTotalValue(asset))}
+                    </td>
+                  )}
                   <td className="px-4 py-3">{asset.harvest_time ?? "-"}</td>
                   <td className="px-4 py-3">{renderActions(asset)}</td>
                 </tr>
@@ -282,7 +347,7 @@ const AssetList = () => {
               />
               <th className="px-4 py-3">Origin</th>
               <SortableHeader
-                label="Quantity"
+                label="Packages"
                 sortKey="quantity"
                 currentSortKey={sortKey}
                 sortDirection={sortDirection}
@@ -374,14 +439,9 @@ const AssetList = () => {
             <div className="space-y-3">
               {detailsMode === "full" && (
                 <>
-                  <DetailRow label="Name" value={selectedAsset.name} />
                   <DetailRow label="Genre" value={selectedAsset.genre} />
                   <DetailRow label="Origin" value={selectedAsset.origin} />
                   <DetailRow label="Producer" value={selectedAsset.producer} />
-                  <DetailRow label="Weight" value={selectedAsset.weight} />
-                  <DetailRow label="Quantity" value={selectedAsset.quantity} />
-                  <DetailRow label="Score" value={selectedAsset.score} />
-                  <DetailRow label="Price" value={selectedAsset.price} />
                   <DetailRow
                     label="Harvest Time"
                     value={selectedAsset.harvest_time}
@@ -390,6 +450,8 @@ const AssetList = () => {
                     label="Roast Level"
                     value={selectedAsset.roast_level}
                   />
+                  <DetailRow label="Score" value={selectedAsset.score} />
+                  <DetailRow label="Comment" value={selectedAsset.comment} />
                 </>
               )}
               <DetailRow
@@ -397,23 +459,25 @@ const AssetList = () => {
                 value={selectedAsset.weight}
               />
               <DetailRow
+                label="Number of packages"
+                value={selectedAsset.quantity}
+              />
+              <DetailRow
+                label="Price per 斤"
+                value={formatMoney(selectedAsset.price)}
+              />
+              <DetailRow
                 label="Price per package"
-                value={(selectedAsset.weight / 600) * selectedAsset.price}
+                value={formatMoney(
+                  pricePerPackage(selectedAsset.price, selectedAsset.weight),
+                )}
               />
-              <DetailRow
-                label="Total value"
-                value={
-                  selectedAsset.quantity *
-                  (selectedAsset.weight / 600) *
-                  selectedAsset.price
-                }
-              />
-              <DetailRow label="Producer" value={selectedAsset.producer} />
-              <DetailRow
-                label="Roast Level"
-                value={selectedAsset.roast_level}
-              />
-              <DetailRow label="Comment" value={selectedAsset.comment} />
+              {isAdmin && (
+                <DetailRow
+                  label="Total value"
+                  value={formatMoney(lineTotalValue(selectedAsset))}
+                />
+              )}
             </div>
 
             <div className="mt-6 flex justify-end">
@@ -441,12 +505,14 @@ const AssetList = () => {
               ) : (
                 <button
                   onClick={() => {
-                    handleEdit(selectedAsset.id);
-                    setSelectedAsset(null);
+                    void handleOrder(selectedAsset);
                   }}
-                  className="px-4 py-2 bg-lime-700 text-white rounded"
+                  disabled={isOrdering}
+                  className="px-4 py-2 bg-lime-700 text-white rounded-lg transition disabled:opacity-60 disabled:cursor-not-allowed min-w-[7rem]"
                 >
-                  Order
+                  {orderingAssetId === selectedAsset.id
+                    ? "Placing order…"
+                    : "Order"}
                 </button>
               )}
             </div>

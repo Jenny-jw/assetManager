@@ -3,7 +3,9 @@ export type OrderItem = {
   order_id: string;
   tea_id: string;
   tea_name: string;
+  /** Number of packages ordered */
   quantity: number;
+  /** Price per package at time of order */
   unit_price: number;
   line_total: number;
 };

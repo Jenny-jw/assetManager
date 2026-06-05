@@ -11,6 +11,7 @@ from pymongo import ReturnDocument
 from pymongo.client_session import ClientSession
 
 from core.db import client, db
+from core.tea_pricing import price_per_package
 from models.order import OrderStatus, StockMovementReason
 from schemas.order import OrderCreate
 
@@ -150,12 +151,21 @@ def _place_order_core(
                 detail=f"Tea not found: {line.tea_id}",
             )
 
-        unit_price = tea.get("price")
-        if unit_price is None:
+        price_per_jin = tea.get("price")
+        if price_per_jin is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Tea '{tea.get('name')}' has no price and cannot be ordered",
             )
+
+        weight_grams = tea.get("weight")
+        if weight_grams is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Tea '{tea.get('name')}' has no package weight and cannot be ordered",
+            )
+
+        unit_price = price_per_package(price_per_jin, weight_grams)
 
         quantity_available = tea.get("quantity")
         if quantity_available is None or quantity_available < line.quantity:

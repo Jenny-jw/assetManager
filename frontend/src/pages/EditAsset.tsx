@@ -3,6 +3,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "../lib/axios";
+import { PACKAGE_WEIGHT_OPTIONS } from "../lib/teaPricing";
 
 type EditForm = {
   name: string;
@@ -10,9 +11,9 @@ type EditForm = {
   genre: string;
   producer: string;
   harvest_time: string;
-  roast_time: string;
   roast_level: string;
   weight: string;
+  price: string;
   quantity: string;
   score: string;
   comment: string;
@@ -28,9 +29,9 @@ const EditAsset = () => {
     genre: "",
     producer: "",
     harvest_time: "",
-    roast_time: "",
     roast_level: "",
-    weight: "",
+    weight: "150",
+    price: "",
     quantity: "",
     score: "",
     comment: "",
@@ -58,9 +59,9 @@ const EditAsset = () => {
           genre: asset.genre ?? "",
           producer: asset.producer ?? "",
           harvest_time: asset.harvest_time?.toString() ?? "",
-          roast_time: asset.roast_time?.toString() ?? "",
           roast_level: asset.roast_level?.toString() ?? "",
-          weight: asset.weight?.toString() ?? "",
+          weight: asset.weight?.toString() ?? "150",
+          price: asset.price?.toString() ?? "",
           quantity: asset.quantity?.toString() ?? "",
           score: asset.score?.toString() ?? "",
           comment: asset.comment ?? "",
@@ -77,7 +78,7 @@ const EditAsset = () => {
   }, [id]);
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -94,15 +95,15 @@ const EditAsset = () => {
     const payload = {
       name: form.name,
       genre: form.genre,
+      price: form.price === "" ? undefined : Number(form.price),
+      weight: form.weight === "" ? undefined : Number(form.weight),
+      quantity: form.quantity === "" ? undefined : Number(form.quantity),
       origin: form.origin || undefined,
       producer: form.producer || undefined,
       harvest_time:
         form.harvest_time === "" ? undefined : Number(form.harvest_time),
-      roast_time: form.roast_time === "" ? undefined : Number(form.roast_time),
       roast_level:
         form.roast_level === "" ? undefined : Number(form.roast_level),
-      weight: form.weight === "" ? undefined : Number(form.weight),
-      quantity: form.quantity === "" ? undefined : Number(form.quantity),
       score: form.score === "" ? undefined : Number(form.score),
       comment: form.comment || undefined,
     };
@@ -153,7 +154,7 @@ const EditAsset = () => {
           </p>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-4">
           <label className="space-y-2">
             <span className="text-sm font-medium text-gray-600">Name</span>
             <input
@@ -164,7 +165,64 @@ const EditAsset = () => {
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
           </label>
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-gray-600">Producer</span>
+            <input
+              name="producer"
+              value={form.producer}
+              onChange={handleChange}
+              className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
+            />
+          </label>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-gray-600">Price per 斤</span>
+            <input
+              type="number"
+              name="price"
+              value={form.price}
+              onChange={handleChange}
+              required
+              className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
+            />
+          </label>
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-gray-600">
+              Weight per Package (g)
+            </span>
+            <select
+              name="weight"
+              value={form.weight}
+              onChange={handleChange}
+              required
+              className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
+            >
+              {PACKAGE_WEIGHT_OPTIONS.map((grams) => (
+                <option key={grams} value={grams}>
+                  {grams} g
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-gray-600">
+              Number of Packages
+            </span>
+            <input
+              type="number"
+              name="quantity"
+              value={form.quantity}
+              onChange={handleChange}
+              required
+              min={0}
+              className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
+            />
+          </label>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="space-y-2">
             <span className="text-sm font-medium text-gray-600">Genre</span>
             <input
@@ -175,7 +233,6 @@ const EditAsset = () => {
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
           </label>
-
           <label className="space-y-2">
             <span className="text-sm font-medium text-gray-600">Origin</span>
             <input
@@ -185,21 +242,8 @@ const EditAsset = () => {
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
           </label>
-
           <label className="space-y-2">
-            <span className="text-sm font-medium text-gray-600">Producer</span>
-            <input
-              name="producer"
-              value={form.producer}
-              onChange={handleChange}
-              className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
-            />
-          </label>
-
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-gray-600">
-              Harvest Time
-            </span>
+            <span className="text-sm font-medium text-gray-600">Harvest Time</span>
             <input
               type="number"
               name="harvest_time"
@@ -208,90 +252,44 @@ const EditAsset = () => {
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
           </label>
-
           <label className="space-y-2">
-            <span className="text-sm font-medium text-gray-600">
-              Roast Time
-            </span>
+            <span className="text-sm font-medium text-gray-600">Score</span>
             <input
               type="number"
-              name="roast_time"
-              value={form.roast_time}
+              name="score"
+              value={form.score}
               onChange={handleChange}
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
           </label>
-
-          <label className="space-y-2 md:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <span className="text-sm font-medium text-gray-600">
-                  Weight
-                </span>
-                <input
-                  type="number"
-                  name="weight"
-                  value={form.weight}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <span className="text-sm font-medium text-gray-600">
-                  Quantity
-                </span>
-                <input
-                  type="number"
-                  name="quantity"
-                  value={form.quantity}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <span className="text-sm font-medium text-gray-600">Score</span>
-                <input
-                  type="number"
-                  name="score"
-                  value={form.score}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
-                />
-              </div>
-            </div>
-          </label>
-
-          <label className="space-y-2 md:col-span-2">
-            <span className="text-sm font-medium text-gray-600">
-              Roast Level
-            </span>
-            <input
-              type="range"
-              name="roast_level"
-              min="0"
-              max="100"
-              value={form.roast_level}
-              onChange={handleChange}
-              className="w-full accent-[#78a043]"
-            />
-            <p className="text-right text-sm font-semibold text-[#9f655d]">
-              {form.roast_level || "-"}
-            </p>
-          </label>
-
-          <label className="space-y-2 md:col-span-2">
-            <span className="text-sm font-medium text-gray-600">Comment</span>
-            <textarea
-              name="comment"
-              value={form.comment}
-              onChange={handleChange}
-              rows={4}
-              className="w-full resize-none rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
-            />
-          </label>
         </div>
+
+        <label className="space-y-2 block">
+          <span className="text-sm font-medium text-gray-600">Roast Level</span>
+          <input
+            type="range"
+            name="roast_level"
+            min="0"
+            max="100"
+            value={form.roast_level}
+            onChange={handleChange}
+            className="w-full accent-[#78a043]"
+          />
+          <p className="text-right text-sm font-semibold text-[#9f655d]">
+            {form.roast_level || "-"}
+          </p>
+        </label>
+
+        <label className="space-y-2 block">
+          <span className="text-sm font-medium text-gray-600">Comment</span>
+          <textarea
+            name="comment"
+            value={form.comment}
+            onChange={handleChange}
+            rows={4}
+            className="w-full resize-none rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
+          />
+        </label>
 
         <div className="flex justify-end gap-2 pt-2">
           <button
@@ -301,7 +299,6 @@ const EditAsset = () => {
           >
             Cancel
           </button>
-
           <button
             type="submit"
             disabled={isSaving}

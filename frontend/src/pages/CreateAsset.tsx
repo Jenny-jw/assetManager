@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import type { CreateAssetType } from "../types/Asset";
 import axios from "../lib/axios";
+import { PACKAGE_WEIGHT_OPTIONS } from "../lib/teaPricing";
 
 const CreateAsset = () => {
   const [form, setForm] = useState<CreateAssetType>({
@@ -22,6 +23,20 @@ const CreateAsset = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
+    if (name === "weight") {
+      setForm((prev) => ({
+        ...prev,
+        weight: value === "" ? undefined : Number(value),
+      }));
+      return;
+    }
+    if (name === "price" || name === "quantity" || name === "score" || name === "roast_level") {
+      setForm((prev) => ({
+        ...prev,
+        [name]: value === "" ? undefined : Number(value),
+      }));
+      return;
+    }
     setForm((prev) => ({ ...prev, [name]: value === "" ? undefined : value }));
   };
 
@@ -84,14 +99,20 @@ const CreateAsset = () => {
             <label className="block font-medium mb-1">
               Weight per Package (g) *
             </label>
-            <input
-              type="number"
+            <select
               name="weight"
               value={form.weight ?? ""}
               onChange={handleChange}
               required
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6]"
-            />
+            >
+              <option value="">Select weight</option>
+              {PACKAGE_WEIGHT_OPTIONS.map((grams) => (
+                <option key={grams} value={grams}>
+                  {grams} g
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block font-medium mb-1">

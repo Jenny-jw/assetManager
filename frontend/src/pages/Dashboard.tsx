@@ -46,7 +46,7 @@ const Dashboard = () => {
           Log out
         </button>
       </div>
-      <Summary assets={assets} />
+      <Summary assets={assets} showTotalValue={user?.role === "admin"} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <OriginDistribution assets={assets} />
         <GenreDistribution assets={assets} />
