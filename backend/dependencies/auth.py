@@ -8,10 +8,8 @@ from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
 from core.db import db
 from models.user import UserRole
 
-
 def _auth_error(detail: str) -> HTTPException:
     return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
-
 
 def get_current_user(request: Request) -> dict[str, Any]:
     token = request.cookies.get("token")
@@ -33,7 +31,6 @@ def get_current_user(request: Request) -> dict[str, Any]:
 
     current_user["id"] = str(current_user["_id"])
     return current_user
-
 
 def require_role(*roles: UserRole):
     allowed_values = {role.value if isinstance(role, UserRole) else str(role) for role in roles}

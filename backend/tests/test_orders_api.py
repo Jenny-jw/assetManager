@@ -1,6 +1,5 @@
 from tests.conftest import seed_orderable_tea
 
-
 def test_user_can_place_order_and_stock_is_reduced(client_user, fake_db):
     tea_id = seed_orderable_tea(fake_db, quantity=5, price=1200)
 
@@ -24,7 +23,6 @@ def test_user_can_place_order_and_stock_is_reduced(client_user, fake_db):
     assert movement["delta"] == -2
     assert movement["reason"] == "order"
 
-
 def test_guest_cannot_place_order(client_guest, fake_db):
     tea_id = seed_orderable_tea(fake_db)
     response = client_guest.post(
@@ -32,7 +30,6 @@ def test_guest_cannot_place_order(client_guest, fake_db):
         json={"items": [{"tea_id": tea_id, "quantity": 1}]},
     )
     assert response.status_code == 403
-
 
 def test_order_rejects_tea_without_package_weight(client_user, fake_db):
     tea_id = seed_orderable_tea(fake_db)
@@ -45,7 +42,6 @@ def test_order_rejects_tea_without_package_weight(client_user, fake_db):
     )
     assert response.status_code == 400
 
-
 def test_insufficient_stock_returns_409(client_user, fake_db):
     tea_id = seed_orderable_tea(fake_db, quantity=1, price=900)
     response = client_user.post(
@@ -53,7 +49,6 @@ def test_insufficient_stock_returns_409(client_user, fake_db):
         json={"items": [{"tea_id": tea_id, "quantity": 3}]},
     )
     assert response.status_code == 409
-
 
 def test_user_can_list_own_orders(client_user, fake_db):
     tea_id = seed_orderable_tea(fake_db)
@@ -64,7 +59,6 @@ def test_user_can_list_own_orders(client_user, fake_db):
     body = response.json()
     assert body["total"] == 1
     assert body["data"][0]["items"][0]["tea_name"] == "Alishan Oolong"
-
 
 def test_user_cannot_read_other_users_order(client_user, fake_db):
     from datetime import datetime, timezone

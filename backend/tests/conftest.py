@@ -22,16 +22,13 @@ from main import app
 from routes import tea as tea_routes
 import services.order_service as order_service_module
 
-
 @dataclass
 class InsertOneResult:
     inserted_id: ObjectId
 
-
 @dataclass
 class DeleteResult:
     deleted_count: int
-
 
 class FakeCursor:
     def __init__(self, docs: list[dict[str, Any]]):
@@ -51,7 +48,6 @@ class FakeCursor:
 
     def __iter__(self):
         return iter(self.docs)
-
 
 class FakeCollection:
     def __init__(self):
@@ -165,7 +161,6 @@ class FakeCollection:
 
         return True
 
-
 class FakeDB:
     def __init__(self):
         self.teas = FakeCollection()
@@ -173,7 +168,6 @@ class FakeDB:
         self.orders = FakeCollection()
         self.order_items = FakeCollection()
         self.stock_movements = FakeCollection()
-
 
 def _make_user(role: str) -> dict[str, Any]:
     return {
@@ -184,11 +178,9 @@ def _make_user(role: str) -> dict[str, Any]:
         "is_active": True,
     }
 
-
 @pytest.fixture
 def fake_db():
     return FakeDB()
-
 
 def _build_client(monkeypatch, fake_db: FakeDB, auth_user: dict[str, Any] | None):
     monkeypatch.setattr(tea_routes, "db", fake_db)
@@ -204,31 +196,25 @@ def _build_client(monkeypatch, fake_db: FakeDB, auth_user: dict[str, Any] | None
 
     app.dependency_overrides.clear()
 
-
 @pytest.fixture
 def client(monkeypatch, fake_db: FakeDB):
     yield from _build_client(monkeypatch, fake_db, _make_user("admin"))
-
 
 @pytest.fixture
 def client_no_auth(monkeypatch, fake_db: FakeDB):
     yield from _build_client(monkeypatch, fake_db, None)
 
-
 @pytest.fixture
 def client_user(monkeypatch, fake_db: FakeDB):
     yield from _build_client(monkeypatch, fake_db, _make_user("user"))
-
 
 @pytest.fixture
 def client_guest(monkeypatch, fake_db: FakeDB):
     yield from _build_client(monkeypatch, fake_db, _make_user("guest"))
 
-
 @pytest.fixture
 def seeded_tea_id(fake_db: FakeDB) -> str:
     return seed_orderable_tea(fake_db, quantity=3)
-
 
 def seed_orderable_tea(
     fake_db: FakeDB,
@@ -248,7 +234,6 @@ def seed_orderable_tea(
         }
     )
     return str(next(iter(fake_db.teas.docs)))
-
 
 TEA_CREATE_PAYLOAD = {
     "name": "Test Tea",

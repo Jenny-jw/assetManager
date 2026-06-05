@@ -6,7 +6,7 @@ Project guidance is split into `.cursor/rules/*.mdc` for focused context. Cursor
 |-----------|---------|
 | `project-overview.mdc` | Product, roles, tech stack |
 | `architecture.mdc` | Repo layout and folder roles |
-| `code-formatting.mdc` | Blank-line spacing |
+| `code-formatting.mdc` | Coding style — one blank line between sections (never two) |
 | `coding-standards.mdc` | TypeScript / React avoid list |
 | `safety-guardrails.mdc` | Protected files, security |
 | `add-tests-on-change.mdc` | When and where to add tests |

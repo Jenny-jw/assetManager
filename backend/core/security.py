@@ -21,7 +21,7 @@ def create_token(data: dict):
     payload = data.copy()
     expiredAt = datetime.now(timezone.utc) + timedelta(hours=1)
     payload.update({"exp": expiredAt})
-   
+
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 @router.get("/me", response_model=UserResponse)

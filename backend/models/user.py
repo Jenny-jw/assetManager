@@ -11,7 +11,7 @@ class UserRole(str, Enum):
     admin = "admin"
     user = "user"
     guest = "guest"
-   
+
 class UserInDB(BaseModel):
     id: Optional[str] = None
     name: str

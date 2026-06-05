@@ -7,7 +7,6 @@ TEA_CREATE_PAYLOAD = {
     "quantity": 1,
 }
 
-
 @pytest.mark.parametrize(
     "method,path_factory",
     [
@@ -32,7 +31,6 @@ def test_tea_mutations_require_authentication(
     assert response.status_code == 401
     assert response.json()["detail"] == "Not authenticated"
 
-
 @pytest.mark.parametrize(
     "client_fixture,role",
     [
@@ -40,6 +38,7 @@ def test_tea_mutations_require_authentication(
         ("client_guest", "guest"),
     ],
 )
+
 @pytest.mark.parametrize(
     "method,path_factory",
     [
@@ -65,12 +64,10 @@ def test_tea_mutations_forbid_non_admin(
     assert response.status_code == 403
     assert response.json()["detail"] == "Forbidden"
 
-
 def test_admin_can_create_tea(client):
     response = client.post("/api/tea/", json=TEA_CREATE_PAYLOAD)
     assert response.status_code == 200
     assert response.json()["name"] == "Test Tea"
-
 
 def test_user_can_list_teas(client_user, fake_db):
     fake_db.teas.seed({"name": "Readable Tea", "genre": "Green", "origin": "Taiwan"})

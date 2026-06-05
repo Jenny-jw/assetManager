@@ -1,9 +1,69 @@
 ---
-description: Blank-line and spacing conventions
+description: Blank-line spacing and paragraph conventions (coding style)
 alwaysApply: true
 ---
 
-# Code Formatting
+# Code Formatting — Blank Lines
 
-- Use **one** blank line between logical sections (imports, top-level classes/functions)—not two.
-- After imports, use a single blank line before the first definition (this project's preference over extra PEP 8 spacing).
+## One blank line between logical sections
+
+Use **exactly one** blank line between major sections (import groups, top-level functions/classes, unrelated blocks). **Never** use two or more consecutive blank lines.
+
+This overrides PEP 8’s “two blank lines before top-level `def`/`class`”—use **one**.
+
+## No blank line: decorator → definition
+
+A decorator must sit **directly above** the `def`, `async def`, or `class` it applies to—**no blank line** between them.
+
+```python
+# ✅ Good
+@router.post("/", status_code=201)
+def create_order(...):
+    ...
+
+@dataclass
+class InsertOneResult:
+    ...
+```
+
+```python
+# ❌ Bad
+@router.post("/", status_code=201)
+
+def create_order(...):
+    ...
+```
+
+Applies to `@router.*`, `@pytest.fixture`, `@pytest.mark.parametrize`, `@dataclass`, `@asynccontextmanager`, and any other decorator.
+
+## Same-nature module-level variables stay grouped
+
+Related constants/config at module level (e.g. `JWT_*` in `config.py`) belong in one block **without** blank lines between them. Use one blank line before/after the whole block to separate it from imports or functions.
+
+## File endings — no trailing newline
+
+The file must end on the **last character of the last line of code**. Do **not** add:
+
+- a trailing empty line after the last statement, or
+- a final newline character (`\n`) after the last line
+
+In the editor, the cursor should not sit on an extra blank line below the last line of code. When saving or generating files, use `.rstrip("\n")` so the EOF has zero newline bytes.
+
+```python
+# ✅ Good — file ends immediately after last line
+db = client["assetManager"]
+```
+
+```python
+# ❌ Bad — extra newline creates a visible blank line in the editor
+db = client["assetManager"]
+<EOF newline here>
+```
+
+## Import groups
+
+Keep stdlib → third-party → local groups with **one** blank line between groups—not two.
+
+## Inside functions
+
+Use at most **one** blank line between logical steps; no stacked empty lines.

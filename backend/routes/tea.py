@@ -72,7 +72,7 @@ def list_teas(
             errors.append({"index": i, "id": str(tea.get("_id")), "error": str(e)})
             logger.exception("Failed to build TeaResponsePublic for tea id=%s", tea.get("_id"))
             continue
-    
+
     status_code = HTTP_206_PARTIAL_CONTENT if errors else status.HTTP_200_OK
     data = [json.loads(t.json()) for t in result]   # Pydantic 會把 datetime 序列化為 ISO string
     return JSONResponse(
@@ -109,34 +109,34 @@ def edit_tea(
 ):
     if not ObjectId.is_valid(tea_id):
         raise HTTPException(status_code=400, detail="Invalid tea id")
-    
+
     update_data = tea.model_dump(exclude_unset=True, exclude_none=True)
-    
+
     if not update_data:
         raise HTTPException(status_code=400, detail="No fields to update")
-    
+
     updated = db.teas.find_one_and_update(
         {"_id": ObjectId(tea_id)},
         {"$set": {**update_data, "updated_at": datetime.now(timezone.utc)}},
         return_document=ReturnDocument.AFTER
     )
-    
+
     if not updated:
         raise HTTPException(status_code=404, detail="Tea not found")
-    
+
     updated["id"] = str(updated["_id"])
     updated.pop("_id", None)
-    
+
     return updated
 
 @router.delete("/{tea_id}")
 def remove_tea(tea_id: str, _: dict = Depends(require_role(UserRole.admin))):
     if not ObjectId.is_valid(tea_id):
         raise HTTPException(status_code=400, detail="Invalid tea id")
-    
+
     res = db.teas.delete_one({"_id": ObjectId(tea_id)})
-    
+
     if (res.deleted_count == 1):
         return {"message": "Tea deleted"}
-    
+
     raise HTTPException(status_code=404, detail="Tea not found")

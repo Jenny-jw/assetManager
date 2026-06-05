@@ -14,7 +14,6 @@ def test_create_tea_rejects_invalid_package_weight(client):
 
     assert response.status_code == 422
 
-
 def test_create_and_update_tea(client):
     create_response = client.post(
         "/api/tea/",
@@ -42,7 +41,6 @@ def test_create_and_update_tea(client):
     updated = update_response.json()
     assert updated["quantity"] == 5
     assert updated["score"] == 91
-
 
 def test_list_teas_supports_pagination_filtering_and_sorting(client, fake_db):
     fake_db.teas.seed(
@@ -91,7 +89,6 @@ def test_list_teas_supports_pagination_filtering_and_sorting(client, fake_db):
     assert len(body["data"]) == 1
     assert body["data"][0]["name"] == "Lishan Oolong"
 
-
 def test_list_teas_supports_text_search(client, fake_db):
     fake_db.teas.seed(
         {
@@ -116,7 +113,6 @@ def test_list_teas_supports_text_search(client, fake_db):
     body = response.json()
     assert body["total"] == 1
     assert body["data"][0]["name"] == "Alishan Oolong"
-
 
 def test_delete_tea(client, fake_db):
     fake_db.teas.seed(
