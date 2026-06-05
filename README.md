@@ -57,7 +57,41 @@ cd backend
 python -m pip install -r requirements.txt
 ```
 
-Copy `backend/.env.example` to `backend/.env` and set `MONGO_URI` and `JWT_SECRET_KEY`.
+Copy `.env.example` to `backend/.env` (or repo-root `.env` for Compose) and set `MONGO_URI` and `JWT_SECRET_KEY`.
+
+## Run the backend with Docker Compose
+
+Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) (WSL2 on Windows) or Docker Engine on Linux.
+
+From the **repository root**:
+
+```bash
+docker compose up --build -d
+```
+
+Check that the API and MongoDB are up:
+
+```bash
+curl http://localhost:8000/health   # liveness — process alive
+curl http://localhost:8000/ready     # readiness — MongoDB reachable
+```
+
+Open `http://localhost:8000/docs` for the interactive API docs. The frontend still runs separately: `cd frontend && npm run dev` → `http://localhost:5173`.
+
+Useful commands:
+
+```bash
+docker compose ps          # container status
+docker compose logs api    # API logs
+docker compose down        # stop; data kept in volume
+docker compose down -v     # stop and delete Mongo data (reset DB)
+```
+
+Environment variables for Compose are set in `docker-compose.yml`. See `.env.example` for all supported variables and Atlas/local URI examples.
+
+`pytest` does **not** require Docker (tests use an in-memory fake DB). Run tests the same way as below.
+
+> **Note:** `mongo` publishes port `27017` to the host so you can connect with MongoDB Compass during local dev. That is fine for a resume demo on your machine. In production you would drop the host port mapping and require authentication.
 
 ## Tea API query examples
 
@@ -85,10 +119,18 @@ Workflow file: `.github/workflows/backend-ci.yml`
 
 It runs on every push/PR to `main` or `master`:
 
+**Job `test`**
+
 1. Checkout code
 2. Install Python 3.10
 3. `pip install -r backend/requirements.txt`
 4. `pytest -v` in `backend/`
+
+**Job `compose-smoke`**
+
+1. `docker compose up -d --build --wait`
+2. `curl` `/health` and `/ready`
+3. `docker compose down -v`
 
 ### One-time setup on GitHub
 

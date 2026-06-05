@@ -33,3 +33,22 @@ jobs:
           JWT_ALGORITHM: HS256
           JWT_COOKIE_SECURE: "false"
         run: pytest -v
+
+  compose-smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start api and mongo
+        run: docker compose up -d --build --wait
+
+      - name: Smoke check health endpoints
+        run: |
+          curl -fsS http://localhost:8000/health
+          curl -fsS http://localhost:8000/ready
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose down -v
