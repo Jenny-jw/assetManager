@@ -9,6 +9,7 @@ os.environ.setdefault("USE_DB_TRANSACTIONS", "false")
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import threading
 from typing import Any
 
 import pytest
@@ -50,13 +51,20 @@ class FakeCursor:
         return iter(self.docs)
 
 class FakeCollection:
-    def __init__(self):
+    def __init__(self, lock: threading.Lock | None = None):
         self.docs: dict[ObjectId, dict[str, Any]] = {}
+        self._lock = lock
 
     def create_index(self, *args, **kwargs):
         return None
 
     def insert_one(self, doc: dict[str, Any], **kwargs):
+        if self._lock:
+            with self._lock:
+                return self._insert_one(doc)
+        return self._insert_one(doc)
+
+    def _insert_one(self, doc: dict[str, Any]) -> InsertOneResult:
         doc_id = ObjectId()
         stored_doc = deepcopy(doc)
         stored_doc["_id"] = doc_id
@@ -89,6 +97,17 @@ class FakeCollection:
         update: dict[str, Any],
         return_document=None,
         **kwargs,
+    ):
+        if self._lock:
+            with self._lock:
+                return self._find_one_and_update(filters, update, return_document)
+        return self._find_one_and_update(filters, update, return_document)
+
+    def _find_one_and_update(
+        self,
+        filters: dict[str, Any],
+        update: dict[str, Any],
+        return_document=None,
     ):
         for doc_id, doc in self.docs.items():
             if self._matches(doc, filters):
@@ -163,11 +182,12 @@ class FakeCollection:
 
 class FakeDB:
     def __init__(self):
-        self.teas = FakeCollection()
-        self.users = FakeCollection()
-        self.orders = FakeCollection()
-        self.order_items = FakeCollection()
-        self.stock_movements = FakeCollection()
+        self._lock = threading.Lock()
+        self.teas = FakeCollection(self._lock)
+        self.users = FakeCollection(self._lock)
+        self.orders = FakeCollection(self._lock)
+        self.order_items = FakeCollection(self._lock)
+        self.stock_movements = FakeCollection(self._lock)
 
 def _make_user(role: str) -> dict[str, Any]:
     return {

@@ -14,6 +14,7 @@ from core.db import client, db
 from core.tea_pricing import price_per_package
 from models.order import OrderStatus, StockMovementReason
 from schemas.order import OrderCreate
+from services.stock_transactions import run_optional_transaction
 
 logger = logging.getLogger(__name__)
 
@@ -289,6 +290,41 @@ def _place_order_core(
     )
     return _serialize_order(order_doc, item_docs)
 
+def _claim_pending_order(
+    order_oid: ObjectId,
+    *,
+    session: ClientSession | None = None,
+) -> dict[str, Any]:
+    """Atomically move pending → confirmed so the same order cannot be fulfilled twice."""
+    claimed = db.orders.find_one_and_update(
+        {"_id": order_oid, "status": OrderStatus.pending.value},
+        {"$set": {"status": OrderStatus.confirmed.value, "updated_at": utcnow()}},
+        return_document=ReturnDocument.BEFORE,
+        session=session,
+    )
+    if not claimed:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Order is not pending approval",
+        )
+    return claimed
+
+def _rollback_fulfillment(
+    order_oid: ObjectId,
+    applied: list[tuple[ObjectId, int]],
+) -> None:
+    """Compensating rollback when Mongo transactions are off (tests / standalone Mongo)."""
+    for tea_oid, quantity in reversed(applied):
+        db.teas.update_one(
+            {"_id": tea_oid},
+            {"$inc": {"quantity": quantity}},
+        )
+    db.stock_movements.delete_many({"ref_type": "order", "ref_id": str(order_oid)})
+    db.orders.update_one(
+        {"_id": order_oid},
+        {"$set": {"status": OrderStatus.pending.value, "updated_at": utcnow()}},
+    )
+
 def _fulfill_pending_order(
     order: dict[str, Any],
     items: list[dict[str, Any]],
@@ -296,58 +332,67 @@ def _fulfill_pending_order(
     actor_id: str,
     session: ClientSession | None = None,
 ) -> None:
+    """
+    Transaction-safe stock deduction on admin approve:
+      1. Claim order (pending → confirmed) — prevents double-approve
+      2. Per line: atomic decrement only if quantity >= ordered qty
+      3. Insert stock_movements audit row per line
+    """
     now = utcnow()
     order_oid = order["_id"]
+    _claim_pending_order(order_oid, session=session)
 
-    for item in items:
-        tea_oid = ObjectId(item["tea_id"])
-        tea_before = _reserve_tea_stock(
-            tea_oid, item["quantity"], session=session
-        )
-        qty_before = tea_before["quantity"]
-        qty_after = qty_before - item["quantity"]
+    applied: list[tuple[ObjectId, int]] = []
+    try:
+        for item in items:
+            tea_oid = ObjectId(item["tea_id"])
+            tea_before = _reserve_tea_stock(
+                tea_oid, item["quantity"], session=session
+            )
+            applied.append((tea_oid, item["quantity"]))
+            qty_before = tea_before["quantity"]
+            qty_after = qty_before - item["quantity"]
 
-        movement_doc = {
-            "tea_id": item["tea_id"],
-            "delta": -item["quantity"],
-            "quantity_before": qty_before,
-            "quantity_after": qty_after,
-            "reason": StockMovementReason.order.value,
-            "ref_type": "order",
-            "ref_id": str(order_oid),
-            "created_by": actor_id,
-            "created_at": now,
-        }
-        db.stock_movements.insert_one(movement_doc, session=session)
-
-    db.orders.update_one(
-        {"_id": order_oid},
-        {"$set": {"status": OrderStatus.confirmed.value, "updated_at": now}},
-        session=session,
-    )
+            movement_doc = {
+                "tea_id": item["tea_id"],
+                "delta": -item["quantity"],
+                "quantity_before": qty_before,
+                "quantity_after": qty_after,
+                "reason": StockMovementReason.order.value,
+                "ref_type": "order",
+                "ref_id": str(order_oid),
+                "created_by": actor_id,
+                "created_at": now,
+            }
+            db.stock_movements.insert_one(movement_doc, session=session)
+    except Exception:
+        if session is None:
+            _rollback_fulfillment(order_oid, applied)
+        raise
 
 def approve_order(order_id: str, current_user: dict[str, Any]) -> dict[str, Any]:
     _require_admin(current_user)
     order, items = _get_pending_order(order_id)
 
-    if _use_transactions():
-        try:
-            with client.start_session() as session:
-                with session.start_transaction():
-                    _fulfill_pending_order(
-                        order,
-                        items,
-                        actor_id=current_user["id"],
-                        session=session,
-                    )
-        except HTTPException:
-            raise
-        except Exception as exc:
-            logger.warning("transactional approve failed, retrying sequential: %s", exc)
+    def _approve(session: ClientSession | None) -> None:
+        _fulfill_pending_order(
+            order,
+            items,
+            actor_id=current_user["id"],
+            session=session,
+        )
+
+    try:
+        run_optional_transaction(enabled=_use_transactions(), operation=_approve)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        if _use_transactions():
+            logger.warning("transactional approve failed, retrying without session: %s", exc)
             order, items = _get_pending_order(order_id)
-            _fulfill_pending_order(order, items, actor_id=current_user["id"], session=None)
-    else:
-        _fulfill_pending_order(order, items, actor_id=current_user["id"], session=None)
+            _approve(None)
+        else:
+            raise
 
     logger.info(
         "order approved",
