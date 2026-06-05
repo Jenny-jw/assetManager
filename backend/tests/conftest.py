@@ -230,7 +230,13 @@ def seeded_tea_id(fake_db: FakeDB) -> str:
     return seed_orderable_tea(fake_db, quantity=3)
 
 
-def seed_orderable_tea(fake_db: FakeDB, *, quantity: int = 5, price: int = 1200) -> str:
+def seed_orderable_tea(
+    fake_db: FakeDB,
+    *,
+    quantity: int = 5,
+    price: int = 1200,
+    weight: int = 150,
+) -> str:
     fake_db.teas.seed(
         {
             "name": "Alishan Oolong",
@@ -238,6 +244,7 @@ def seed_orderable_tea(fake_db: FakeDB, *, quantity: int = 5, price: int = 1200)
             "origin": "Alishan",
             "quantity": quantity,
             "price": price,
+            "weight": weight,
         }
     )
     return str(next(iter(fake_db.teas.docs)))

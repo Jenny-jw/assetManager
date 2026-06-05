@@ -11,7 +11,9 @@ def test_user_can_place_order_and_stock_is_reduced(client_user, fake_db):
 
     assert response.status_code == 201
     body = response.json()
-    assert body["total_amount"] == 2400
+    # 150g pkg, 1200/斤 → 300/pkg × 2 packages = 600
+    assert body["total_amount"] == 600
+    assert body["items"][0]["unit_price"] == 300
     assert len(body["items"]) == 1
     assert body["items"][0]["tea_id"] == tea_id
 
@@ -30,6 +32,18 @@ def test_guest_cannot_place_order(client_guest, fake_db):
         json={"items": [{"tea_id": tea_id, "quantity": 1}]},
     )
     assert response.status_code == 403
+
+
+def test_order_rejects_tea_without_package_weight(client_user, fake_db):
+    tea_id = seed_orderable_tea(fake_db)
+    tea_oid = next(iter(fake_db.teas.docs))
+    fake_db.teas.docs[tea_oid]["weight"] = None
+
+    response = client_user.post(
+        "/api/orders/",
+        json={"items": [{"tea_id": tea_id, "quantity": 1}]},
+    )
+    assert response.status_code == 400
 
 
 def test_insufficient_stock_returns_409(client_user, fake_db):
