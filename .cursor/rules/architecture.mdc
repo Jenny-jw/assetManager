@@ -1,0 +1,38 @@
+---
+description: Repository layout and folder responsibilities
+alwaysApply: true
+---
+
+# Architecture
+
+```text
+backend/
+  main.py
+  core/          config, db, errors, indexes, logging, security
+  dependencies/  auth.py (get_current_user, require_role)
+  middleware/    (reserved)
+  models/        tea, user, order enums
+  schemas/       request/response DTOs
+  services/      order_service.py (order + stock logic)
+  routes/        auth, tea, orders
+  tests/         pytest + conftest (fake DB)
+
+frontend/
+  src/           pages, components, routes, services, types, context
+  tests/         Vitest (mirror src/); @/ → src/
+```
+
+## Folder responsibilities
+
+| Area | Role |
+|------|------|
+| `backend/routes/` | HTTP endpoints (thin) |
+| `backend/schemas/` | Pydantic validation |
+| `backend/models/` | Persistence / domain enums |
+| `backend/services/` | Business logic (e.g. orders, stock) |
+| `backend/dependencies/` | FastAPI `Depends` auth |
+| `frontend/src/services/` | Axios API clients |
+| `frontend/src/pages/` | Route screens |
+| `frontend/tests/` | Vitest specs |
+
+Ignore `node_modules/`, `venv/`, `__pycache__/` in analysis unless debugging deps.

@@ -1,0 +1,24 @@
+---
+description: Product context, roles, and tech stack for assetManager
+alwaysApply: true
+---
+
+# Project Overview
+
+Tea asset management system (inventory, dashboard, orders).
+
+## Roles
+
+- **admin**: add/edit/delete tea; approve orders (planned)
+- **user**: view assets; place orders
+- **guest**: view asset list only
+
+## Tech Stack
+
+**Frontend:** React 19, TypeScript 5.9, Vite, Tailwind CSS 4.3
+
+**Backend:** Python, FastAPI, PyMongo, structured JSON logging, centralized API errors
+
+**Database:** MongoDB (email uniqueness, tea filters, text search, orders indexes)
+
+Assume intermediate TypeScript knowledge; explain advanced patterns when used.

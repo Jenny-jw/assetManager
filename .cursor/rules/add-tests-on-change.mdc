@@ -1,0 +1,47 @@
+---
+description: Require considering related tests whenever code is modified
+alwaysApply: true
+---
+
+# Tests When Modifying Code
+
+Whenever you change application code (not docs-only), check whether related tests are needed before finishing.
+
+## When to add or update tests
+
+- New API route, service logic, or auth rule → pytest / Vitest
+- Bug fix → regression test
+- Behavior change (validation, status codes, roles) → update assertions
+- Refactor only → update tests if fixtures/mocks break
+
+## When tests are optional
+
+- Formatting, comments, renames with no behavior change
+- Lockfiles or config unrelated to logic
+
+## Project conventions
+
+- **Backend:** `backend/tests/` (`test_*.py`, `conftest.py`), `pytest -v` from `backend/`
+- **Frontend:** `frontend/tests/`, `npm run test` from `frontend/`
+  - Setup: `tests/setup.ts`
+  - Import app code: `@/` → `src/`
+  - Config: `vite.config.ts`
+
+## Where to put new frontend tests
+
+Mirror `src/` under `tests/`:
+
+| Source | Test file |
+|--------|-----------|
+| `src/pages/Login.tsx` | `tests/pages/Login.test.tsx` |
+| `src/services/orderServices.ts` | `tests/services/orderServices.test.ts` |
+| `src/routes/ProtectedRoute.tsx` | `tests/routes/ProtectedRoute.test.tsx` |
+| `src/components/Summary.tsx` | `tests/components/Summary.test.tsx` |
+
+## Before marking work done
+
+1. Identify what behavior changed.
+2. Add or update tests in the same change when needed.
+3. Run `pytest -v` and/or `npm run test`.
+
+If skipping tests, state why briefly (e.g. docs-only).

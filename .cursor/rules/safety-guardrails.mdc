@@ -1,0 +1,25 @@
+---
+description: Protected files, destructive ops, and security
+alwaysApply: true
+---
+
+# Safety Guardrails
+
+## Protected files (do not modify without explicit user permission)
+
+- `.env*`
+- `package-lock.json` (use npm commands)
+- `.github/workflows/` (CI)
+- `prisma/migrations/` (use prisma migrate if used)
+
+## Confirm with user first
+
+- Database schema / collection shape changes
+- Deleting files or directories
+- Authentication or authorization behavior changes
+- Breaking API response format changes
+
+## Security
+
+- Never log passwords, tokens, or PII
+- Sanitize user input before database queries

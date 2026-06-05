@@ -1,0 +1,9 @@
+---
+description: Blank-line and spacing conventions
+alwaysApply: true
+---
+
+# Code Formatting
+
+- Use **one** blank line between logical sections (imports, top-level classes/functions)—not two.
+- After imports, use a single blank line before the first definition (this project's preference over extra PEP 8 spacing).

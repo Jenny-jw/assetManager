@@ -1,0 +1,14 @@
+---
+description: Language and React patterns to avoid
+alwaysApply: true
+---
+
+# Coding Standards — Never Do
+
+- Use `any` (use `unknown` and narrow)
+- Disable ESLint without justification
+- Use `var` (use `const` or `let`)
+- Mutate React state directly
+- Use array index as React `key` for dynamic lists
+- Store sensitive data in `localStorage`
+- Use synchronous file I/O in API route handlers
