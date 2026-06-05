@@ -1,10 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it } from "vitest";
-import ProtectedRoute from "./ProtectedRoute";
-import { AuthContext } from "../context/authContextImpl";
-import type { AuthContextType } from "../context/authContextImpl";
-import type { User } from "../types/User";
+import ProtectedRoute from "@/routes/ProtectedRoute";
+import { AuthContext } from "@/context/authContextImpl";
+import type { AuthContextType } from "@/context/authContextImpl";
+import type { User } from "@/types/User";
 
 const baseAuth: Omit<AuthContextType, "user"> = {
   loading: false,
