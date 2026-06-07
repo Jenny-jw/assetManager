@@ -1,0 +1,45 @@
+---
+description: React 19 event types for forms and inputs (TSX)
+globs: frontend/**/*.tsx
+alwaysApply: false
+---
+
+# React 19 — Event Types
+
+This project uses **React 19**. Prefer current event types; deprecated ones trigger TS/IDE warnings.
+
+## Form submit
+
+Use **`SubmitEvent`** (or `SubmitEventHandler`) for `<form onSubmit>` — not `FormEvent`.
+
+```tsx
+// ✅ Good
+const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  e.preventDefault();
+};
+
+// ❌ Bad — FormEvent is deprecated for submit handlers in React 19
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+};
+```
+
+## Input / select change
+
+Use **`ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>`** for `onChange`.
+
+## Required string fields
+
+Do not map empty required strings to `undefined` before validation — use `""` and validate with `(value ?? "").trim()` to avoid runtime errors on `.trim()`.
+
+```tsx
+// ✅ Good
+if (!(form.name ?? "").trim()) {
+  errors.name = "Name is required.";
+}
+
+// ❌ Bad — throws if name was stored as undefined
+if (!form.name.trim()) {
+  errors.name = "Name is required.";
+}
+```

@@ -7,6 +7,8 @@ alwaysApply: true
 
 Blank-line spacing follows `code-formatting.mdc` (one blank line between sections; no blank line between decorator and definition; file ends on last character with no trailing newline).
 
+- Use `SubmitEvent` for form `onSubmit`, not deprecated `FormEvent` (see `react-events.mdc`).
+
 - Use `any` (use `unknown` and narrow)
 - Disable ESLint without justification
 - Use `var` (use `const` or `let`)
