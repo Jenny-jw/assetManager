@@ -110,14 +110,30 @@ def edit_tea(
     if not ObjectId.is_valid(tea_id):
         raise HTTPException(status_code=400, detail="Invalid tea id")
 
-    update_data = tea.model_dump(exclude_unset=True, exclude_none=True)
+    update_data = tea.model_dump(exclude_unset=True)
+
+    for key in ("origin", "producer", "comment"):
+        if key in update_data and update_data[key] == "":
+            update_data[key] = None
 
     if not update_data:
         raise HTTPException(status_code=400, detail="No fields to update")
 
+    set_data = {k: v for k, v in update_data.items() if v is not None}
+    unset_data = {k: "" for k, v in update_data.items() if v is None}
+
+    update_ops: dict = {}
+    if set_data:
+        set_data["updated_at"] = datetime.now(timezone.utc)
+        update_ops["$set"] = set_data
+    elif unset_data:
+        update_ops["$set"] = {"updated_at": datetime.now(timezone.utc)}
+    if unset_data:
+        update_ops["$unset"] = unset_data
+
     updated = db.teas.find_one_and_update(
         {"_id": ObjectId(tea_id)},
-        {"$set": {**update_data, "updated_at": datetime.now(timezone.utc)}},
+        update_ops,
         return_document=ReturnDocument.AFTER
     )
 

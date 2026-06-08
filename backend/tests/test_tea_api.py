@@ -42,6 +42,51 @@ def test_create_and_update_tea(client):
     assert updated["quantity"] == 5
     assert updated["score"] == 91
 
+def test_patch_clears_optional_string_fields(client):
+    create_response = client.post(
+        "/api/tea/",
+        json={
+            "name": "Alishan Oolong",
+            "genre": "Oolong",
+            "origin": "Japan",
+            "producer": "Farmer Tan",
+            "comment": "Floral",
+            "quantity": 3,
+            "price": 1200,
+        },
+    )
+
+    assert create_response.status_code == 200
+    tea_id = create_response.json()["id"]
+
+    clear_origin = client.patch(f"/api/tea/{tea_id}", json={"origin": None})
+    assert clear_origin.status_code == 200
+    assert clear_origin.json().get("origin") is None
+
+    restore_origin = client.patch(f"/api/tea/{tea_id}", json={"origin": "Japan"})
+    assert restore_origin.status_code == 200
+
+    clear_via_empty = client.patch(f"/api/tea/{tea_id}", json={"origin": ""})
+    assert clear_via_empty.status_code == 200
+    assert clear_via_empty.json().get("origin") is None
+
+def test_patch_allows_zero_packages(client):
+    create_response = client.post(
+        "/api/tea/",
+        json={
+            "name": "Alishan Oolong",
+            "genre": "Oolong",
+            "quantity": 3,
+            "price": 1200,
+        },
+    )
+    tea_id = create_response.json()["id"]
+
+    response = client.patch(f"/api/tea/{tea_id}", json={"quantity": 0})
+
+    assert response.status_code == 200
+    assert response.json()["quantity"] == 0
+
 def test_list_teas_supports_pagination_filtering_and_sorting(client, fake_db):
     fake_db.teas.seed(
         {

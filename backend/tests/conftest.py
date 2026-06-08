@@ -117,6 +117,9 @@ class FakeCollection:
                         doc[field] = doc.get(field, 0) + delta
                 if "$set" in update:
                     doc.update(update["$set"])
+                if "$unset" in update:
+                    for field in update["$unset"]:
+                        doc.pop(field, None)
                 self.docs[doc_id] = doc
                 if return_document == ReturnDocument.BEFORE:
                     return before
