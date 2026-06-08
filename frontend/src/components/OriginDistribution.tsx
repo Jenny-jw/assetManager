@@ -1,22 +1,15 @@
-import type { Asset } from "../types/Asset";
-
 type Props = {
-  assets: Asset[];
+  counts: Record<string, number>;
 };
 
-const OriginDistribution = ({ assets }: Props) => {
-  const map: Record<string, number> = {};
-
-  assets.forEach((asset) => {
-    const origin = asset.origin ?? "Unknown";
-    map[origin] = (map[origin] ?? 0) + 1;
-  });
+const OriginDistribution = ({ counts }: Props) => {
+  const entries = Object.entries(counts).sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <div className="bg-[#ffffffE6] p-4 shadow rounded-xl text-gray-500">
       <h2 className="font-semibold mb-3">Assets by Origin</h2>
       <ul>
-        {Object.entries(map).map(([origin, count]) => (
+        {entries.map(([origin, count]) => (
           <li key={origin} className="flex justify-between border-b py-1">
             <span>{origin}</span>
             <span>{count}</span>

@@ -1,6 +1,13 @@
 from fastapi import APIRouter, status, HTTPException, Depends, Query
 from fastapi.responses import JSONResponse
-from schemas.tea import TeaCreate, TeaResponsePublic, TeaResponseList, TeaUpdate
+from schemas.tea import (
+    TeaCreate,
+    TeaResponsePublic,
+    TeaResponseList,
+    TeaSummaryResponse,
+    TeaUpdate,
+)
+from services.tea_summary_service import build_tea_summary
 from core.db import db
 from bson.objectid import ObjectId
 from pymongo import ReturnDocument
@@ -86,6 +93,10 @@ def list_teas(
         },
         status_code=status_code,
     )
+
+@router.get("/summary", response_model=TeaSummaryResponse)
+def tea_summary():
+    return build_tea_summary(db.teas)
 
 @router.get("/{tea_id}", response_model=TeaResponsePublic)
 def get_tea(tea_id: str):

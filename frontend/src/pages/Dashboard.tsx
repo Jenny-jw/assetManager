@@ -4,30 +4,51 @@ import OriginDistribution from "../components/OriginDistribution";
 import GenreDistribution from "../components/GenreDistribution";
 import PendingOrdersInbox from "../components/PendingOrdersInbox";
 import RecentAssets from "../components/RecentAssets";
-import { listTeas } from "../services/teaServices";
+import {
+  DASHBOARD_RECENT_LIMIT,
+  getTeaSummary,
+  listTeas,
+} from "../services/teaServices";
 import type { Asset } from "../types/Asset";
+import type { TeaSummary } from "../types/TeaList";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
+
+const EMPTY_SUMMARY: TeaSummary = {
+  total_assets: 0,
+  total_packages: 0,
+  total_weight_grams: 0,
+  total_value: 0,
+  by_origin: {},
+  by_genre: {},
+};
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const isAdmin = user?.role === "admin";
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
+  const [summary, setSummary] = useState<TeaSummary>(EMPTY_SUMMARY);
+  const [recentAssets, setRecentAssets] = useState<Asset[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [ordersRefresh, setOrdersRefresh] = useState(0);
   const navigate = useNavigate();
 
-  const refreshAssets = useCallback(() => {
-    listTeas({ limit: 100, sort_by: "created_at", sort_direction: "desc" })
-      .then((response) => {
-        setAssets(response.data);
-        setTotalCount(response.total);
+  const refreshDashboard = useCallback(() => {
+    Promise.all([
+      getTeaSummary(),
+      listTeas({
+        limit: DASHBOARD_RECENT_LIMIT,
+        sort_by: "created_at",
+        sort_direction: "desc",
+      }),
+    ])
+      .then(([summaryData, recentResponse]) => {
+        setSummary(summaryData);
+        setRecentAssets(recentResponse.data);
       })
       .catch((error) => {
-        console.error("Failed to load dashboard assets:", error);
-        setAssets([]);
-        setTotalCount(0);
+        console.error("Failed to load dashboard data:", error);
+        setSummary(EMPTY_SUMMARY);
+        setRecentAssets([]);
       });
   }, []);
 
@@ -41,13 +62,13 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    refreshAssets();
-  }, [refreshAssets]);
+    refreshDashboard();
+  }, [refreshDashboard]);
 
   const handleInventoryChange = useCallback(() => {
-    refreshAssets();
+    refreshDashboard();
     setOrdersRefresh((token) => token + 1);
-  }, [refreshAssets]);
+  }, [refreshDashboard]);
 
   return (
     <div className="p-6 space-y-6">
@@ -69,7 +90,7 @@ const Dashboard = () => {
           Log out
         </button>
       </div>
-      <Summary assets={assets} totalCount={totalCount} showTotalValue={isAdmin} />
+      <Summary summary={summary} showTotalValue={isAdmin} />
       <div
         className={
           isAdmin
@@ -77,8 +98,8 @@ const Dashboard = () => {
             : "grid grid-cols-1 lg:grid-cols-2 gap-6"
         }
       >
-        <OriginDistribution assets={assets} />
-        <GenreDistribution assets={assets} />
+        <OriginDistribution counts={summary.by_origin} />
+        <GenreDistribution counts={summary.by_genre} />
         {isAdmin && (
           <PendingOrdersInbox
             refreshToken={ordersRefresh}
@@ -88,7 +109,7 @@ const Dashboard = () => {
         )}
       </div>
       <div className="grid md:grid-cols-6 gap-6">
-        <RecentAssets assets={assets} className="md:col-span-4" />
+        <RecentAssets assets={recentAssets} className="md:col-span-4" />
         <div className="md:col-span-2 flex flex-col gap-4">
           {isAdmin && (
             <>

@@ -14,6 +14,7 @@ vi.mock("@/lib/axios", () => ({
 import {
   DEFAULT_TEA_PAGE_SIZE,
   extractTeaFacets,
+  getTeaSummary,
   listTeas,
 } from "@/services/teaServices";
 
@@ -47,6 +48,25 @@ describe("teaServices", () => {
         sort_direction: "asc",
       },
     });
+  });
+
+  it("getTeaSummary calls the summary endpoint", async () => {
+    getMock.mockResolvedValue({
+      data: {
+        total_assets: 32,
+        total_packages: 40,
+        total_weight_grams: 5000,
+        total_value: 12000,
+        by_origin: { Taiwan: 20 },
+        by_genre: { Oolong: 32 },
+      },
+    });
+
+    const summary = await getTeaSummary();
+
+    expect(getMock).toHaveBeenCalledWith("/tea/summary");
+    expect(summary.total_assets).toBe(32);
+    expect(summary.total_value).toBe(12000);
   });
 
   it("extractTeaFacets returns sorted unique genres and origins", () => {

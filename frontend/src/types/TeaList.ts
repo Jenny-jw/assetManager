@@ -31,3 +31,12 @@ export type TeaFacets = {
   genres: string[];
   origins: string[];
 };
+
+export type TeaSummary = {
+  total_assets: number;
+  total_packages: number;
+  total_weight_grams: number;
+  total_value: number;
+  by_origin: Record<string, number>;
+  by_genre: Record<string, number>;
+};

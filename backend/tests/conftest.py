@@ -71,14 +71,31 @@ class FakeCollection:
         self.docs[doc_id] = stored_doc
         return InsertOneResult(inserted_id=doc_id)
 
-    def find(self, filters: dict[str, Any] | None = None):
-        return FakeCursor(
-            [
-                deepcopy(doc)
-                for doc in self.docs.values()
-                if self._matches(doc, filters or {})
-            ]
-        )
+    def find(
+        self,
+        filters: dict[str, Any] | None = None,
+        projection: dict[str, Any] | None = None,
+    ):
+        docs = [
+            self._apply_projection(deepcopy(doc), projection)
+            for doc in self.docs.values()
+            if self._matches(doc, filters or {})
+        ]
+        return FakeCursor(docs)
+
+    def _apply_projection(
+        self,
+        doc: dict[str, Any],
+        projection: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        if not projection:
+            return doc
+        if projection.get("_id") == 0:
+            doc.pop("_id", None)
+        included = [key for key, value in projection.items() if key != "_id" and value]
+        if included:
+            return {key: doc.get(key) for key in included}
+        return doc
 
     def count_documents(self, filters: dict[str, Any] | None = None):
         return sum(

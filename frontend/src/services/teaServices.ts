@@ -4,9 +4,11 @@ import type {
   TeaFacets,
   TeaListParams,
   TeaListResponse,
+  TeaSummary,
 } from "../types/TeaList";
 
 export const DEFAULT_TEA_PAGE_SIZE = 20;
+export const DASHBOARD_RECENT_LIMIT = 3;
 
 export const listTeas = async (
   params: TeaListParams = {},
@@ -22,6 +24,11 @@ export const listTeas = async (
       ...(params.origin ? { origin: params.origin } : {}),
     },
   });
+  return response.data;
+};
+
+export const getTeaSummary = async (): Promise<TeaSummary> => {
+  const response = await api.get<TeaSummary>("/tea/summary");
   return response.data;
 };
 

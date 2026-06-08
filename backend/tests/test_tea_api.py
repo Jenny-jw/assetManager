@@ -87,6 +87,37 @@ def test_patch_allows_zero_packages(client):
     assert response.status_code == 200
     assert response.json()["quantity"] == 0
 
+def test_tea_summary_aggregates_entire_inventory(client, fake_db):
+    fake_db.teas.seed(
+        {
+            "name": "Alishan Oolong",
+            "genre": "Oolong",
+            "origin": "Taiwan",
+            "quantity": 2,
+            "weight": 150,
+            "price": 1200,
+        },
+        {
+            "name": "Sencha",
+            "genre": "Green",
+            "origin": "Japan",
+            "quantity": 1,
+            "weight": 75,
+            "price": 900,
+        },
+    )
+
+    response = client.get("/api/tea/summary")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total_assets"] == 2
+    assert body["total_packages"] == 3
+    assert body["total_weight_grams"] == 375
+    assert body["total_value"] == 712
+    assert body["by_origin"] == {"Japan": 1, "Taiwan": 1}
+    assert body["by_genre"] == {"Green": 1, "Oolong": 1}
+
 def test_list_teas_pagination_returns_second_page(client, fake_db):
     for index in range(32):
         fake_db.teas.seed(

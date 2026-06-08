@@ -62,6 +62,14 @@ class TeaResponseList(BaseModel):
     total: int
     errors: list[dict] = []
 
+class TeaSummaryResponse(BaseModel):
+    total_assets: int
+    total_packages: int
+    total_weight_grams: int
+    total_value: int
+    by_origin: dict[str, int]
+    by_genre: dict[str, int]
+
 class TeaResponseInternal(TeaResponsePublic):
     owner_id: Optional[str]
     updated_at: Optional[datetime]
