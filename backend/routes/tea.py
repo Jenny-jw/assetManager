@@ -64,7 +64,8 @@ def list_teas(
             continue
         try:
             tea["id"] = str(tea["_id"])
-            tea["created_at"] = tea.get("created_at")
+            if not tea.get("created_at"):
+                tea["created_at"] = datetime.now(timezone.utc)
             tea.pop("_id", None)
             tr = TeaResponsePublic.model_validate(tea)
             result.append(tr)

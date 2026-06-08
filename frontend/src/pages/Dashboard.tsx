@@ -4,7 +4,7 @@ import OriginDistribution from "../components/OriginDistribution";
 import GenreDistribution from "../components/GenreDistribution";
 import PendingOrdersInbox from "../components/PendingOrdersInbox";
 import RecentAssets from "../components/RecentAssets";
-import axios from "../lib/axios";
+import { listTeas } from "../services/teaServices";
 import type { Asset } from "../types/Asset";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
@@ -13,14 +13,22 @@ const Dashboard = () => {
   const { user, logout } = useAuth();
   const isAdmin = user?.role === "admin";
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
   const [ordersRefresh, setOrdersRefresh] = useState(0);
   const navigate = useNavigate();
 
   const refreshAssets = useCallback(() => {
-    axios.get("/tea").then((res) => {
-      setAssets(res.data.data);
-    });
+    listTeas({ limit: 100, sort_by: "created_at", sort_direction: "desc" })
+      .then((response) => {
+        setAssets(response.data);
+        setTotalCount(response.total);
+      })
+      .catch((error) => {
+        console.error("Failed to load dashboard assets:", error);
+        setAssets([]);
+        setTotalCount(0);
+      });
   }, []);
 
   const handleLogout = async () => {
@@ -61,7 +69,7 @@ const Dashboard = () => {
           Log out
         </button>
       </div>
-      <Summary assets={assets} showTotalValue={isAdmin} />
+      <Summary assets={assets} totalCount={totalCount} showTotalValue={isAdmin} />
       <div
         className={
           isAdmin
