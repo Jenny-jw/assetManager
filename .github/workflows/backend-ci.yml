@@ -46,8 +46,23 @@ jobs:
 
       - name: Smoke check health endpoints
         run: |
-          curl -fsS http://localhost:8000/health
-          curl -fsS http://localhost:8000/ready
+          set -euo pipefail
+          for endpoint in health ready; do
+            for attempt in $(seq 1 15); do
+              if curl -fsS "http://localhost:8000/${endpoint}"; then
+                echo
+                break
+              fi
+              if [ "${attempt}" -eq 15 ]; then
+                echo "::error::${endpoint} check failed after ${attempt} attempts"
+                docker compose ps
+                docker compose logs api --tail 100
+                exit 1
+              fi
+              echo "Waiting for /${endpoint} (attempt ${attempt}/15)..."
+              sleep 2
+            done
+          done
 
       - name: Tear down stack
         if: always()
