@@ -87,6 +87,33 @@ def test_patch_allows_zero_packages(client):
     assert response.status_code == 200
     assert response.json()["quantity"] == 0
 
+def test_list_teas_pagination_returns_second_page(client, fake_db):
+    for index in range(32):
+        fake_db.teas.seed(
+            {
+                "name": f"Tea {index}",
+                "genre": "Oolong",
+                "quantity": 1,
+                "price": 1000,
+                "score": index,
+            },
+        )
+
+    page_one = client.get(
+        "/api/tea/",
+        params={"page": 1, "limit": 20, "sort_by": "score", "sort_direction": "asc"},
+    )
+    page_two = client.get(
+        "/api/tea/",
+        params={"page": 2, "limit": 20, "sort_by": "score", "sort_direction": "asc"},
+    )
+
+    assert page_one.status_code == 200
+    assert page_two.status_code == 200
+    assert page_one.json()["total"] == 32
+    assert len(page_one.json()["data"]) == 20
+    assert len(page_two.json()["data"]) == 12
+
 def test_list_teas_supports_pagination_filtering_and_sorting(client, fake_db):
     fake_db.teas.seed(
         {
