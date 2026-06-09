@@ -35,28 +35,64 @@ def _require_admin(current_user: dict[str, Any]) -> None:
     if _normalize_role(current_user.get("role")) != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
+def _batch_tea_lookup(item_docs_groups: list[list[dict[str, Any]]]) -> dict[str, dict[str, Any]]:
+    tea_ids: set[str] = set()
+    for item_docs in item_docs_groups:
+        for item in item_docs:
+            tea_id = item.get("tea_id")
+            if tea_id and ObjectId.is_valid(tea_id):
+                tea_ids.add(tea_id)
+
+    if not tea_ids:
+        return {}
+
+    tea_oids = [ObjectId(tea_id) for tea_id in tea_ids]
+    return {
+        str(doc["_id"]): doc
+        for doc in db.teas.find({"_id": {"$in": tea_oids}}, {"name": 1})
+    }
+
+def _resolve_item_display(
+    item: dict[str, Any],
+    tea_lookup: dict[str, dict[str, Any]] | None,
+) -> tuple[str, bool]:
+    if tea_lookup is None:
+        return item["tea_name"], True
+
+    tea_doc = tea_lookup.get(item["tea_id"])
+    if tea_doc:
+        return tea_doc.get("name", item["tea_name"]), True
+
+    return item["tea_name"], False
+
 def _serialize_order(
     order_doc: dict[str, Any],
     item_docs: list[dict[str, Any]],
+    tea_lookup: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    items = []
+    for item in item_docs:
+        tea_name, tea_available = _resolve_item_display(item, tea_lookup)
+        items.append(
+            {
+                "id": str(item["_id"]),
+                "order_id": str(item["order_id"]),
+                "tea_id": item["tea_id"],
+                "tea_name": tea_name,
+                "tea_available": tea_available,
+                "quantity": item["quantity"],
+                "unit_price": item["unit_price"],
+                "line_total": item["line_total"],
+            }
+        )
+
     return {
         "id": str(order_doc["_id"]),
         "user_id": order_doc["user_id"],
         "status": order_doc["status"],
         "total_amount": order_doc["total_amount"],
         "created_at": order_doc["created_at"],
-        "items": [
-            {
-                "id": str(item["_id"]),
-                "order_id": str(item["order_id"]),
-                "tea_id": item["tea_id"],
-                "tea_name": item["tea_name"],
-                "quantity": item["quantity"],
-                "unit_price": item["unit_price"],
-                "line_total": item["line_total"],
-            }
-            for item in item_docs
-        ],
+        "items": items,
     }
 
 def _load_order_items(order_id: ObjectId) -> list[dict[str, Any]]:
@@ -98,7 +134,8 @@ def get_order_for_user(order_id: str, current_user: dict[str, Any]) -> dict[str,
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
     items = _load_order_items(order["_id"])
-    return _serialize_order(order, items)
+    lookup = _batch_tea_lookup([items])
+    return _serialize_order(order, items, lookup)
 
 def list_orders_for_user(
     current_user: dict[str, Any],
@@ -124,10 +161,12 @@ def list_orders_for_user(
         db.orders.find(filters).sort("created_at", -1).skip(skip).limit(limit)
     )
 
-    data = []
-    for order in orders:
-        items = _load_order_items(order["_id"])
-        data.append(_serialize_order(order, items))
+    item_groups = [_load_order_items(order["_id"]) for order in orders]
+    lookup = _batch_tea_lookup(item_groups)
+    data = [
+        _serialize_order(order, items, lookup)
+        for order, items in zip(orders, item_groups)
+    ]
 
     return {"data": data, "total": total}
 
@@ -176,7 +215,7 @@ def _build_line_specs(
         if quantity_available is None or quantity_available < line.quantity:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Insufficient stock for '{tea.get('name')}'",
+                detail=f"Insufficient stock. You may order a maximum of {quantity_available} '{tea.get('name')}'",
             )
 
         line_specs.append(
@@ -401,7 +440,8 @@ def approve_order(order_id: str, current_user: dict[str, Any]) -> dict[str, Any]
 
     updated = db.orders.find_one({"_id": ObjectId(order_id)})
     updated_items = _load_order_items(updated["_id"])
-    return _serialize_order(updated, updated_items)
+    lookup = _batch_tea_lookup([updated_items])
+    return _serialize_order(updated, updated_items, lookup)
 
 def reject_order(order_id: str, current_user: dict[str, Any]) -> dict[str, Any]:
     _require_admin(current_user)
@@ -419,7 +459,8 @@ def reject_order(order_id: str, current_user: dict[str, Any]) -> dict[str, Any]:
     )
 
     updated = db.orders.find_one({"_id": order["_id"]})
-    return _serialize_order(updated, items)
+    lookup = _batch_tea_lookup([items])
+    return _serialize_order(updated, items, lookup)
 
 def _place_order_transactional(
     payload: OrderCreate,

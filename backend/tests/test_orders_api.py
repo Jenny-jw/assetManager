@@ -136,6 +136,39 @@ def test_admin_can_list_pending_orders(client, client_user, fake_db):
     assert body["total"] == 1
     assert body["data"][0]["status"] == "pending"
 
+def test_pending_order_reflects_renamed_tea(client, client_user, fake_db):
+    tea_id = seed_orderable_tea(fake_db)
+    client_user.post("/api/orders/", json={"items": [{"tea_id": tea_id, "quantity": 1}]})
+
+    tea_oid = next(iter(fake_db.teas.docs))
+    fake_db.teas.docs[tea_oid]["name"] = "Renamed Oolong"
+    _use_admin_auth()
+
+    response = client.get("/api/orders/", params={"status": "pending"})
+    assert response.status_code == 200
+    assert response.json()["data"][0]["items"][0]["tea_name"] == "Renamed Oolong"
+    assert response.json()["data"][0]["items"][0]["tea_available"] is True
+
+def test_pending_order_marks_deleted_tea_unavailable(client, client_user, fake_db):
+    tea_id = seed_orderable_tea(fake_db)
+    placed = client_user.post(
+        "/api/orders/",
+        json={"items": [{"tea_id": tea_id, "quantity": 1}]},
+    )
+    order_id = placed.json()["id"]
+
+    fake_db.teas.delete_one({"_id": next(iter(fake_db.teas.docs))})
+    _use_admin_auth()
+
+    response = client.get("/api/orders/", params={"status": "pending"})
+    assert response.status_code == 200
+    item = response.json()["data"][0]["items"][0]
+    assert item["tea_name"] == "Alishan Oolong"
+    assert item["tea_available"] is False
+
+    approve = client.patch(f"/api/orders/{order_id}/approve")
+    assert approve.status_code == 409
+
 def test_user_cannot_read_other_users_order(client_user, fake_db):
     from datetime import datetime, timezone
     from bson import ObjectId

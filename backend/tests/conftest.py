@@ -94,7 +94,10 @@ class FakeCollection:
             doc.pop("_id", None)
         included = [key for key, value in projection.items() if key != "_id" and value]
         if included:
-            return {key: doc.get(key) for key in included}
+            projected = {key: doc.get(key) for key in included}
+            if projection.get("_id") != 0:
+                projected["_id"] = doc.get("_id")
+            return projected
         return doc
 
     def count_documents(self, filters: dict[str, Any] | None = None):

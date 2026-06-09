@@ -3,6 +3,7 @@ export type OrderItem = {
   order_id: string;
   tea_id: string;
   tea_name: string;
+  tea_available?: boolean;
   /** Number of packages ordered */
   quantity: number;
   /** Price per package at time of order */

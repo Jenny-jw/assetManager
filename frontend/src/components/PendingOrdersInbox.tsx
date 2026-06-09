@@ -8,6 +8,19 @@ type Props = {
   onInventoryChange?: () => void;
 };
 
+function formatItemLabel(
+  teaName: string,
+  quantity: number,
+  teaAvailable: boolean,
+): string {
+  const label = teaAvailable ? teaName : `${teaName} (no longer available)`;
+  return `${label} ×${quantity}`;
+}
+
+function orderHasUnavailableTea(order: Order): boolean {
+  return order.items.some((item) => item.tea_available === false);
+}
+
 const PendingOrdersInbox = ({
   refreshToken = 0,
   onPendingCountChange,
@@ -15,6 +28,12 @@ const PendingOrdersInbox = ({
 }: Props) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [actingId, setActingId] = useState<string | null>(null);
+
+  const refreshPendingOrders = async () => {
+    const data = await listOrders("pending");
+    setOrders(data);
+    onPendingCountChange?.(data.length);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -39,9 +58,7 @@ const PendingOrdersInbox = ({
     try {
       await approveOrder(orderId);
       onInventoryChange?.();
-      const data = await listOrders("pending");
-      setOrders(data);
-      onPendingCountChange?.(data.length);
+      await refreshPendingOrders();
     } catch {
       alert("Failed to approve order. Please try again.");
     } finally {
@@ -56,11 +73,21 @@ const PendingOrdersInbox = ({
     setActingId(orderId);
     try {
       await rejectOrder(orderId);
-      const data = await listOrders("pending");
-      setOrders(data);
-      onPendingCountChange?.(data.length);
+      await refreshPendingOrders();
     } catch {
       alert("Failed to reject order. Please try again.");
+    } finally {
+      setActingId(null);
+    }
+  };
+
+  const handleRemove = async (orderId: string) => {
+    setActingId(orderId);
+    try {
+      await rejectOrder(orderId);
+      await refreshPendingOrders();
+    } catch {
+      alert("Failed to remove order. Please try again.");
     } finally {
       setActingId(null);
     }
@@ -78,9 +105,16 @@ const PendingOrdersInbox = ({
         <ul className="space-y-3 max-h-64 overflow-y-auto">
           {orders.map((order) => {
             const summary = order.items
-              .map((item) => `${item.tea_name} ×${item.quantity}`)
+              .map((item) =>
+                formatItemLabel(
+                  item.tea_name,
+                  item.quantity,
+                  item.tea_available !== false,
+                ),
+              )
               .join(", ");
             const isActing = actingId === order.id;
+            const hasUnavailableTea = orderHasUnavailableTea(order);
 
             return (
               <li
@@ -93,24 +127,37 @@ const PendingOrdersInbox = ({
                 <p className="text-xs text-gray-400 mt-0.5">
                   Total: {order.total_amount.toLocaleString()}
                 </p>
-                <div className="flex gap-2 mt-2">
-                  <button
-                    type="button"
-                    onClick={() => void handleApprove(order.id)}
-                    disabled={isActing}
-                    className="flex-1 px-2 py-1 text-xs rounded-lg bg-[#78a043] text-white hover:bg-lime-900 transition disabled:opacity-60"
-                  >
-                    {isActing ? "…" : "Approve"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleReject(order.id)}
-                    disabled={isActing}
-                    className="flex-1 px-2 py-1 text-xs rounded-lg bg-[#894f45] text-white hover:bg-red-700 transition disabled:opacity-60"
-                  >
-                    Reject
-                  </button>
-                </div>
+                {hasUnavailableTea ? (
+                  <div className="flex justify-end mt-2">
+                    <button
+                      type="button"
+                      onClick={() => void handleRemove(order.id)}
+                      disabled={isActing}
+                      className="w-1/2 px-2 py-1 text-xs rounded-lg bg-[#894f45] text-white hover:bg-red-700 transition disabled:opacity-60"
+                    >
+                      {isActing ? "…" : "Remove"}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => void handleApprove(order.id)}
+                      disabled={isActing}
+                      className="flex-1 px-2 py-1 text-xs rounded-lg bg-[#78a043] text-white hover:bg-lime-900 transition disabled:opacity-60"
+                    >
+                      {isActing ? "…" : "Approve"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleReject(order.id)}
+                      disabled={isActing}
+                      className="flex-1 px-2 py-1 text-xs rounded-lg bg-[#894f45] text-white hover:bg-red-700 transition disabled:opacity-60"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
               </li>
             );
           })}

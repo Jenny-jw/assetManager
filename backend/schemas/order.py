@@ -20,6 +20,7 @@ class OrderItemResponse(BaseModel):
     order_id: str
     tea_id: str
     tea_name: str
+    tea_available: bool = True
     quantity: int = Field(..., description="Number of packages ordered")
     unit_price: int = Field(..., description="Price per package at time of order")
     line_total: int
