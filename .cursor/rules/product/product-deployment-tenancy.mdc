@@ -1,0 +1,19 @@
+---
+description: Deploy vs SaaS, locale, merchant delivery
+alwaysApply: false
+---
+
+# Deployment & Tenancy
+
+One Docker deploy per buyer: `customers/{slug}/config.yaml` + `.env` (`POSTGRE_URL`, secrets).
+
+Config includes **`locale`** (`zh-TW` default for Taiwan merchants) — fixed at onboarding, not changeable in app.
+
+|          | Independent deploy | SaaS (defer)            |
+| -------- | ------------------ | ----------------------- |
+| DB       | PG per buyer       | shared PG + `tenant_id` |
+| Language | `locale` in YAML   | per-tenant setting      |
+
+**Delivery:** discovery → config (modules + locale) → compose deploy → expand via config.
+
+Features + locale in config; secrets in `.env`.

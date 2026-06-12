@@ -1,0 +1,21 @@
+---
+description: Product editions, PG-only, locale, three-layer model
+alwaysApply: true
+---
+
+# Product Overview
+
+**`product`** = sellable line (v2, PG). **`main`** = Mongo demo (v1, MongoDB).
+
+| Edition        | Buyer     | Roles (this version)                       |
+| -------------- | --------- | ------------------------------------------ |
+| `personal`     | Collector | `owner`                                    |
+| `professional` | Merchant  | `owner` (solo use; no customer logins yet) |
+
+**Next version:** `customer` role for catalog / orders. **Not now:** `staff`, `guest`, `customer`.
+
+**DB:** `POSTGRES_URL` only (ADR 004).
+
+**Locale:** `zh-TW` \| `en` in deploy config; fixed at onboarding.
+
+**Code:** `schemas/product/`, `models/product/`; domain **stock**.

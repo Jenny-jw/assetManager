@@ -1,0 +1,42 @@
+---
+description: Product branch roadmap P0–P4
+alwaysApply: true
+---
+
+# Product Roadmap
+
+`[ ]` todo · `[~]` wip · `[x]` done
+
+## P0 — Foundation
+
+| # | Item | St |
+|---|------|-----|
+| 1 | ADRs (001–004) | [x] |
+| 2 | `product` branch | [~] |
+| 3 | `deploy/config.yaml` + loader (`locale`, modules) | [ ] |
+| 4 | `core/capabilities.py` | [ ] |
+| 5 | PostgreSQL: SQLAlchemy + Alembic + compose `postgres` | [ ] |
+| 6 | `schemas/product/`, initial migration | [ ] |
+
+## P1 — Personal edition
+
+| 7–11 | Orders off; widgets; routes; personal preset; i18n from `locale`; tests | [ ] |
+
+## P2 — Structure
+
+| 12–15 | Stock/order repositories; error codes; `GET /api/deployment` | [ ] |
+
+## P3 — Professional edition (owner-only)
+
+| 16–19 | Owner-managed orders/profit; cost models; order states — **no customer role yet** | [ ] |
+
+## P4 — Polish & delivery
+
+| 20–22 | Buyer deploy docs; compose prod profile; optional v1→v2 data import | [ ] |
+
+## Future — customer-facing
+
+| — | `customer` role; catalog browse; place orders / trades | not started |
+
+**Next:** P0 #3–6. **This version:** `owner` only on all editions.
+

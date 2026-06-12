@@ -1,0 +1,14 @@
+---
+description: main / product / feature/* branching
+alwaysApply: true
+---
+
+# Product Git
+
+| Branch      | Use                  | Data          |
+| ----------- | -------------------- | ------------- |
+| `main`      | Portfolio demo       | `MONGO_URI`   |
+| `product`   | Sellable v2          | `POSTGRE_URL` |
+| `feature/*` | → merge to `product` |               |
+
+**Avoid:** product code reading `MONGO_URI`; sharing PG dev DB with production data; force-push.

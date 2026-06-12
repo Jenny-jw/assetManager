@@ -1,0 +1,34 @@
+---
+description: Edition-based roles and capabilities (v2)
+alwaysApply: true
+---
+
+# Product Capabilities (v2)
+
+**This version — one role:** `owner` on **both** personal and professional. Owner uses the system alone.
+
+**Next version (not now):** `customer` (catalog / orders or trades). **Never in this phase:** `staff`, `guest`, `customer` signup or routes.
+
+## Roles
+
+| Role | Personal | Professional |
+|------|:--------:|:------------:|
+| `owner` | ✅ | ✅ |
+
+`roles_enabled: [owner]` for all presets until customer release.
+
+## Capabilities (owner only, now)
+
+| Capability | Module |
+|------------|--------|
+| `manage_inventory` | `inventory` |
+| `view_pricing` | `pricing_visibility` |
+| `view_profit` | `profit_analytics` |
+| `approve_orders` | `orders` (owner-managed; no customer checkout yet) |
+| `place_orders` | — **defer** with `customer` role |
+
+`resolve_capabilities()` in `core/capabilities.py`; `require_capability(...)`.
+
+**Presets:** personal → `[owner]`, orders off; professional → `[owner]`, orders/profit per module flags.
+
+**403:** `module_disabled` | `capability_disabled` | `role_not_enabled` | `forbidden`

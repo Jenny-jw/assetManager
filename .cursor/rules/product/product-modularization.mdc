@@ -1,0 +1,28 @@
+---
+description: Config, modules, widgets, PG repositories, locale
+alwaysApply: true
+---
+
+# Product Modularization
+
+**Config** (`deploy/config.yaml`): `edition`, `modules`, `roles_enabled`, `dashboard_layout`, **`locale`** (`zh-TW` \| `en`).
+
+Presets: `deploy/presets/personal.yaml`, `professional.yaml`. Locale set at buyer onboarding; immutable in app UI.
+
+**Backend:**
+
+```text
+core/deployment.py, capabilities.py, db.py (SQLAlchemy)
+alembic/
+modules/{inventory,orders,analytics}/
+repositories/postgres/   # PG only — no mongo/
+schemas/product/, models/product/
+```
+
+`main.py`: conditional routers by module. `GET /api/deployment` → modules, capabilities, **locale**.
+
+**Frontend:** i18n (`react-i18next` or similar); load **one** locale from deployment config at startup — no language picker for merchants.
+
+**Repositories:** `StockRepository`, `OrderRepository`; services never use raw SQL in routes.
+
+**Avoid:** `MONGO_URI`; `staff`/`guest` roles; UI-only module hides; v1 `tea` schemas on product branch.
