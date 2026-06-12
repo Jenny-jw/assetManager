@@ -13,4 +13,16 @@ Project guidance is split into `.cursor/rules/*.mdc` for focused context. Cursor
 | `add-tests-on-change.mdc` | When and where to add tests |
 | `projectGoal.mdc` | Resume roadmap & priorities (**gitignored**, local only) |
 
+## Rules index for `product` branch
+
+| Rule file | Purpose |
+|-----------|---------|
+| `product/product-overview.mdc` | Editions, three-layer model |
+| `product/product-modularization.mdc` | Config, modules, widgets, repositories |
+| `product/product-capabilities.mdc` | Roles & capabilities (v2) |
+| `product/product-data-schema.mdc` | stock schemas, PostgreSQL only |
+| `product/product-deployment-tenancy.mdc` | Deploy vs SaaS |
+| `product/product-roadmap.mdc` | P0–P4 checklist |
+| `product/product-git-workflow.mdc` | `main` / `product` / `feature/*` |
+
 Edit the `.mdc` files in `.cursor/rules/` rather than duplicating long guidance here.

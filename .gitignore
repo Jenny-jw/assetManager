@@ -18,3 +18,6 @@ backend/.pytest_deps/
 # Test Coverage
 .coverage
 htmlcov/
+
+# docs
+docs/
