@@ -13,7 +13,7 @@ alwaysApply: true
 |---|------|-----|
 | 1 | ADRs (001–004) | [x] |
 | 2 | `product` branch | [~] |
-| 3 | `deploy/config.yaml` + loader (`locale`, modules) | [ ] |
+| 3 | `deploy/config.yaml` + loader (`locale`, modules) | [x] |
 | 4 | `core/capabilities.py` | [ ] |
 | 5 | PostgreSQL: SQLAlchemy + Alembic + compose `postgres` | [ ] |
 | 6 | `schemas/product/`, initial migration | [ ] |
