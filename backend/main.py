@@ -6,6 +6,7 @@ from routes.auth import router as auth_router
 from routes.health import router as health_router
 from core.security import router as security_router
 from fastapi.middleware.cors import CORSMiddleware
+from core.deployment import get_deployment
 from core.errors import register_exception_handlers
 from core.indexes import ensure_indexes
 from core.logging import RequestLoggingMiddleware, configure_logging
@@ -13,6 +14,7 @@ from contextlib import asynccontextmanager
 
 load_dotenv()
 configure_logging()
+get_deployment()
 
 origins = [
     "http://localhost:5173",
