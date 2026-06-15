@@ -1,0 +1,20 @@
+edition: professional
+locale: zh-TW
+roles_enabled:
+  - owner
+modules:
+  inventory: true
+  dashboard_summary: true
+  dashboard_origin_chart: true
+  dashboard_genre_chart: true
+  dashboard_recent_assets: true
+  orders: true
+  order_notifications: true
+  pricing_visibility: true
+  profit_analytics: true
+dashboard_layout:
+  - summary
+  - origin
+  - genre
+  - pending_orders
+  - recent_assets

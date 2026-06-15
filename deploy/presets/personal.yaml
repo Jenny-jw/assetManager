@@ -1,0 +1,19 @@
+edition: personal
+locale: zh-TW
+roles_enabled:
+  - owner
+modules:
+  inventory: true
+  dashboard_summary: true
+  dashboard_origin_chart: true
+  dashboard_genre_chart: true
+  dashboard_recent_assets: true
+  orders: false
+  order_notifications: false
+  pricing_visibility: true
+  profit_analytics: false
+dashboard_layout:
+  - summary
+  - origin
+  - genre
+  - recent_assets
