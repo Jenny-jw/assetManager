@@ -27,7 +27,7 @@ alwaysApply: true
 | `approve_orders` | `orders` (owner-managed; no customer checkout yet) |
 | `place_orders` | — **defer** with `customer` role |
 
-`resolve_capabilities()` in `core/capabilities.py`; `require_capability(...)`.
+**Product branch:** only `owner` in code and tests — no v1 `admin`/`user`/`guest` aliases.
 
 **Presets:** personal → `[owner]`, orders off; professional → `[owner]`, orders/profit per module flags.
 
