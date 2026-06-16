@@ -1,0 +1,9 @@
+Generic single-database configuration.
+
+Run from `backend/` with `POSTGRES_URL` set:
+
+```bash
+alembic revision --autogenerate -m "describe change"
+alembic upgrade head
+alembic current
+```
