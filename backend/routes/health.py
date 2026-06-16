@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from pymongo.errors import PyMongoError
+from sqlalchemy.exc import SQLAlchemyError
 
-from core.db import client
+from core.db import ping_postgres
 
 router = APIRouter(tags=["Health"])
 
@@ -13,9 +13,9 @@ def health():
 @router.get("/ready")
 def ready():
     try:
-        client.admin.command("ping")
+        ping_postgres()
         return {"status": "ready"}
-    except PyMongoError:
+    except (SQLAlchemyError, RuntimeError):
         return JSONResponse(
             status_code=503,
             content={"status": "not_ready", "detail": "database unreachable"},

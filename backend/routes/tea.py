@@ -8,7 +8,7 @@ from schemas.tea import (
     TeaUpdate,
 )
 from services.tea_summary_service import build_tea_summary
-from core.db import db
+from core.mongo_legacy import db
 from bson.objectid import ObjectId
 from pymongo import ReturnDocument
 from starlette.status import HTTP_206_PARTIAL_CONTENT

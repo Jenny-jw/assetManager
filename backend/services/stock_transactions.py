@@ -16,7 +16,7 @@ from typing import TypeVar
 
 from pymongo.client_session import ClientSession
 
-from core.db import client
+from core.mongo_legacy import client
 
 T = TypeVar("T")
 

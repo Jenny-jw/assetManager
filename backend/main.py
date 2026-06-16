@@ -1,4 +1,7 @@
-from dotenv import load_dotenv
+# from __future__ import annotations
+import core.env  # noqa: F401 — repo-root .env before other core imports
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from routes.tea import router as tea_router
 from routes.orders import router as orders_router
@@ -6,13 +9,11 @@ from routes.auth import router as auth_router
 from routes.health import router as health_router
 from core.security import router as security_router
 from fastapi.middleware.cors import CORSMiddleware
+from core.db import ping_postgres
 from core.deployment import get_deployment
 from core.errors import register_exception_handlers
-from core.indexes import ensure_indexes
 from core.logging import RequestLoggingMiddleware, configure_logging
-from contextlib import asynccontextmanager
 
-load_dotenv()
 configure_logging()
 get_deployment()
 
@@ -22,7 +23,7 @@ origins = [
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    ensure_indexes()
+    ping_postgres()
     yield
 
 app = FastAPI(title="Asset Manager API", version="0.1.0", lifespan=lifespan)

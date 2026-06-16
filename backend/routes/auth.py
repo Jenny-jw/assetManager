@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, Response
 from models.user import UserRole
 from schemas.user import UserLogin, UserCreate, UserResponse
-from core.db import db
+from core.mongo_legacy import db
 from core.config import (
     JWT_COOKIE_MAX_AGE_SECONDS,
     JWT_COOKIE_SAMESITE,

@@ -1,6 +1,6 @@
 import logging
 
-from core.db import db
+from core.mongo_legacy import db
 
 logger = logging.getLogger(__name__)
 

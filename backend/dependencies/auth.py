@@ -5,7 +5,7 @@ from bson import ObjectId
 from fastapi import Depends, HTTPException, Request, status
 
 from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
-from core.db import db
+from core.mongo_legacy import db
 from models.user import UserRole
 
 def _auth_error(detail: str) -> HTTPException:

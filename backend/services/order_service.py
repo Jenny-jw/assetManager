@@ -10,7 +10,7 @@ from fastapi import HTTPException, status
 from pymongo import ReturnDocument
 from pymongo.client_session import ClientSession
 
-from core.db import client, db
+from core.mongo_legacy import client, db
 from core.tea_pricing import price_per_package
 from models.order import OrderStatus, StockMovementReason
 from schemas.order import OrderCreate

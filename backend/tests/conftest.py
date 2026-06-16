@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-os.environ.setdefault("MONGO_URI", "mongodb://localhost:27017")
+os.environ.setdefault("POSTGRES_URL", "postgresql+psycopg://ci:ci@localhost:5432/ci_test")
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret")
 os.environ.setdefault("USE_DB_TRANSACTIONS", "false")
 
@@ -21,6 +21,7 @@ import main as app_module
 from dependencies.auth import get_current_user
 from main import app
 from routes import tea as tea_routes
+import core.mongo_legacy as mongo_legacy_module
 import services.order_service as order_service_module
 
 @dataclass
@@ -225,11 +226,15 @@ def _make_user(role: str) -> dict[str, Any]:
 def fake_db():
     return FakeDB()
 
+@pytest.fixture(autouse=True)
+def skip_startup_postgres_ping(monkeypatch):
+    monkeypatch.setattr(app_module, "ping_postgres", lambda: None)
+
 def _build_client(monkeypatch, fake_db: FakeDB, auth_user: dict[str, Any] | None):
     monkeypatch.setattr(tea_routes, "db", fake_db)
+    monkeypatch.setattr(mongo_legacy_module, "db", fake_db)
     monkeypatch.setattr(order_service_module, "db", fake_db)
     monkeypatch.setenv("USE_DB_TRANSACTIONS", "false")
-    monkeypatch.setattr(app_module, "ensure_indexes", lambda: None)
 
     if auth_user is not None:
         app.dependency_overrides[get_current_user] = lambda: auth_user
