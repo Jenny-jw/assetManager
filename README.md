@@ -1,4 +1,70 @@
-# Tech Stack
+# Asset Manager
+
+**Branches:** `main` — MongoDB portfolio demo · `product` — sellable line on PostgreSQL (see below).
+
+# Product branch — PostgreSQL
+
+Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) (WSL2) or Docker Engine.
+
+## 1. Environment
+
+**Product branch:** copy `.env.example` → **`.env`** at the **repository root**. Used by Docker Compose, pgAdmin, and local `uvicorn` on this branch (`core/env.py` loads this file only).
+
+Fill in `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `JWT_SECRET_KEY`. If you run the API with **`uvicorn` on the host** (not in Docker), also set `POSTGRES_URL` in the same file — host must be `localhost`, not `postgres`:
+
+```text
+POSTGRES_URL=postgresql+psycopg://<user>:<password>@localhost:<port>/<database>
+```
+
+`.env` is gitignored — never commit it.
+
+**Master branch** uses **`backend/.env`** for local `uvicorn` (`MONGO_URI`, etc.) — that file is unrelated to `core/env.py`, which exists only on product.
+
+## 2. Docker Compose
+
+From the **repository root**:
+
+| Command                                                       | What it does                                                                                                   |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `docker compose -f docker-compose.product.yml up -d postgres` | Start **only** the database (background). Use when you run the API with local `uvicorn` or only need pgAdmin.  |
+| `docker compose -f docker-compose.product.yml up --build -d`  | **Rebuild** the API image if needed, then start **postgres + api** (background). Use for full stack in Docker. |
+
+- `-d` — detached (runs in background).
+- `--build` — rebuild `api` from `backend/Dockerfile` before start; omit if you only changed Python code and run uvicorn locally.
+- `postgres` at the end — service name filter; only that service (and its dependencies) starts.
+
+```bash
+docker compose -f docker-compose.product.yml ps
+curl http://localhost:8000/ready   # when api is running — PostgreSQL reachable
+docker compose -f docker-compose.product.yml down      # stop
+docker compose -f docker-compose.product.yml down -v   # stop and wipe DB volume
+```
+
+## 3. pgAdmin 4 — connect to local Postgres
+
+Start the DB first (`up -d postgres`). pgAdmin is a GUI client (like Compass for Mongo); credentials come from **your local `.env`**, not from this repo.
+
+1. Open **pgAdmin 4** → **Servers** → right-click → **Register** → **Server…**
+2. **General** → **Name:** any label (e.g. `local product`)
+3. **Connection** — use the same values you set in `.env`:
+
+   | Field | Source |
+   | ----- | ------ |
+   | Host | `localhost` (Docker maps port to your machine) |
+   | Port | `POSTGRES_PORT` (default `5432`) |
+   | Maintenance database | `POSTGRES_DB` |
+   | Username | `POSTGRES_USER` |
+   | Password | `POSTGRES_PASSWORD` |
+
+4. **Save** → **Databases →** your `POSTGRES_DB` name. Few tables is normal until Alembic (P0 #6).
+
+**Query Tool:** right-click the database → **Query Tool** → `SELECT 1;`
+
+If connection fails: `docker compose -f docker-compose.product.yml ps` — `postgres` should be healthy.
+
+---
+
+# Tech Stack (main / demo)
 
 ## Frontend
 
@@ -190,42 +256,8 @@ Tests live in `frontend/tests/` (e.g. `tests/routes/ProtectedRoute.test.tsx`). U
 ## Note
 
 - Python模組檔案裡，所有「在頂層定義的名字」都自動成為該模組的對外成員
-`router = APIRouter()` -> 建立一個物件、綁定到名字 router、放在 module 的最外層（不是在 function / class 裡）
+  `router = APIRouter()` -> 建立一個物件、綁定到名字 router、放在 module 的最外層（不是在 function / class 裡）
 - 看套件實際裝在哪裡: `python -m pip show fastapi`
 - 看指令來源: `which uvicorn`
 - 看venv中有哪些工具: `ls venv/bin/`
 - 指定安裝套件在本虛擬環境: `python -m pip install {}`
-
-## Frontend Pages Design
-
-### Dashboard
-
-- Path: `/`
-- Total asset
-- Assets added recently
-- Recent activities
-
-### Asset List
-
-- Path: `/assets`
-- List out all the assets, such as, Name, Type, Owner, Value
-- Functions: search, filter, sort
-
-### Aseet Detail
-
-- Path: `/assets/:id`
-- Present single asset details
-
-### Create Asset
-
-- Path: `/assets/new`
-- Create an asset: Name, Origin, HarvestTime, Cost, Price
-
-### Edit Asset
-
-- Path: `/assets/:id/edit`
-
-### Login (if there's user)
-
-- Path: `/login`
-

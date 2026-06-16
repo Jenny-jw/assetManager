@@ -1,5 +1,5 @@
 # from __future__ import annotations
-import core.env  # noqa: F401 — repo-root .env before other core imports
+import core.env  # noqa: F401 — repo-root .env (product branch only)
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
