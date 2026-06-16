@@ -8,6 +8,7 @@ from core.deployment import (
     Locale,
     load_deployment_config,
     reset_deployment_cache,
+    resolve_config_path,
 )
 
 @pytest.fixture(autouse=True)
@@ -22,6 +23,11 @@ def test_load_repo_config_yaml():
     assert config.locale is Locale.zh_tw
     assert config.modules.orders is False
     assert "summary" in config.dashboard_layout
+
+def test_relative_deploy_config_path_is_repo_root_relative(monkeypatch):
+    repo_root = Path(__file__).resolve().parents[2]
+    monkeypatch.setenv("DEPLOY_CONFIG_PATH", "deploy/config.yaml")
+    assert resolve_config_path() == (repo_root / "deploy" / "config.yaml").resolve()
 
 def test_load_personal_preset():
     path = Path(__file__).resolve().parents[2] / "deploy" / "presets" / "personal.yaml"

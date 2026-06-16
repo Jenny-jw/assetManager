@@ -68,7 +68,10 @@ def default_config_path() -> Path:
 def resolve_config_path() -> Path:
     override = os.getenv("DEPLOY_CONFIG_PATH")
     if override:
-        return Path(override).expanduser().resolve()
+        path = Path(override).expanduser()
+        if not path.is_absolute():
+            path = _repo_root() / path
+        return path.resolve()
     return default_config_path()
 
 def _load_yaml(path: Path) -> dict[str, Any]:
