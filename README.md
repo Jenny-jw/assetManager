@@ -24,10 +24,11 @@ POSTGRES_URL=postgresql+psycopg://<user>:<password>@localhost:<port>/<database>
 
 From the **repository root**:
 
-| Command                                                       | What it does                                                                                                   |
-| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `docker compose -f docker-compose.product.yml up -d postgres` | Start **only** the database (background). Use when you run the API with local `uvicorn` or only need pgAdmin.  |
-| `docker compose -f docker-compose.product.yml up --build -d`  | **Rebuild** the API image if needed, then start **postgres + api** (background). Use for full stack in Docker. |
+| Command                                                                                                                                        | What it does                                                                                                   |
+| ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `docker compose -f docker-compose.product.yml up -d postgres`                                                                                  | Start **only** the database (background). Use when you run the API with local `uvicorn` or only need pgAdmin.  |
+| `docker compose -f docker-compose.product.yml up --build -d`                                                                                   | **Rebuild** the API image if needed, then start **postgres + api** (background). Use for full stack in Docker. |
+| `sudo service postgresql stop``docker compose -f docker-compose.product.yml down``docker compose -f docker-compose.product.yml up -d postgres` | Stop local PG, use Docker only                                                                                 |
 
 - `-d` — detached (runs in background).
 - `--build` — rebuild `api` from `backend/Dockerfile` before start; omit if you only changed Python code and run uvicorn locally.
@@ -48,13 +49,13 @@ Start the DB first (`up -d postgres`). pgAdmin is a GUI client (like Compass for
 2. **General** → **Name:** any label (e.g. `local product`)
 3. **Connection** — use the same values you set in `.env`:
 
-   | Field | Source |
-   | ----- | ------ |
-   | Host | `localhost` (Docker maps port to your machine) |
-   | Port | `POSTGRES_PORT` (default `5432`) |
-   | Maintenance database | `POSTGRES_DB` |
-   | Username | `POSTGRES_USER` |
-   | Password | `POSTGRES_PASSWORD` |
+   | Field                | Source                                         |
+   | -------------------- | ---------------------------------------------- |
+   | Host                 | `localhost` (Docker maps port to your machine) |
+   | Port                 | `POSTGRES_PORT` (default `5432`)               |
+   | Maintenance database | `POSTGRES_DB`                                  |
+   | Username             | `POSTGRES_USER`                                |
+   | Password             | `POSTGRES_PASSWORD`                            |
 
 4. **Save** → **Databases →** your `POSTGRES_DB` name. Few tables is normal until Alembic (P0 #6).
 
