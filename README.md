@@ -20,28 +20,138 @@ POSTGRES_URL=postgresql+psycopg://<user>:<password>@localhost:<port>/<database>
 
 **Master branch** uses **`backend/.env`** for local `uvicorn` (`MONGO_URI`, etc.) — that file is unrelated to `core/env.py`, which exists only on product.
 
-## 2. Docker Compose
+## 2. Daily cheat sheet (product dev)
 
-From the **repository root**:
-
-| Command                                                                                                                                        | What it does                                                                                                   |
-| ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `docker compose -f docker-compose.product.yml up -d postgres`                                                                                  | Start **only** the database (background). Use when you run the API with local `uvicorn` or only need pgAdmin.  |
-| `docker compose -f docker-compose.product.yml up --build -d`                                                                                   | **Rebuild** the API image if needed, then start **postgres + api** (background). Use for full stack in Docker. |
-| `sudo service postgresql stop``docker compose -f docker-compose.product.yml down``docker compose -f docker-compose.product.yml up -d postgres` | Stop local PG, use Docker only                                                                                 |
-
-- `-d` — detached (runs in background).
-- `--build` — rebuild `api` from `backend/Dockerfile` before start; omit if you only changed Python code and run uvicorn locally.
-- `postgres` at the end — service name filter; only that service (and its dependencies) starts.
+Copy-paste in order. All `docker compose` commands run from **repo root** (`~/assetManager`).
 
 ```bash
-docker compose -f docker-compose.product.yml ps
-curl http://localhost:8000/ready   # when api is running — PostgreSQL reachable
-docker compose -f docker-compose.product.yml down      # stop
-docker compose -f docker-compose.product.yml down -v   # stop and wipe DB volume
+# 1) Start Postgres (Docker)
+cd ~/assetManager
+docker compose -f docker-compose.product.yml up -d postgres
+docker compose -f docker-compose.product.yml ps    # postgres must be "healthy"
+
+# 2) Run migrations (Alembic — must run from backend/)
+cd ~/assetManager/backend
+alembic upgrade head
+alembic current
+
+# 3) Optional: run API locally (not in Docker)
+source venv/bin/activate
+uvicorn main:app --reload
 ```
 
-## 3. pgAdmin 4 — connect to local Postgres
+**Alembic from repo root** (if you are not in `backend/`):
+
+```bash
+alembic -c backend/alembic.ini upgrade head
+```
+
+## 3. Product local-dev SOP (details)
+
+### A. Start DB only (most common)
+
+Use when you run `uvicorn` on the host or only need pgAdmin.
+
+```bash
+cd ~/assetManager
+docker compose -f docker-compose.product.yml up -d postgres
+docker compose -f docker-compose.product.yml ps
+```
+
+Expected: `postgres` status is `Up ... (healthy)`.
+
+### B. Start DB + API in Docker
+
+Use when you want the full stack in containers (no local `uvicorn`).
+
+```bash
+cd ~/assetManager
+docker compose -f docker-compose.product.yml up --build -d
+docker compose -f docker-compose.product.yml ps
+curl http://localhost:8000/ready
+```
+
+### C. Stop services
+
+```bash
+cd ~/assetManager
+docker compose -f docker-compose.product.yml down
+```
+
+Reset DB data (destructive — wipes volume):
+
+```bash
+docker compose -f docker-compose.product.yml down -v
+```
+
+### D. Port 5432 conflict (local PostgreSQL vs Docker)
+
+If `alembic` or pgAdmin fails with `password authentication failed for user "assetmanager"`, you are often connecting to **local PostgreSQL** (roles: `jenny`, `postgres`) instead of **Docker PostgreSQL** (role: `assetmanager`).
+
+`alembic` uses `POSTGRES_URL` → `localhost:5432` on your machine. That is **not** the same as `docker compose exec postgres psql ...` (which talks to DB **inside** the container).
+
+**Step 1 — stop local PostgreSQL**
+
+```bash
+sudo service postgresql stop
+# or: sudo systemctl stop postgresql
+```
+
+**Step 2 — confirm who owns port 5432**
+
+```bash
+ss -tlnp | grep 5432
+```
+
+- `docker-proxy` / `0.0.0.0:5432` → Docker (good for Alembic via localhost)
+- `postgres` on `127.0.0.1:5432` → local PG still running (Alembic will fail)
+
+**Step 3 — verify Docker DB**
+
+```bash
+cd ~/assetManager
+set -a && source .env && set +a
+docker compose -f docker-compose.product.yml exec postgres \
+  psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;"
+```
+
+Replace `assetmanager` / `assetmanager_product` with your repo-root `.env` values if different.
+
+**Step 4 — verify from host (same path Alembic uses)**
+
+```bash
+PGPASSWORD=assetmanager psql -h 127.0.0.1 -p 5432 -U assetmanager -d assetmanager_product -c "SELECT 1;"
+```
+
+If Step 3 works but Step 4 fails → port conflict; local PG is still on 5432.
+
+**Stable fix (recommended on WSL): use port 5433 for Docker**
+
+In repo-root `.env`:
+
+```text
+POSTGRES_PORT=5433
+POSTGRES_URL=postgresql+psycopg://assetmanager:assetmanager@localhost:5433/assetmanager_product
+```
+
+Then:
+
+```bash
+cd ~/assetManager
+docker compose -f docker-compose.product.yml down
+docker compose -f docker-compose.product.yml up -d postgres
+```
+
+Re-run `alembic upgrade head` from `backend/`.
+
+**If credentials changed after first `docker compose up`**, reset the volume (deletes DB data):
+
+```bash
+docker compose -f docker-compose.product.yml down -v
+docker compose -f docker-compose.product.yml up -d postgres
+```
+
+## 4. pgAdmin 4 — connect to local Postgres
 
 Start the DB first (`up -d postgres`). pgAdmin is a GUI client (like Compass for Mongo); credentials come from **your local `.env`**, not from this repo.
 
@@ -57,11 +167,37 @@ Start the DB first (`up -d postgres`). pgAdmin is a GUI client (like Compass for
    | Username             | `POSTGRES_USER`                                |
    | Password             | `POSTGRES_PASSWORD`                            |
 
-4. **Save** → **Databases →** your `POSTGRES_DB` name. Few tables is normal until Alembic (P0 #6).
+4. **Save** → **Databases →** your `POSTGRES_DB` name.
 
 **Query Tool:** right-click the database → **Query Tool** → `SELECT 1;`
 
 If connection fails: `docker compose -f docker-compose.product.yml ps` — `postgres` should be healthy.
+
+## 5. Database migrations (Alembic)
+
+`alembic.ini` lives in `backend/`. Run Alembic one of these ways:
+
+| Where you are | Command                                       |
+| ------------- | --------------------------------------------- |
+| `backend/`    | `alembic upgrade head`                        |
+| repo root     | `alembic -c backend/alembic.ini upgrade head` |
+
+Check current revision:
+
+```bash
+cd ~/assetManager/backend
+alembic current
+```
+
+After `upgrade head`, pgAdmin should show `users`, `stocks`, and `alembic_version`.
+
+### Common errors
+
+| Error                                           | Cause                                                | Fix                                                                  |
+| ----------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------- |
+| `No 'script_location' key found`                | Ran `alembic` outside `backend/` without `-c`        | `cd backend` or use `-c backend/alembic.ini`                         |
+| `password authentication failed for user "..."` | Wrong DB instance (local PG on 5432) or stale volume | See **§3.D**; check `POSTGRES_URL` matches repo-root `.env`          |
+| `POSTGRES_URL is required`                      | `.env` missing or empty                              | Fill repo-root `.env`; run from `backend/` so `core/env.py` loads it |
 
 ---
 
