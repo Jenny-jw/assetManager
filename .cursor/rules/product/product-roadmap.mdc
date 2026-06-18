@@ -12,31 +12,53 @@ alwaysApply: true
 | # | Item | St |
 |---|------|-----|
 | 1 | ADRs (001–004) | [x] |
-| 2 | `product` branch | [~] |
+| 2 | `product` branch | [x] |
 | 3 | `deploy/config.yaml` + loader (`locale`, modules) | [x] |
 | 4 | `core/capabilities.py` | [x] |
 | 5 | PostgreSQL: SQLAlchemy + Alembic + compose `postgres` | [x] |
-| 6 | `schemas/product/`, initial migration | [x] |
+| 6 | `schemas/product/`, initial migration (`users`, `stocks`) | [x] |
 
 ## P1 — Personal edition
 
-| 7–11 | Orders off; widgets; routes; personal preset; i18n from `locale`; tests | [ ] |
+| # | Item | St |
+|---|------|-----|
+| 7 | Personal preset as default (`deploy/config.yaml` = personal; `orders: false`) | [ ] |
+| 8 | `main.py` conditional routers — register inventory/auth; **omit** orders when `modules.orders` false | [ ] |
+| 9 | Owner auth on PG (`username` login; `users` table; role `owner` only) | [ ] |
+| 10 | Inventory API on PG — stock CRUD + list/filter/search (replace v1 `tea` / `mongo_legacy` paths) | [ ] |
+| 11 | Dashboard widget registry — render `dashboard_layout` only; hide order widgets when orders off | [ ] |
+| 12 | Frontend routes gated by modules — no Orders nav/pages on personal | [ ] |
+| 13 | i18n (`react-i18next`) — load **one** locale (`zh-TW` \| `en`) from deploy config at startup | [ ] |
+| 14 | Personal edition tests — capabilities, orders off, widgets, stock API (pytest + Vitest) | [ ] |
 
 ## P2 — Structure
 
-| 12–15 | Stock/order repositories; error codes; `GET /api/deployment` | [ ] |
+| # | Item | St |
+|---|------|-----|
+| 15 | `repositories/postgres/` — `StockRepository` (PG only; no raw SQL in routes) | [ ] |
+| 16 | `GET /api/deployment` — edition, modules, capabilities, `locale`, `dashboard_layout` | [ ] |
+| 17 | Structured API error codes (`module_disabled`, `capability_disabled`, …) | [ ] |
+| 18 | `modules/{inventory,orders,analytics}/` package layout; routes thin | [ ] |
 
 ## P3 — Professional edition (owner-only)
 
-| 16–19 | Owner-managed orders/profit; cost models; order states — **no customer role yet** | [ ] |
+| # | Item | St |
+|---|------|-----|
+| 19 | Professional preset wiring (`orders`, `profit_analytics` on) | [ ] |
+| 20 | Owner-managed orders on PG (`orders` / `order_items` / `stock_movements` migration) | [ ] |
+| 21 | Cost models + `view_profit` / pricing analytics | [ ] |
+| 22 | Order states (pending → approve/reject); stock decrement on approve | [ ] |
 
 ## P4 — Polish & delivery
 
-| 20–22 | Buyer deploy docs; compose prod profile; optional v1→v2 data import | [ ] |
+| # | Item | St |
+|---|------|-----|
+| 23 | Buyer deploy docs (config + `.env` + compose) | [ ] |
+| 24 | Compose prod profile | [ ] |
+| 25 | Optional v1 Mongo → v2 PG data import | [ ] |
 
 ## Future — customer-facing
 
 | — | `customer` role; catalog browse; place orders / trades | not started |
 
-**Next:** P0 #3–6. **This version:** `owner` only on all editions.
-
+**Next:** P1 #7–10 (personal preset, conditional routers, PG auth, stock API). **This version:** `owner` only on all editions.
