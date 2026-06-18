@@ -6,6 +6,8 @@ def test_alembic_scaffold_present():
     assert (backend / "alembic" / "env.py").is_file()
     assert (backend / "alembic" / "script.py.mako").is_file()
     assert (backend / "alembic" / "versions").is_dir()
+    migrations = list((backend / "alembic" / "versions").glob("*.py"))
+    assert migrations, "expected at least one migration revision"
 
 def test_alembic_env_wires_base_metadata(monkeypatch):
     monkeypatch.setenv(
