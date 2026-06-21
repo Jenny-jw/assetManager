@@ -19,6 +19,11 @@ class Locale(str, Enum):
 
 ALLOWED_ROLES = frozenset({"owner"})
 
+PERSONAL_DASHBOARD_WIDGETS = frozenset(
+    {"summary", "origin", "genre", "recent_assets"}
+)
+ORDER_DASHBOARD_WIDGETS = frozenset({"pending_orders"})
+
 class DeploymentModules(BaseModel):
     inventory: bool = True
     dashboard_summary: bool = True
@@ -57,6 +62,21 @@ class DeploymentConfig(BaseModel):
             raise ValueError("personal edition requires modules.profit_analytics to be false")
         if self.modules.order_notifications and not self.modules.orders:
             raise ValueError("order_notifications requires modules.orders to be true")
+        layout = set(self.dashboard_layout)
+        if self.edition is Edition.personal and layout & ORDER_DASHBOARD_WIDGETS:
+            raise ValueError(
+                "personal edition cannot include order widgets in dashboard_layout"
+            )
+        if self.edition is Edition.personal:
+            unknown = layout - PERSONAL_DASHBOARD_WIDGETS
+            if unknown:
+                raise ValueError(
+                    f"personal edition has unsupported dashboard widgets: {sorted(unknown)}"
+                )
+        if not self.modules.orders and layout & ORDER_DASHBOARD_WIDGETS:
+            raise ValueError(
+                "dashboard_layout cannot include pending_orders when modules.orders is false"
+            )
         return self
 
 def _repo_root() -> Path:
@@ -64,6 +84,12 @@ def _repo_root() -> Path:
 
 def default_config_path() -> Path:
     return _repo_root() / "deploy" / "config.yaml"
+
+def personal_preset_path() -> Path:
+    return _repo_root() / "deploy" / "presets" / "personal.yaml"
+
+def load_personal_preset() -> DeploymentConfig:
+    return load_deployment_config(personal_preset_path())
 
 def resolve_config_path() -> Path:
     override = os.getenv("DEPLOY_CONFIG_PATH")

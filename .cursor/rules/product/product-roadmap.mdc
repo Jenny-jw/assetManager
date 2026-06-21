@@ -22,7 +22,7 @@ alwaysApply: true
 
 | # | Item | St |
 |---|------|-----|
-| 7 | Personal preset as default (`deploy/config.yaml` = personal; `orders: false`) | [ ] |
+| 7 | Personal preset as default (`deploy/config.yaml` = personal; `orders: false`) | [x] |
 | 8 | `main.py` conditional routers — register inventory/auth; **omit** orders when `modules.orders` false | [ ] |
 | 9 | Owner auth on PG (`username` login; `users` table; role `owner` only) | [ ] |
 | 10 | Inventory API on PG — stock CRUD + list/filter/search (replace v1 `tea` / `mongo_legacy` paths) | [ ] |
@@ -61,4 +61,4 @@ alwaysApply: true
 
 | — | `customer` role; catalog browse; place orders / trades | not started |
 
-**Next:** P1 #7–10 (personal preset, conditional routers, PG auth, stock API). **This version:** `owner` only on all editions.
+**Next:** P1 #8–10 (conditional routers, PG auth, stock API). **This version:** `owner` only on all editions.

@@ -1,3 +1,5 @@
+# Active deployment config — personal edition default for product development.
+# Canonical preset: deploy/presets/personal.yaml (keep in sync; tests enforce equality).
 edition: personal
 locale: zh-TW
 roles_enabled:
