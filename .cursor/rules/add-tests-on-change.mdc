@@ -21,11 +21,21 @@ Whenever you change application code (not docs-only), check whether related test
 
 ## Project conventions
 
-- **Backend:** `backend/tests/` (`test_*.py`, `conftest.py`), `pytest -v` from `backend/`
+- **Backend v1 (master):** `backend/tests/` (`test_*.py`, `conftest.py`), `pytest -v` from `backend/`
+- **Backend v2 (product):** `backend/tests/product/` — mirror `models/product/` and `schemas/product/`
 - **Frontend:** `frontend/tests/`, `npm run test` from `frontend/`
   - Setup: `tests/setup.ts`
   - Import app code: `@/` → `src/`
   - Config: `vite.config.ts`
+
+## Where to put new backend tests
+
+| Code under test | Test file |
+|-----------------|-----------|
+| v1 routes, Mongo, `admin`/`user`/`guest` | `backend/tests/test_*.py` |
+| `models/product/`, `schemas/product/`, deployment, capabilities, `owner` auth | `backend/tests/product/test_*.py` |
+
+See `product/product-folder-layout.mdc` for the full master vs product layout.
 
 ## Where to put new frontend tests
 

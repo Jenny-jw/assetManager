@@ -14,6 +14,8 @@ from core.deployment import (
     resolve_config_path,
 )
 
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+
 @pytest.fixture(autouse=True)
 def clear_deployment_cache():
     reset_deployment_cache()
@@ -48,20 +50,17 @@ def test_personal_preset_path_points_at_repo_file():
     assert path.is_file()
 
 def test_relative_deploy_config_path_is_repo_root_relative(monkeypatch):
-    repo_root = Path(__file__).resolve().parents[2]
     monkeypatch.setenv("DEPLOY_CONFIG_PATH", "deploy/config.yaml")
-    assert resolve_config_path() == (repo_root / "deploy" / "config.yaml").resolve()
+    assert resolve_config_path() == (_REPO_ROOT / "deploy" / "config.yaml").resolve()
 
 def test_load_personal_preset():
-    path = Path(__file__).resolve().parents[2] / "deploy" / "presets" / "personal.yaml"
-    config = load_deployment_config(path)
+    config = load_deployment_config(_REPO_ROOT / "deploy" / "presets" / "personal.yaml")
     assert config.edition is Edition.personal
     assert config.modules.profit_analytics is False
     assert config.roles_enabled == ["owner"]
 
 def test_load_professional_preset():
-    path = Path(__file__).resolve().parents[2] / "deploy" / "presets" / "professional.yaml"
-    config = load_deployment_config(path)
+    config = load_deployment_config(_REPO_ROOT / "deploy" / "presets" / "professional.yaml")
     assert config.edition is Edition.professional
     assert config.modules.orders is True
     assert config.modules.profit_analytics is True

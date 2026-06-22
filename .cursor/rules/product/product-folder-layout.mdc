@@ -1,0 +1,47 @@
+---
+description: Separate master (v1) and product (v2) code under product/ subfolders
+alwaysApply: true
+---
+
+# Master vs Product Folder Layout
+
+**`main`** = MongoDB portfolio demo (v1). **`product`** = PostgreSQL sellable line (v2).
+
+Do not mix v1 and v2 artifacts in the same folder. Mirror the `product/` subfolder pattern everywhere it applies.
+
+## Backend
+
+| Area | v1 (master) | v2 (product branch) |
+|------|-------------|------------------------|
+| Models | `backend/models/` (e.g. `tea.py`) | `backend/models/product/` |
+| Schemas | `backend/schemas/` | `backend/schemas/product/` |
+| Tests | `backend/tests/` | `backend/tests/product/` |
+| Repositories (future) | — | `backend/repositories/postgres/` |
+
+## Tests
+
+- **v1 tests** — Mongo, `admin`/`user`/`guest`, `tea` routes → `backend/tests/` (`conftest.py`, `test_tea_*.py`, `test_orders_api.py`, …)
+- **v2 tests** — deployment, capabilities, PG models/schemas, `owner` only → `backend/tests/product/` (`conftest.py`, `test_deployment.py`, …)
+
+```text
+backend/tests/
+  conftest.py          # v1 FakeDB, admin/user/guest fixtures
+  test_orders_api.py   # v1 Mongo order flow
+  product/
+    conftest.py        # owner fixtures, personal/professional apps
+    test_capabilities.py
+    test_models.py
+```
+
+## Roles in tests
+
+| Branch | Roles in tests |
+|--------|----------------|
+| master / v1 tests | `admin`, `user`, `guest` |
+| product / v2 tests | `owner` only — never `admin`, `user`, or `guest` |
+
+## Avoid
+
+- Product tests in `backend/tests/test_product_*.py` (use `tests/product/` instead)
+- v1 role names in `tests/product/`
+- Importing v1 `tea` schemas from product routes or vice versa without an explicit migration path

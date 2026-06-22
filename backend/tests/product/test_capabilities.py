@@ -10,6 +10,8 @@ from core.capabilities import (
 )
 from core.deployment import load_deployment_config, reset_deployment_cache
 
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+
 @pytest.fixture(autouse=True)
 def clear_deployment_cache():
     reset_deployment_cache()
@@ -17,7 +19,7 @@ def clear_deployment_cache():
     reset_deployment_cache()
 
 def _preset_path(name: str) -> Path:
-    return Path(__file__).resolve().parents[2] / "deploy" / "presets" / name
+    return _REPO_ROOT / "deploy" / "presets" / name
 
 def _owner_user() -> dict:
     return {"id": "1", "role": "owner"}
@@ -60,3 +62,9 @@ def test_has_capability_helper():
     deployment = load_deployment_config(_preset_path("professional.yaml"))
     assert has_capability(_owner_user(), Capability.view_profit, deployment) is True
     assert has_capability(_owner_user(), "manage_inventory", deployment) is True
+
+def test_v1_roles_not_used_in_product_capabilities():
+    deployment = load_deployment_config(_preset_path("professional.yaml"))
+    for legacy_role in ("admin", "user", "guest"):
+        caps = resolve_capabilities({"id": "x", "role": legacy_role}, deployment)
+        assert caps == frozenset()

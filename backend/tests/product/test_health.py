@@ -1,7 +1,4 @@
-from pymongo.errors import PyMongoError
 from sqlalchemy.exc import SQLAlchemyError
-
-from core.db import ping_postgres
 
 def test_health_returns_ok_without_db(client):
     response = client.get("/health")

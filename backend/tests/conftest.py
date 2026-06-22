@@ -9,6 +9,7 @@ os.environ.setdefault("USE_DB_TRANSACTIONS", "false")
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 import threading
 from typing import Any
 
@@ -18,11 +19,16 @@ from fastapi.testclient import TestClient
 from pymongo import ReturnDocument
 
 import main as app_module
+from core.deployment import load_deployment_config
 from dependencies.auth import get_current_user
-from main import app
+from main import create_app
 from routes import tea as tea_routes
 import core.mongo_legacy as mongo_legacy_module
 import services.order_service as order_service_module
+
+_PROFESSIONAL_PRESET = (
+    Path(__file__).resolve().parents[2] / "deploy" / "presets" / "professional.yaml"
+)
 
 @dataclass
 class InsertOneResult:
@@ -214,6 +220,7 @@ class FakeDB:
         self.stock_movements = FakeCollection(self._lock)
 
 def _make_user(role: str) -> dict[str, Any]:
+    """v1 (master) roles: admin, user, guest."""
     return {
         "id": str(ObjectId()),
         "role": role,
@@ -221,6 +228,30 @@ def _make_user(role: str) -> dict[str, Any]:
         "name": role.capitalize(),
         "is_active": True,
     }
+
+def _build_v1_client(
+    monkeypatch,
+    fake_db: FakeDB,
+    auth_user: dict[str, Any] | None,
+    fastapi_app,
+):
+    monkeypatch.setattr(tea_routes, "db", fake_db)
+    monkeypatch.setattr(mongo_legacy_module, "db", fake_db)
+    monkeypatch.setattr(order_service_module, "db", fake_db)
+    monkeypatch.setenv("USE_DB_TRANSACTIONS", "false")
+
+    if auth_user is not None:
+        fastapi_app.dependency_overrides[get_current_user] = lambda: auth_user
+
+    with TestClient(fastapi_app) as test_client:
+        yield test_client
+
+    fastapi_app.dependency_overrides.clear()
+
+@pytest.fixture
+def orders_api_app():
+    """v1 order/tea tests on product branch need modules.orders (professional preset)."""
+    return create_app(load_deployment_config(_PROFESSIONAL_PRESET))
 
 @pytest.fixture
 def fake_db():
@@ -230,35 +261,21 @@ def fake_db():
 def skip_startup_postgres_ping(monkeypatch):
     monkeypatch.setattr(app_module, "ping_postgres", lambda: None)
 
-def _build_client(monkeypatch, fake_db: FakeDB, auth_user: dict[str, Any] | None):
-    monkeypatch.setattr(tea_routes, "db", fake_db)
-    monkeypatch.setattr(mongo_legacy_module, "db", fake_db)
-    monkeypatch.setattr(order_service_module, "db", fake_db)
-    monkeypatch.setenv("USE_DB_TRANSACTIONS", "false")
-
-    if auth_user is not None:
-        app.dependency_overrides[get_current_user] = lambda: auth_user
-
-    with TestClient(app) as test_client:
-        yield test_client
-
-    app.dependency_overrides.clear()
+@pytest.fixture
+def client(monkeypatch, fake_db: FakeDB, orders_api_app):
+    yield from _build_v1_client(monkeypatch, fake_db, _make_user("admin"), orders_api_app)
 
 @pytest.fixture
-def client(monkeypatch, fake_db: FakeDB):
-    yield from _build_client(monkeypatch, fake_db, _make_user("admin"))
+def client_no_auth(monkeypatch, fake_db: FakeDB, orders_api_app):
+    yield from _build_v1_client(monkeypatch, fake_db, None, orders_api_app)
 
 @pytest.fixture
-def client_no_auth(monkeypatch, fake_db: FakeDB):
-    yield from _build_client(monkeypatch, fake_db, None)
+def client_user(monkeypatch, fake_db: FakeDB, orders_api_app):
+    yield from _build_v1_client(monkeypatch, fake_db, _make_user("user"), orders_api_app)
 
 @pytest.fixture
-def client_user(monkeypatch, fake_db: FakeDB):
-    yield from _build_client(monkeypatch, fake_db, _make_user("user"))
-
-@pytest.fixture
-def client_guest(monkeypatch, fake_db: FakeDB):
-    yield from _build_client(monkeypatch, fake_db, _make_user("guest"))
+def client_guest(monkeypatch, fake_db: FakeDB, orders_api_app):
+    yield from _build_v1_client(monkeypatch, fake_db, _make_user("guest"), orders_api_app)
 
 @pytest.fixture
 def seeded_tea_id(fake_db: FakeDB) -> str:
