@@ -2,6 +2,7 @@ from schemas.product.stock import (
     StockCreate,
     StockListResponse,
     StockResponse,
+    StockSummaryResponse,
     StockUpdate,
     validate_weight_grams_for_edition,
 )
@@ -11,6 +12,7 @@ __all__ = [
     "StockCreate",
     "StockListResponse",
     "StockResponse",
+    "StockSummaryResponse",
     "StockUpdate",
     "UserCreate",
     "UserLogin",

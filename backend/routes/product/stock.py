@@ -9,12 +9,19 @@ from core.deployment import DeploymentConfig, get_deployment
 from dependencies.db import DbSession
 from dependencies.product.auth import require_owner
 from models.product.stock import Stock
-from schemas.product.stock import StockCreate, StockListResponse, StockResponse, StockUpdate
+from schemas.product.stock import (
+    StockCreate,
+    StockListResponse,
+    StockResponse,
+    StockSummaryResponse,
+    StockUpdate,
+)
 from services.product.stock_queries import (
     coerce_weight_grams_for_edition,
     get_active_stock,
     list_active_stocks,
 )
+from services.product.stock_summary_service import build_stock_summary
 
 router = APIRouter(
     prefix="/stock",
@@ -68,6 +75,10 @@ def list_stocks(
         origin=origin,
     )
     return StockListResponse(data=rows, page=page, limit=limit, total=total)
+
+@router.get("/summary", response_model=StockSummaryResponse)
+def stock_summary(db: DbSession):
+    return build_stock_summary(db)
 
 @router.get("/{stock_id}", response_model=StockResponse)
 def get_stock(stock_id: str, db: DbSession):

@@ -59,6 +59,14 @@ class StockListResponse(BaseModel):
     limit: int
     total: int
 
+class StockSummaryResponse(BaseModel):
+    total_assets: int
+    total_packages: int
+    total_weight_grams: int
+    total_value: int
+    by_origin: dict[str, int]
+    by_genre: dict[str, int]
+
 def validate_weight_grams_for_edition(
     weight_grams: int | None,
     edition: Edition,
