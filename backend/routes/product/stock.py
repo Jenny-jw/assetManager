@@ -48,6 +48,9 @@ def list_stocks(
     db: DbSession,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
+    search: str | None = None,
+    genre: str | None = None,
+    origin: str | None = None,
     sort_by: str = Query(
         "created_at",
         pattern="^(created_at|name|genre|origin|quantity|score|price_per_jin|harvest_time)$",
@@ -60,6 +63,9 @@ def list_stocks(
         limit=limit,
         sort_by=sort_by,
         sort_direction=sort_direction,
+        search=search,
+        genre=genre,
+        origin=origin,
     )
     return StockListResponse(data=rows, page=page, limit=limit, total=total)
 

@@ -193,6 +193,67 @@ def test_list_stocks_sorts_by_name_asc(stock_client: TestClient):
     names = [row["name"] for row in response.json()["data"]]
     assert names == ["Alpha", "Zebra"]
 
+def _seed_filter_fixtures(stock_client: TestClient) -> None:
+    stock_client.post(
+        "/api/stock/",
+        json={
+            **_STOCK_PAYLOAD,
+            "name": "Alishan Oolong",
+            "genre": "Oolong",
+            "origin": "Alishan",
+        },
+    )
+    stock_client.post(
+        "/api/stock/",
+        json={
+            **_STOCK_PAYLOAD,
+            "name": "Sun Moon Black",
+            "genre": "Black",
+            "origin": "Sun Moon Lake",
+        },
+    )
+
+def test_list_stocks_filters_by_genre(stock_client: TestClient):
+    _seed_filter_fixtures(stock_client)
+
+    response = stock_client.get("/api/stock/", params={"genre": "Oolong"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["data"][0]["name"] == "Alishan Oolong"
+
+def test_list_stocks_filters_by_origin(stock_client: TestClient):
+    _seed_filter_fixtures(stock_client)
+
+    response = stock_client.get("/api/stock/", params={"origin": "Sun Moon Lake"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["data"][0]["genre"] == "Black"
+
+def test_list_stocks_search_matches_name(stock_client: TestClient):
+    _seed_filter_fixtures(stock_client)
+
+    response = stock_client.get("/api/stock/", params={"search": "alishan"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["data"][0]["name"] == "Alishan Oolong"
+
+def test_list_stocks_combines_genre_and_search(stock_client: TestClient):
+    _seed_filter_fixtures(stock_client)
+
+    response = stock_client.get(
+        "/api/stock/",
+        params={"genre": "Oolong", "search": "Moon"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["total"] == 0
+
 def test_patch_stock_updates_fields(stock_client: TestClient):
     created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
 

@@ -23,6 +23,34 @@ _SORT_COLUMNS = {
 def active_stocks_select() -> Select[tuple[Stock]]:
     return select(Stock).where(Stock.deleted_at.is_(None))
 
+def _apply_stock_list_filters(
+    statement: Select[tuple[Stock]],
+    *,
+    search: str | None,
+    genre: str | None,
+    origin: str | None,
+) -> Select[tuple[Stock]]:
+    if genre is not None:
+        statement = statement.where(Stock.genre == genre)
+    if origin is not None:
+        statement = statement.where(Stock.origin == origin)
+    if search:
+        statement = statement.where(Stock.name.ilike(f"%{search}%"))
+    return statement
+
+def filtered_active_stocks_select(
+    *,
+    search: str | None = None,
+    genre: str | None = None,
+    origin: str | None = None,
+) -> Select[tuple[Stock]]:
+    return _apply_stock_list_filters(
+        active_stocks_select(),
+        search=search,
+        genre=genre,
+        origin=origin,
+    )
+
 def count_active_stocks(db: Session) -> int:
     return int(
         db.scalar(
@@ -38,11 +66,15 @@ def list_active_stocks(
     limit: int,
     sort_by: str,
     sort_direction: str,
+    search: str | None = None,
+    genre: str | None = None,
+    origin: str | None = None,
 ) -> tuple[list[Stock], int]:
-    total = count_active_stocks(db)
+    statement = filtered_active_stocks_select(search=search, genre=genre, origin=origin)
+    total = int(db.scalar(select(func.count()).select_from(statement.subquery())) or 0)
     column = _SORT_COLUMNS[sort_by]
     order = column.asc() if sort_direction == "asc" else column.desc()
-    statement = active_stocks_select().order_by(order)
+    statement = statement.order_by(order)
     offset = (page - 1) * limit
     rows = list(db.scalars(statement.offset(offset).limit(limit)).all())
     return rows, total
