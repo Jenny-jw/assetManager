@@ -10,7 +10,7 @@ from fastapi import HTTPException
 import services.order_service as order_service_module
 from schemas.order import OrderCreate, OrderItemCreate
 from services.order_service import approve_order, place_order
-from tests.conftest import _make_user, seed_orderable_tea
+from tests.mongo_fake import make_user, seed_orderable_tea
 
 @pytest.fixture
 def order_db(monkeypatch, fake_db):
@@ -19,7 +19,7 @@ def order_db(monkeypatch, fake_db):
     return fake_db
 
 def _place(fake_db, tea_id: str, quantity: int, user: dict | None = None) -> str:
-    user = user or _make_user("user")
+    user = user or make_user("user")
     order = place_order(
         OrderCreate(items=[OrderItemCreate(tea_id=tea_id, quantity=quantity)]),
         user,
@@ -29,7 +29,7 @@ def _place(fake_db, tea_id: str, quantity: int, user: dict | None = None) -> str
 def test_approve_succeeds_when_stock_sufficient(order_db):
     tea_id = seed_orderable_tea(order_db, quantity=5)
     order_id = _place(order_db, tea_id, 2)
-    admin = _make_user("admin")
+    admin = make_user("admin")
 
     result = approve_order(order_id, admin)
 
@@ -43,7 +43,7 @@ def test_approve_fails_409_when_stock_insufficient(order_db):
     order_id = _place(order_db, tea_id, 2)
     tea_oid = ObjectId(tea_id)
     order_db.teas.docs[tea_oid]["quantity"] = 1
-    admin = _make_user("admin")
+    admin = make_user("admin")
 
     with pytest.raises(HTTPException) as exc:
         approve_order(order_id, admin)
@@ -58,7 +58,7 @@ def test_approve_fails_409_when_stock_insufficient(order_db):
 def test_double_approve_same_order_only_fulfills_once(order_db):
     tea_id = seed_orderable_tea(order_db, quantity=5)
     order_id = _place(order_db, tea_id, 2)
-    admin = _make_user("admin")
+    admin = make_user("admin")
 
     approve_order(order_id, admin)
 
@@ -75,7 +75,7 @@ def test_concurrent_approvals_cannot_oversell(order_db):
     tea_id = seed_orderable_tea(order_db, quantity=3)
     order_a = _place(order_db, tea_id, 2)
     order_b = _place(order_db, tea_id, 2)
-    admin = _make_user("admin")
+    admin = make_user("admin")
     results: list[int | str] = [None, None]
 
     def try_approve(order_id: str, slot: int) -> None:
@@ -115,7 +115,7 @@ def test_multi_item_approve_rolls_back_when_second_line_insufficient(order_db):
     )
     tea_b_id = str(tea_b_insert.inserted_id)
 
-    user = _make_user("user")
+    user = make_user("user")
     order = place_order(
         OrderCreate(
             items=[
@@ -127,7 +127,7 @@ def test_multi_item_approve_rolls_back_when_second_line_insufficient(order_db):
     )
     order_id = order["id"]
     order_db.teas.docs[ObjectId(tea_b_id)]["quantity"] = 1
-    admin = _make_user("admin")
+    admin = make_user("admin")
 
     with pytest.raises(HTTPException) as exc:
         approve_order(order_id, admin)

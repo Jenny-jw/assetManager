@@ -1,4 +1,4 @@
-from tests.conftest import seed_orderable_tea
+from tests.mongo_fake import seed_orderable_tea
 
 def test_personal_app_returns_404_for_orders(client_owner, fake_db):
     tea_id = seed_orderable_tea(fake_db)

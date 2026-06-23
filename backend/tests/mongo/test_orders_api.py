@@ -1,8 +1,8 @@
 from dependencies.mongo_auth import get_current_user
-from tests.conftest import _make_user, seed_orderable_tea
+from tests.mongo_fake import make_user, seed_orderable_tea
 
 def _use_admin_auth(app) -> None:
-    app.dependency_overrides[get_current_user] = lambda: _make_user("admin")
+    app.dependency_overrides[get_current_user] = lambda: make_user("admin")
 
 def test_user_place_order_creates_pending_without_stock_change(client_user, fake_db):
     tea_id = seed_orderable_tea(fake_db, quantity=5, price=1200)

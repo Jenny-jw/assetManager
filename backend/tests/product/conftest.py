@@ -13,7 +13,7 @@ from dependencies.mongo_auth import get_current_user
 from main import app, create_app
 import core.mongo_legacy as mongo_legacy_module
 import services.order_service as order_service_module
-from tests.conftest import FakeDB
+from tests.mongo_fake import FakeDB
 
 _PROFESSIONAL_PRESET = (
     Path(__file__).resolve().parents[3] / "deploy" / "presets" / "professional.yaml"
@@ -48,12 +48,21 @@ def _build_client(
     fastapi_app.dependency_overrides.clear()
 
 @pytest.fixture
+def fake_db():
+    return FakeDB()
+
+@pytest.fixture
 def personal_app():
     return app
 
 @pytest.fixture
 def professional_app():
     return create_app(load_deployment_config(_PROFESSIONAL_PRESET))
+
+@pytest.fixture
+def client(personal_app: FastAPI):
+    with TestClient(personal_app) as test_client:
+        yield test_client
 
 @pytest.fixture
 def client_owner(monkeypatch, fake_db: FakeDB, personal_app: FastAPI):
