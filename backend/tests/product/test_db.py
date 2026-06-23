@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
-from core.db import get_engine, ping_postgres, reset_db_state_for_tests
+from core.db import get_db, get_engine, ping_postgres, reset_db_state_for_tests
 
 @pytest.fixture(autouse=True)
 def reset_engine():
@@ -58,3 +58,18 @@ def test_ping_postgres_propagates_db_errors(monkeypatch):
     monkeypatch.setattr("core.db.create_engine", lambda *args, **kwargs: FakeEngine())
     with pytest.raises(SQLAlchemyError):
         ping_postgres()
+
+def test_get_db_yields_session_and_closes(monkeypatch):
+    closed: list[bool] = []
+
+    class FakeSession:
+        def close(self) -> None:
+            closed.append(True)
+
+    monkeypatch.setattr("core.db.get_session_factory", lambda: lambda: FakeSession())
+    generator = get_db()
+    session = next(generator)
+    assert isinstance(session, FakeSession)
+    with pytest.raises(StopIteration):
+        generator.send(None)
+    assert closed == [True]
