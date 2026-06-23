@@ -1,4 +1,4 @@
-from dependencies.auth import get_current_user
+from dependencies.mongo_auth import get_current_user
 from tests.conftest import _make_user, seed_orderable_tea
 
 def _use_admin_auth(app) -> None:

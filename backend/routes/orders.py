@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 
-from dependencies.auth import get_current_user, require_role
+from dependencies.mongo_auth import UserRole, get_current_user, require_role
 from models.order import OrderStatus
-from models.user import UserRole
 from schemas.order import OrderCreate, OrderListResponse, OrderResponse
 from services.order_service import (
     approve_order,

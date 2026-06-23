@@ -1,3 +1,5 @@
+"""Mongo JWT auth for v1 orders routes — removed in Phase 2 with orders Mongo."""
+from enum import Enum
 from typing import Any
 
 import jwt
@@ -6,7 +8,11 @@ from fastapi import Depends, HTTPException, Request, status
 
 from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
 from core.mongo_legacy import db
-from models.user import UserRole
+
+class UserRole(str, Enum):
+    admin = "admin"
+    user = "user"
+    guest = "guest"
 
 def _auth_error(detail: str) -> HTTPException:
     return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)

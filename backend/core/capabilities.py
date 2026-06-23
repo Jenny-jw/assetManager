@@ -6,7 +6,7 @@ from typing import Any
 from fastapi import Depends, HTTPException, status
 
 from core.deployment import DeploymentConfig, DeploymentModules, get_deployment
-from dependencies.auth import get_current_user
+from dependencies.product.auth import get_current_user
 
 class Capability(str, Enum):
     manage_inventory = "manage_inventory"

@@ -9,9 +9,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from core.deployment import load_deployment_config
-from dependencies.auth import get_current_user
+from dependencies.mongo_auth import get_current_user
 from main import app, create_app
-from routes import tea as tea_routes
 import core.mongo_legacy as mongo_legacy_module
 import services.order_service as order_service_module
 from tests.conftest import FakeDB
@@ -36,7 +35,6 @@ def _build_client(
     auth_user: dict[str, Any] | None,
     fastapi_app: FastAPI,
 ):
-    monkeypatch.setattr(tea_routes, "db", fake_db)
     monkeypatch.setattr(mongo_legacy_module, "db", fake_db)
     monkeypatch.setattr(order_service_module, "db", fake_db)
     monkeypatch.setenv("USE_DB_TRANSACTIONS", "false")
