@@ -25,7 +25,7 @@ alwaysApply: true
 | 7   | Personal preset as default (`deploy/config.yaml` = personal; `orders: false`)                        | [x] |
 | 8   | `main.py` conditional routers — register inventory/auth; **omit** orders when `modules.orders` false | [x] |
 | 9   | Owner auth on PG below                                                                               | [x] |
-| 10  | Inventory API on PG — stock CRUD + list/filter/search (replace v1 `tea` / `mongo_legacy` paths)      | [ ] |
+| 10  | Inventory API on PG — see **P1-10 breakdown**; cleanup after → `product-branch-cleanup.mdc`          | [x] |
 | 11  | Dashboard widget registry — render `dashboard_layout` only; hide order widgets when orders off       | [ ] |
 | 12  | Frontend routes gated by modules — no Orders nav/pages on personal                                   | [ ] |
 | 13  | i18n (`react-i18next`) — load **one** locale (`zh-TW` \| `en`) from deploy config at startup         | [ ] |
@@ -71,4 +71,4 @@ alwaysApply: true
 
 | — | `customer` role; catalog browse; place orders / trades | not started |
 
-**Next:** P1 #10 (inventory API on PG). **This version:** `owner` only on all editions.
+**Next:** P1 #11 (dashboard widget registry) or branch cleanup (`product-branch-cleanup.mdc`). **This version:** `owner` only on all editions.
