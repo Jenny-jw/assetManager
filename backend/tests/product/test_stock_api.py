@@ -192,3 +192,53 @@ def test_list_stocks_sorts_by_name_asc(stock_client: TestClient):
 
     names = [row["name"] for row in response.json()["data"]]
     assert names == ["Alpha", "Zebra"]
+
+def test_patch_stock_updates_fields(stock_client: TestClient):
+    created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
+
+    response = stock_client.patch(
+        f"/api/stock/{created['id']}",
+        json={"name": "Renamed Oolong", "quantity": 0},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["name"] == "Renamed Oolong"
+    assert body["quantity"] == 0
+    assert body["updated_at"] is not None
+
+def test_patch_stock_clears_optional_strings(stock_client: TestClient):
+    created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
+
+    response = stock_client.patch(
+        f"/api/stock/{created['id']}",
+        json={"origin": "", "comment": ""},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["origin"] is None
+    assert body["comment"] is None
+
+def test_patch_stock_returns_400_when_empty(stock_client: TestClient):
+    created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
+
+    response = stock_client.patch(f"/api/stock/{created['id']}", json={})
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "No fields to update"
+
+def test_patch_stock_returns_404_when_missing(stock_client: TestClient):
+    response = stock_client.patch(f"/api/stock/{uuid4()}", json={"name": "Nope"})
+    assert response.status_code == 404
+
+def test_patch_stock_rejects_invalid_weight_for_personal(stock_client: TestClient):
+    created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
+
+    response = stock_client.patch(
+        f"/api/stock/{created['id']}",
+        json={"weight_grams": 100},
+    )
+
+    assert response.status_code == 400
+    assert "75 or 150" in response.json()["detail"]
