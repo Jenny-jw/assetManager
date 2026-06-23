@@ -242,3 +242,37 @@ def test_patch_stock_rejects_invalid_weight_for_personal(stock_client: TestClien
 
     assert response.status_code == 400
     assert "75 or 150" in response.json()["detail"]
+
+def test_delete_stock_soft_deletes_row(stock_client: TestClient):
+    created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
+    stock_id = created["id"]
+
+    response = stock_client.delete(f"/api/stock/{stock_id}")
+
+    assert response.status_code == 200
+    assert response.json() == {"message": "Stock deleted"}
+    assert stock_client.get(f"/api/stock/{stock_id}").status_code == 404
+
+def test_delete_stock_hides_row_from_list(stock_client: TestClient):
+    created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
+    stock_client.delete(f"/api/stock/{created['id']}")
+
+    response = stock_client.get("/api/stock/")
+    assert response.status_code == 200
+    assert response.json()["total"] == 0
+
+def test_delete_stock_returns_404_when_missing(stock_client: TestClient):
+    response = stock_client.delete(f"/api/stock/{uuid4()}")
+    assert response.status_code == 404
+
+def test_delete_stock_returns_404_when_already_deleted(stock_client: TestClient):
+    created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
+    stock_id = created["id"]
+    stock_client.delete(f"/api/stock/{stock_id}")
+
+    response = stock_client.delete(f"/api/stock/{stock_id}")
+    assert response.status_code == 404
+
+def test_delete_stock_returns_400_for_invalid_id(stock_client: TestClient):
+    response = stock_client.delete("/api/stock/not-a-uuid")
+    assert response.status_code == 400

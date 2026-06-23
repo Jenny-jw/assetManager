@@ -116,3 +116,20 @@ def update_stock(
     db.commit()
     db.refresh(stock)
     return stock
+
+@router.delete("/{stock_id}")
+def delete_stock(stock_id: str, db: DbSession):
+    try:
+        stock_uuid = UUID(stock_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid stock id") from exc
+
+    stock = get_active_stock(db, stock_uuid)
+    if stock is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock not found")
+
+    now = datetime.now(timezone.utc)
+    stock.deleted_at = now
+    stock.updated_at = now
+    db.commit()
+    return {"message": "Stock deleted"}
