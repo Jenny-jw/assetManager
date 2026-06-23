@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from collections.abc import Generator
+from datetime import datetime, timezone
 from typing import Any
+from uuid import UUID, uuid4
 
 import pytest
 from fastapi import FastAPI
@@ -115,3 +117,32 @@ def test_create_stock_requires_owner(stock_session: Session, personal_deployment
         response = client.post("/api/stock/", json=_STOCK_PAYLOAD)
 
     assert response.status_code == 401
+
+def test_get_stock_returns_active_row(stock_client: TestClient):
+    created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
+    stock_id = created["id"]
+
+    response = stock_client.get(f"/api/stock/{stock_id}")
+
+    assert response.status_code == 200
+    assert response.json()["name"] == "Alishan Oolong"
+
+def test_get_stock_returns_404_when_missing(stock_client: TestClient):
+    response = stock_client.get(f"/api/stock/{uuid4()}")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Stock not found"
+
+def test_get_stock_returns_404_when_soft_deleted(stock_client: TestClient, stock_session: Session):
+    created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
+    stock = stock_session.get(Stock, UUID(created["id"]))
+    assert stock is not None
+    stock.deleted_at = datetime.now(timezone.utc)
+    stock_session.commit()
+
+    response = stock_client.get(f"/api/stock/{created['id']}")
+    assert response.status_code == 404
+
+def test_get_stock_returns_400_for_invalid_id(stock_client: TestClient):
+    response = stock_client.get("/api/stock/not-a-uuid")
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid stock id"
