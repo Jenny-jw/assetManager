@@ -146,3 +146,49 @@ def test_get_stock_returns_400_for_invalid_id(stock_client: TestClient):
     response = stock_client.get("/api/stock/not-a-uuid")
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid stock id"
+
+def test_list_stocks_returns_empty_page(stock_client: TestClient):
+    response = stock_client.get("/api/stock/")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body == {"data": [], "page": 1, "limit": 20, "total": 0}
+
+def test_list_stocks_paginates_active_rows(stock_client: TestClient):
+    for index in range(3):
+        stock_client.post(
+            "/api/stock/",
+            json={**_STOCK_PAYLOAD, "name": f"Tea {index}"},
+        )
+
+    page_one = stock_client.get("/api/stock/", params={"page": 1, "limit": 2})
+    page_two = stock_client.get("/api/stock/", params={"page": 2, "limit": 2})
+
+    assert page_one.status_code == 200
+    assert page_one.json()["total"] == 3
+    assert len(page_one.json()["data"]) == 2
+    assert page_two.json()["total"] == 3
+    assert len(page_two.json()["data"]) == 1
+
+def test_list_stocks_excludes_soft_deleted(stock_client: TestClient, stock_session: Session):
+    created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
+    stock = stock_session.get(Stock, UUID(created["id"]))
+    assert stock is not None
+    stock.deleted_at = datetime.now(timezone.utc)
+    stock_session.commit()
+
+    response = stock_client.get("/api/stock/")
+    assert response.status_code == 200
+    assert response.json()["total"] == 0
+
+def test_list_stocks_sorts_by_name_asc(stock_client: TestClient):
+    stock_client.post("/api/stock/", json={**_STOCK_PAYLOAD, "name": "Zebra"})
+    stock_client.post("/api/stock/", json={**_STOCK_PAYLOAD, "name": "Alpha"})
+
+    response = stock_client.get(
+        "/api/stock/",
+        params={"sort_by": "name", "sort_direction": "asc"},
+    )
+
+    names = [row["name"] for row in response.json()["data"]]
+    assert names == ["Alpha", "Zebra"]

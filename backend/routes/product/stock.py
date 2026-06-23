@@ -2,14 +2,18 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from core.deployment import DeploymentConfig, get_deployment
 from dependencies.db import DbSession
 from dependencies.product.auth import require_owner
 from models.product.stock import Stock
-from schemas.product.stock import StockCreate, StockResponse
-from services.product.stock_queries import coerce_weight_grams_for_edition, get_active_stock
+from schemas.product.stock import StockCreate, StockListResponse, StockResponse
+from services.product.stock_queries import (
+    coerce_weight_grams_for_edition,
+    get_active_stock,
+    list_active_stocks,
+)
 
 router = APIRouter(
     prefix="/stock",
@@ -37,6 +41,26 @@ def create_stock(
     db.commit()
     db.refresh(stock)
     return stock
+
+@router.get("/", response_model=StockListResponse)
+def list_stocks(
+    db: DbSession,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    sort_by: str = Query(
+        "created_at",
+        pattern="^(created_at|name|genre|origin|quantity|score|price_per_jin|harvest_time)$",
+    ),
+    sort_direction: str = Query("desc", pattern="^(asc|desc)$"),
+):
+    rows, total = list_active_stocks(
+        db,
+        page=page,
+        limit=limit,
+        sort_by=sort_by,
+        sort_direction=sort_direction,
+    )
+    return StockListResponse(data=rows, page=page, limit=limit, total=total)
 
 @router.get("/{stock_id}", response_model=StockResponse)
 def get_stock(stock_id: str, db: DbSession):

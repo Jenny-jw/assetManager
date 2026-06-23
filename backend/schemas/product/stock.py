@@ -53,6 +53,12 @@ class StockResponse(StockBase):
     def coerce_id(cls, value: object) -> str:
         return str(value)
 
+class StockListResponse(BaseModel):
+    data: list[StockResponse]
+    page: int
+    limit: int
+    total: int
+
 def validate_weight_grams_for_edition(
     weight_grams: int | None,
     edition: Edition,
