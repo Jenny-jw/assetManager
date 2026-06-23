@@ -11,7 +11,8 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 def test_personal_deployment_registers_inventory_not_orders():
     app = create_app(load_personal_preset())
     paths = route_paths(app)
-    assert any(path.startswith("/api/tea") for path in paths)
+    assert any(path.startswith("/api/stock") for path in paths)
+    assert "/api/stock/summary" in paths
     assert not any(path.startswith("/api/orders") for path in paths)
 
 def test_personal_deployment_always_registers_auth_and_health():
