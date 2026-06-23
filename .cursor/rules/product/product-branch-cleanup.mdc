@@ -1,0 +1,189 @@
+---
+description: Product branch v1 cleanup — delete Mongo, flatten product/ subfolders (no merge to main)
+alwaysApply: false
+---
+
+# Product Branch Cleanup Plan
+
+**Branches are separate forever:** `product` is **not** merged into `main`/`master`. Portfolio demo stays on `main`; sellable v2 stays on `product`. Shared fixes use **cherry-pick**, not whole-branch merges.
+
+**Current layout (transition):** v1 Mongo + `models/product/`, `routes/product/`, `tests/product/` coexist until cleanup.
+
+**Target layout (product branch):** single structure — `models/stock.py`, `routes/stock.py`, `tests/test_stock_api.py` — no `product/` subfolders, no v1 tea/auth/mongo.
+
+See `product-folder-layout.mdc` for transition rules; **this file supersedes it after cleanup**.
+
+---
+
+## Phases
+
+```text
+Phase 0  Prerequisites (P1-10 stock API on router_registry)
+Phase 1  Delete v1 inventory + v1 auth (after P1-10)
+Phase 2  Delete v1 orders + mongo_legacy (after P3 PG orders)
+Phase 3  Flatten product/ subfolders, tests, infra, rules, frontend
+```
+
+---
+
+## Phase 0 — Before cleanup
+
+| # | Item |
+|---|------|
+| 0.1 | **P1-10** done — `routes/product/stock` + `router_registry` uses stock, not `tea_router` |
+| 0.2 | API path decided: **`/api/stock`** (recommended) vs `/api/tea` alias |
+| 0.3 | Branch `feature/product-cleanup` → merge to `product` (separate from P1-10 PRs) |
+
+---
+
+## Phase 1 — Delete (inventory + v1 auth, after P1-10)
+
+### Backend — delete
+
+| File | Notes |
+|------|-------|
+| `backend/routes/tea.py` | v1 Mongo tea CRUD |
+| `backend/routes/auth.py` | v1 email auth (replaced by `routes/product/auth`) |
+| `backend/schemas/tea.py` | v1 DTOs |
+| `backend/schemas/user.py` | v1 `UserRole` DTOs |
+| `backend/models/tea.py` | if present |
+| `backend/models/user.py` | v1 `admin`/`user`/`guest` enum |
+| `backend/dependencies/auth.py` | v1 `get_current_user` + `require_role` |
+| `backend/services/tea_summary_service.py` | after PG summary exists (P1-10h) |
+| `backend/core/indexes.py` | Mongo indexes (unused on product) |
+
+**Keep until Phase 2:** `backend/core/mongo_legacy.py` — still used by `routes/orders.py`, `order_service.py`.
+
+### Tests — delete
+
+| File |
+|------|
+| `backend/tests/test_tea_api.py` |
+| `backend/tests/test_tea_auth.py` |
+| `backend/tests/test_tea_pricing.py` | rename/migrate if logic moves to `core/stock_pricing.py` |
+
+### `tests/conftest.py` — remove
+
+- `FakeDB`, fake Mongo collections
+- `client` / `client_user` / `client_guest` / `orders_api_app`
+- `seed_orderable_tea`
+
+Keep: PG fixtures, `owner` client, `skip_startup_postgres_ping`.
+
+---
+
+## Phase 2 — Delete (orders Mongo, after P3)
+
+| File |
+|------|
+| `backend/core/mongo_legacy.py` |
+| `backend/routes/orders.py` |
+| `backend/services/order_service.py` |
+| `backend/services/stock_transactions.py` |
+| `backend/models/order.py` |
+| `backend/schemas/order.py` |
+| `backend/tests/test_orders_api.py` |
+| `backend/tests/test_order_stock_transactions.py` |
+| `backend/tests/product/test_orders_routes.py` (rewrite for PG or replace) |
+| `pymongo` in `backend/requirements.txt` |
+
+---
+
+## Phase 3 — Flatten `product/` (same PR series as Phase 1)
+
+| From | To |
+|------|-----|
+| `models/product/user.py` | `models/user.py` |
+| `models/product/stock.py` | `models/stock.py` |
+| `schemas/product/*.py` | `schemas/*.py` |
+| `routes/product/auth.py` | `routes/auth.py` |
+| `routes/product/security.py` | `routes/security.py` |
+| `dependencies/product/auth.py` | `dependencies/auth.py` |
+| `services/product/stock_queries.py` | `services/stock_queries.py` |
+| `tests/product/*.py` | `tests/test_*.py` |
+
+Update imports project-wide; `alembic/env.py` model imports; delete empty `*/product/` dirs.
+
+### Keep and adjust
+
+| Area | Action |
+|------|--------|
+| `core/deployment.py`, `core/db.py` | unchanged |
+| `core/capabilities.py` | `get_current_user` → PG `dependencies/auth` |
+| `core/router_registry.py` | stock + auth + security only; orders when module on |
+| `core/tea_pricing.py` | rename → `stock_pricing.py` (`weight_grams`, `price_per_jin`) |
+| `routes/health.py`, `main.py` | unchanged |
+
+---
+
+## Infrastructure (product branch)
+
+| Item | Now | After cleanup |
+|------|-----|----------------|
+| `docker-compose.yml` | mongo + api | postgres + api |
+| `.env.example` | PG | no `MONGO_URI` |
+| `.github/workflows/backend-ci.yml` | `main`/`master` + mongo | add **`product`** job: pytest + postgres compose |
+| `README.md` | mixed | product-only PG section |
+
+---
+
+## Frontend (P1-12–14 or cleanup follow-up)
+
+| Now | After |
+|-----|-------|
+| `teaServices.ts`, `/tea/*` | `stockServices.ts`, `/stock/*` |
+| email login/signup | username |
+| `types/TeaList.ts`, `teaPricing.ts` | stock naming |
+
+Backend cleanup PR may ship before frontend; document mismatch in README until P1-12.
+
+---
+
+## Cursor rules after cleanup
+
+| File | Action |
+|------|--------|
+| `product-folder-layout.mdc` | replace or delete — single layout on `product` |
+| `add-tests-on-change.mdc` | remove `tests/product/` table |
+| `product-data-schema.mdc` | `schemas/` not `schemas/product/` |
+| `product-modularization.mdc` | path examples |
+| `product-roadmap.mdc` | mark 10x items done |
+
+---
+
+## Execution order (small PRs)
+
+```text
+1.  P1-10 complete
+2.  Flatten models/schemas + alembic imports
+3.  Flatten routes/auth, dependencies/auth, services
+4.  Delete v1 tea/auth files + v1 tests
+5.  Merge tests/product → tests/conftest
+6.  router_registry, capabilities, rules
+7.  pytest green
+8.  docker-compose + CI for product branch
+9.  P3 → Phase 2 orders + remove pymongo
+10. Frontend alignment
+```
+
+---
+
+## Roadmap cross-ref (10x)
+
+| # | Item |
+|---|------|
+| 10x-a | Flatten `product/` → top-level folders |
+| 10x-b | Delete v1 tea/auth/mongo tests + `FakeDB` |
+| 10x-c | Consolidate `tests/product/` → `tests/` |
+| 10x-d | Update Cursor rules + README |
+| 10x-e | Product CI + postgres compose |
+| 10x-f | Delete mongo orders (after P3) |
+
+---
+
+## Risks
+
+1. Do **not** merge `product` → `main` or whole `main` → `product`.
+2. **`main` keeps v1** for portfolio interviews.
+3. One PR per layer: flatten imports before deleting files.
+4. **Professional orders** stay on Mongo until P3; Phase 1 does not remove `mongo_legacy`.

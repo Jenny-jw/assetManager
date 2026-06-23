@@ -25,5 +25,6 @@ Project guidance is split into `.cursor/rules/*.mdc` for focused context. Cursor
 | `product/product-deployment-tenancy.mdc` | Deploy vs SaaS |
 | `product/product-roadmap.mdc` | P0–P4 checklist |
 | `product/product-git-workflow.mdc` | `main` / `product` / `feature/*` |
+| `product/product-branch-cleanup.mdc` | Delete v1 Mongo, flatten `product/` (no merge to main) |
 
 Edit the `.mdc` files in `.cursor/rules/` rather than duplicating long guidance here.
