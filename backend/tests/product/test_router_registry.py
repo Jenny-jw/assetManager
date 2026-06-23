@@ -18,7 +18,8 @@ def test_personal_deployment_always_registers_auth_and_health():
     app = create_app(load_personal_preset())
     paths = route_paths(app)
     assert "/health" in paths
-    assert any(path.startswith("/api/auth") for path in paths)
+    assert "/api/auth/signup" in paths
+    assert "/api/security/me" in paths
 
 def test_professional_deployment_registers_orders():
     app = create_app(load_deployment_config(_REPO_ROOT / "deploy" / "presets" / "professional.yaml"))

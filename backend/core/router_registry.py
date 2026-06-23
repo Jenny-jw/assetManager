@@ -3,10 +3,9 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from core.deployment import DeploymentConfig
-from core.security import router as security_router
-from routes.auth import router as auth_router
 from routes.health import router as health_router
 from routes.orders import router as orders_router
+from routes.product import auth_router, security_router
 from routes.tea import router as tea_router
 
 def register_routes(app: FastAPI, deployment: DeploymentConfig) -> None:

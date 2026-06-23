@@ -9,56 +9,66 @@ alwaysApply: true
 
 ## P0 — Foundation
 
-| # | Item | St |
-|---|------|-----|
-| 1 | ADRs (001–004) | [x] |
-| 2 | `product` branch | [x] |
-| 3 | `deploy/config.yaml` + loader (`locale`, modules) | [x] |
-| 4 | `core/capabilities.py` | [x] |
-| 5 | PostgreSQL: SQLAlchemy + Alembic + compose `postgres` | [x] |
-| 6 | `schemas/product/`, initial migration (`users`, `stocks`) | [x] |
+| #   | Item                                                      | St  |
+| --- | --------------------------------------------------------- | --- |
+| 1   | ADRs (001–004)                                            | [x] |
+| 2   | `product` branch                                          | [x] |
+| 3   | `deploy/config.yaml` + loader (`locale`, modules)         | [x] |
+| 4   | `core/capabilities.py`                                    | [x] |
+| 5   | PostgreSQL: SQLAlchemy + Alembic + compose `postgres`     | [x] |
+| 6   | `schemas/product/`, initial migration (`users`, `stocks`) | [x] |
 
 ## P1 — Personal edition
 
-| # | Item | St |
-|---|------|-----|
-| 7 | Personal preset as default (`deploy/config.yaml` = personal; `orders: false`) | [x] |
-| 8 | `main.py` conditional routers — register inventory/auth; **omit** orders when `modules.orders` false | [x] |
-| 9 | Owner auth on PG (`username` login; `users` table; role `owner` only) | [ ] |
-| 10 | Inventory API on PG — stock CRUD + list/filter/search (replace v1 `tea` / `mongo_legacy` paths) | [ ] |
-| 11 | Dashboard widget registry — render `dashboard_layout` only; hide order widgets when orders off | [ ] |
-| 12 | Frontend routes gated by modules — no Orders nav/pages on personal | [ ] |
-| 13 | i18n (`react-i18next`) — load **one** locale (`zh-TW` \| `en`) from deploy config at startup | [ ] |
-| 14 | Personal edition tests — capabilities, orders off, widgets, stock API (pytest + Vitest) | [ ] |
+| #   | Item                                                                                                 | St  |
+| --- | ---------------------------------------------------------------------------------------------------- | --- |
+| 7   | Personal preset as default (`deploy/config.yaml` = personal; `orders: false`)                        | [x] |
+| 8   | `main.py` conditional routers — register inventory/auth; **omit** orders when `modules.orders` false | [x] |
+| 9   | Owner auth on PG below                                                                               | [x] |
+| 10  | Inventory API on PG — stock CRUD + list/filter/search (replace v1 `tea` / `mongo_legacy` paths)      | [ ] |
+| 11  | Dashboard widget registry — render `dashboard_layout` only; hide order widgets when orders off       | [ ] |
+| 12  | Frontend routes gated by modules — no Orders nav/pages on personal                                   | [ ] |
+| 13  | i18n (`react-i18next`) — load **one** locale (`zh-TW` \| `en`) from deploy config at startup         | [ ] |
+| 14  | Personal edition tests — capabilities, orders off, widgets, stock API (pytest + Vitest)              | [ ] |
+
+**Deferred from P1-9** (other roadmap items):
+
+| Concern                                                 | Roadmap    | Notes                                                    |
+| ------------------------------------------------------- | ---------- | -------------------------------------------------------- |
+| Frontend username login; hide Sign up after first owner | **#12–13** | Login/SignUp pages still v1 email flow until then        |
+| Structured error codes (`signup_disabled`, …)           | **#17**    | P1-9 uses HTTP status + `detail` string; formalize in P2 |
+| Owner password reset (email or token flow)              | **#26**    | See P4 below                                             |
+| Auth rate limiting; HTTPS cookie hardening in prod      | **#24**    | Compose prod profile + deploy docs                       |
 
 ## P2 — Structure
 
-| # | Item | St |
-|---|------|-----|
-| 15 | `repositories/postgres/` — `StockRepository` (PG only; no raw SQL in routes) | [ ] |
-| 16 | `GET /api/deployment` — edition, modules, capabilities, `locale`, `dashboard_layout` | [ ] |
-| 17 | Structured API error codes (`module_disabled`, `capability_disabled`, …) | [ ] |
-| 18 | `modules/{inventory,orders,analytics}/` package layout; routes thin | [ ] |
+| #   | Item                                                                                 | St  |
+| --- | ------------------------------------------------------------------------------------ | --- |
+| 15  | `repositories/postgres/` — `StockRepository` (PG only; no raw SQL in routes)         | [ ] |
+| 16  | `GET /api/deployment` — edition, modules, capabilities, `locale`, `dashboard_layout` | [ ] |
+| 17  | Structured API error codes (`module_disabled`, `capability_disabled`, …)             | [ ] |
+| 18  | `modules/{inventory,orders,analytics}/` package layout; routes thin                  | [ ] |
 
 ## P3 — Professional edition (owner-only)
 
-| # | Item | St |
-|---|------|-----|
-| 19 | Professional preset wiring (`orders`, `profit_analytics` on) | [ ] |
-| 20 | Owner-managed orders on PG (`orders` / `order_items` / `stock_movements` migration) | [ ] |
-| 21 | Cost models + `view_profit` / pricing analytics | [ ] |
-| 22 | Order states (pending → approve/reject); stock decrement on approve | [ ] |
+| #   | Item                                                                                | St  |
+| --- | ----------------------------------------------------------------------------------- | --- |
+| 19  | Professional preset wiring (`orders`, `profit_analytics` on)                        | [ ] |
+| 20  | Owner-managed orders on PG (`orders` / `order_items` / `stock_movements` migration) | [ ] |
+| 21  | Cost models + `view_profit` / pricing analytics                                     | [ ] |
+| 22  | Order states (pending → approve/reject); stock decrement on approve                 | [ ] |
 
 ## P4 — Polish & delivery
 
-| # | Item | St |
-|---|------|-----|
-| 23 | Buyer deploy docs (config + `.env` + compose) | [ ] |
-| 24 | Compose prod profile | [ ] |
-| 25 | Optional v1 Mongo → v2 PG data import | [ ] |
+| #   | Item                                                                                 | St  |
+| --- | ------------------------------------------------------------------------------------ | --- |
+| 23  | Buyer deploy docs (config + `.env` + compose)                                        | [ ] |
+| 24  | Compose prod profile                                                                 | [ ] |
+| 25  | Optional v1 Mongo → v2 PG data import                                                | [ ] |
+| 26  | Owner password reset + CLI `create_owner` recovery (signup closed after first owner) | [ ] |
 
 ## Future — customer-facing
 
 | — | `customer` role; catalog browse; place orders / trades | not started |
 
-**Next:** P1 #9–10 (PG auth, stock API). **This version:** `owner` only on all editions.
+**Next:** P1 #10 (inventory API on PG). **This version:** `owner` only on all editions.

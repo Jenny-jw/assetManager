@@ -1,13 +1,7 @@
-# 處理密碼雜湊與 Token 生成
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 import jwt
-from fastapi import APIRouter, Depends
 from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
-from schemas.user import UserResponse
-from dependencies.auth import get_current_user
-
-router = APIRouter(prefix="/security", tags=["Security"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -23,7 +17,3 @@ def create_token(data: dict):
     payload.update({"exp": expiredAt})
 
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-
-@router.get("/me", response_model=UserResponse)
-def me(current_user = Depends(get_current_user)):
-    return current_user
