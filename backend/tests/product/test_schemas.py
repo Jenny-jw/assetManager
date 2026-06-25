@@ -5,8 +5,10 @@ import pytest
 from pydantic import ValidationError
 
 from core.deployment import Edition
+from core.deployment import load_personal_preset
 from models.product.stock import Stock
 from models.product.user import User
+from schemas.product.deployment import DeploymentResponse
 from schemas.product.stock import (
     StockCreate,
     StockResponse,
@@ -71,3 +73,10 @@ def test_user_response_from_orm():
     response = UserResponse.model_validate(row)
     assert response.username == "owner1"
     assert response.role == "owner"
+
+def test_deployment_response_from_config():
+    deployment = load_personal_preset()
+    response = DeploymentResponse.model_validate(deployment)
+    assert response.edition is Edition.personal
+    assert response.modules.orders is False
+    assert "summary" in response.dashboard_layout

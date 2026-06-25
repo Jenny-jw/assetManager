@@ -1,3 +1,4 @@
+from schemas.product.deployment import DeploymentModulesResponse, DeploymentResponse
 from schemas.product.stock import (
     StockCreate,
     StockListResponse,
@@ -9,6 +10,8 @@ from schemas.product.stock import (
 from schemas.product.user import UserCreate, UserLogin, UserResponse
 
 __all__ = [
+    "DeploymentModulesResponse",
+    "DeploymentResponse",
     "StockCreate",
     "StockListResponse",
     "StockResponse",
