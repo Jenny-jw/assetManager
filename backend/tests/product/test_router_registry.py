@@ -20,6 +20,7 @@ def test_personal_deployment_always_registers_auth_and_health():
     paths = route_paths(app)
     assert "/health" in paths
     assert "/api/auth/signup" in paths
+    assert "/api/deployment" in paths
     assert "/api/security/me" in paths
 
 def test_professional_deployment_registers_orders():
