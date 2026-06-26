@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
-from dependencies.product.auth import get_current_user
+from dependencies.auth import get_current_user
 from schemas.user import UserResponse
 
 router = APIRouter(prefix="/security", tags=["Security"])
