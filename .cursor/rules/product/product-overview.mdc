@@ -18,4 +18,4 @@ alwaysApply: true
 
 **Locale:** `zh-TW` \| `en` in deploy config; fixed at onboarding.
 
-**Code:** `schemas/product/`, `models/product/`; domain **stock**.
+**Code:** `schemas/`, `models/`; domain **stock**.
