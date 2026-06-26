@@ -11,7 +11,7 @@ from sqlalchemy.pool import StaticPool
 
 from core.deployment import Edition
 from models.stock import Stock
-from services.product.stock_queries import (
+from services.stock_queries import (
     active_stocks_select,
     coerce_weight_grams_for_edition,
     get_active_stock,

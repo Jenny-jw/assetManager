@@ -16,12 +16,12 @@ from schemas.stock import (
     StockSummaryResponse,
     StockUpdate,
 )
-from services.product.stock_queries import (
+from services.stock_queries import (
     coerce_weight_grams_for_edition,
     get_active_stock,
     list_active_stocks,
 )
-from services.product.stock_summary_service import build_stock_summary
+from services.stock_summary_service import build_stock_summary
 
 router = APIRouter(
     prefix="/stock",

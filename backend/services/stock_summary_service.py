@@ -5,7 +5,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from core.tea_pricing import line_total_value
-from services.product.stock_queries import active_stocks_select
+from services.stock_queries import active_stocks_select
 
 def build_stock_summary(db: Session) -> dict[str, Any]:
     total_assets = 0
