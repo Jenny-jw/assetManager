@@ -12,7 +12,7 @@ from core.config import (
 from core.security import create_token, hash_password, verify_password
 from dependencies.db import DbSession
 from models.user import User
-from schemas.product.user import UserCreate, UserLogin, UserResponse
+from schemas.user import UserCreate, UserLogin, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 

@@ -7,12 +7,12 @@ from pydantic import ValidationError
 from core.deployment import Edition
 from models.stock import Stock
 from models.user import User
-from schemas.product.stock import (
+from schemas.stock import (
     StockCreate,
     StockResponse,
     validate_weight_grams_for_edition,
 )
-from schemas.product.user import UserCreate, UserLogin, UserResponse
+from schemas.user import UserCreate, UserLogin, UserResponse
 
 def test_user_create_allows_null_email():
     user = UserCreate(

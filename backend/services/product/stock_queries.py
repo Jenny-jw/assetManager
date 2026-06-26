@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from core.deployment import Edition
 from models.stock import Stock
-from schemas.product.stock import validate_weight_grams_for_edition
+from schemas.stock import validate_weight_grams_for_edition
 
 _SORT_COLUMNS = {
     "created_at": Stock.created_at,

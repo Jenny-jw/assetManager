@@ -98,11 +98,30 @@ Keep: PG fixtures, `owner` client, `skip_startup_postgres_ping`.
 | `schemas/product/*.py` | `schemas/*.py` |
 | `routes/product/auth.py` | `routes/auth.py` |
 | `routes/product/security.py` | `routes/security.py` |
+| `routes/product/stock.py` | `routes/stock.py` |
+| `routes/product/deployment.py` | `routes/deployment.py` |
 | `dependencies/product/auth.py` | `dependencies/auth.py` |
 | `services/product/stock_queries.py` | `services/stock_queries.py` |
+| `services/product/stock_summary_service.py` | `services/stock_summary_service.py` |
 | `tests/product/*.py` | `tests/test_*.py` |
 
 Update imports project-wide; `alembic/env.py` model imports; delete empty `*/product/` dirs.
+
+### Phase 3 — Incremental (small PRs on `feature/product-cleanup`)
+
+| Sub | Item | St |
+|-----|------|-----|
+| 3a | `models/product/*` → `models/` + `alembic/env.py` | [x] |
+| 3b | `schemas/product/*` → `schemas/` | [x] |
+| 3c | `services/product/*` → `services/` | [ ] |
+| 3d | `dependencies/product/auth.py` → `dependencies/auth.py` (PG; keep `mongo_auth.py`) | [ ] |
+| 3e | `routes/product/*` → `routes/` + `router_registry` imports | [ ] |
+| 3f | `tests/product/*` → `tests/test_*.py` + conftest merge | [ ] |
+| 3g | Delete empty `*/product/` dirs; update Cursor rules (10x-d) | [ ] |
+
+**Optional in 3c:** `core/tea_pricing.py` → `core/stock_pricing.py`.
+
+**Phase 3 does not require Phase 2** — Mongo orders (`mongo_legacy`, `routes/orders.py`) stay until P3 PG orders + Phase 2 delete.
 
 ### Keep and adjust
 

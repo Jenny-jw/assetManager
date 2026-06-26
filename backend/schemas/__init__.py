@@ -1,4 +1,4 @@
-from schemas.product.stock import (
+from schemas.stock import (
     StockCreate,
     StockListResponse,
     StockResponse,
@@ -6,7 +6,7 @@ from schemas.product.stock import (
     StockUpdate,
     validate_weight_grams_for_edition,
 )
-from schemas.product.user import UserCreate, UserLogin, UserResponse
+from schemas.user import UserCreate, UserLogin, UserResponse
 
 __all__ = [
     "StockCreate",

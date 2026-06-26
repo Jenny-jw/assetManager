@@ -9,7 +9,7 @@ from core.deployment import DeploymentConfig, get_deployment
 from dependencies.db import DbSession
 from dependencies.product.auth import require_owner
 from models.stock import Stock
-from schemas.product.stock import (
+from schemas.stock import (
     StockCreate,
     StockListResponse,
     StockResponse,
