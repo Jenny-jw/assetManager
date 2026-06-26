@@ -11,7 +11,7 @@ from sqlalchemy.pool import StaticPool
 
 from core.db import get_db
 from models.user import User
-from routes.product.auth import router as product_auth_router
+from routes.auth import router as product_auth_router
 
 _SIGNUP_PAYLOAD = {
     "username": "owner1",
@@ -28,8 +28,8 @@ def stub_password_hashing(monkeypatch):
     def fake_verify(password: str, hashed: str) -> bool:
         return hashed == f"hashed:{password}"
 
-    monkeypatch.setattr("routes.product.auth.hash_password", fake_hash)
-    monkeypatch.setattr("routes.product.auth.verify_password", fake_verify)
+    monkeypatch.setattr("routes.auth.hash_password", fake_hash)
+    monkeypatch.setattr("routes.auth.verify_password", fake_verify)
 
 @pytest.fixture
 def auth_session() -> Generator[Session, None, None]:

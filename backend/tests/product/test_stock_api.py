@@ -17,7 +17,7 @@ from core.deployment import DeploymentConfig, get_deployment, load_personal_pres
 from dependencies.auth import get_current_user
 from models.stock import Stock
 from models.user import User
-from routes.product.stock import router as product_stock_router
+from routes.stock import router as product_stock_router
 
 _OWNER: dict[str, Any] = {
     "id": "00000000-0000-0000-0000-000000000001",
