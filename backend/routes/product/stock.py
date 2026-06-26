@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from core.deployment import DeploymentConfig, get_deployment
 from dependencies.db import DbSession
 from dependencies.product.auth import require_owner
-from models.product.stock import Stock
+from models.stock import Stock
 from schemas.product.stock import (
     StockCreate,
     StockListResponse,

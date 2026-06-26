@@ -1,7 +1,7 @@
-import models.product  # noqa: F401
+import models  # noqa: F401
 from core.db import Base
-from models.product.stock import Stock
-from models.product.user import User
+from models.stock import Stock
+from models.user import User
 
 def test_product_tables_registered():
     table_names = set(Base.metadata.tables)

@@ -15,8 +15,8 @@ from sqlalchemy.pool import StaticPool
 from core.db import get_db
 from core.deployment import DeploymentConfig, get_deployment, load_personal_preset
 from dependencies.product.auth import get_current_user
-from models.product.stock import Stock
-from models.product.user import User
+from models.stock import Stock
+from models.user import User
 from routes.product.stock import router as product_stock_router
 
 _OWNER: dict[str, Any] = {

@@ -5,8 +5,8 @@ import pytest
 from pydantic import ValidationError
 
 from core.deployment import Edition
-from models.product.stock import Stock
-from models.product.user import User
+from models.stock import Stock
+from models.user import User
 from schemas.product.stock import (
     StockCreate,
     StockResponse,

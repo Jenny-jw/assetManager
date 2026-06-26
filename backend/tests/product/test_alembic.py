@@ -19,5 +19,5 @@ def test_alembic_env_wires_base_metadata(monkeypatch):
 
     env_source = (_BACKEND_ROOT / "alembic" / "env.py").read_text(encoding="utf-8")
     assert "target_metadata = Base.metadata" in env_source
-    assert "import models.product" in env_source
+    assert "import models" in env_source
     assert Base.metadata is not None

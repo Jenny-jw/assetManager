@@ -6,7 +6,7 @@ from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
 
 from core.deployment import Edition
-from models.product.stock import Stock
+from models.stock import Stock
 from schemas.product.stock import validate_weight_grams_for_edition
 
 _SORT_COLUMNS = {

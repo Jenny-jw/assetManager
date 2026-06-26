@@ -13,7 +13,7 @@ from sqlalchemy.pool import StaticPool
 from core.db import get_db
 from core.security import create_token
 from dependencies.product.auth import get_current_user
-from models.product.user import User
+from models.user import User
 from routes.product.auth import router as product_auth_router
 
 _SIGNUP_PAYLOAD = {

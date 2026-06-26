@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.deployment import Edition
-from models.product.stock import Stock
+from models.stock import Stock
 from services.product.stock_queries import (
     active_stocks_select,
     coerce_weight_grams_for_edition,

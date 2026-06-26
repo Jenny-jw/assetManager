@@ -8,7 +8,7 @@ from fastapi import Depends, HTTPException, Request, status
 
 from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
 from dependencies.db import DbSession
-from models.product.user import User
+from models.user import User
 
 OWNER_ROLE = "owner"
 

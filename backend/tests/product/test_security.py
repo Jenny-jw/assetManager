@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.db import get_db
-from models.product.user import User
+from models.user import User
 from routes.product.auth import router as product_auth_router
 from routes.product.security import router as product_security_router
 
