@@ -10,7 +10,7 @@ from core.capabilities import (
 )
 from core.deployment import load_deployment_config, reset_deployment_cache
 
-_REPO_ROOT = Path(__file__).resolve().parents[3]
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 
 @pytest.fixture(autouse=True)
 def clear_deployment_cache():

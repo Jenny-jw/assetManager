@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from core.tea_pricing import line_total_value
 
-pytest_plugins = ["tests.product.test_stock_api"]
+pytest_plugins = ["tests.test_stock_api"]
 
-from tests.product.test_stock_api import _STOCK_PAYLOAD
+from tests.test_stock_api import _STOCK_PAYLOAD
 
 def test_stock_summary_empty(stock_client):
     response = stock_client.get("/api/stock/summary")

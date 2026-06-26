@@ -1,6 +1,6 @@
 from pathlib import Path
 
-_BACKEND_ROOT = Path(__file__).resolve().parents[2]
+_BACKEND_ROOT = Path(__file__).resolve().parents[1]
 
 def test_alembic_scaffold_present():
     assert (_BACKEND_ROOT / "alembic.ini").is_file()

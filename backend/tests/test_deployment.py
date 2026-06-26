@@ -14,7 +14,7 @@ from core.deployment import (
     resolve_config_path,
 )
 
-_REPO_ROOT = Path(__file__).resolve().parents[3]
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 
 @pytest.fixture(autouse=True)
 def clear_deployment_cache():

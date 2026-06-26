@@ -6,7 +6,7 @@ from core.deployment import load_deployment_config, load_personal_preset
 from core.router_registry import route_paths
 from main import create_app
 
-_REPO_ROOT = Path(__file__).resolve().parents[3]
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 
 def test_personal_deployment_registers_inventory_not_orders():
     app = create_app(load_personal_preset())

@@ -116,7 +116,7 @@ Update imports project-wide; `alembic/env.py` model imports; delete empty `*/pro
 | 3c | `services/product/*` → `services/` | [x] |
 | 3d | `dependencies/product/auth.py` → `dependencies/auth.py` (PG; keep `mongo_auth.py`) | [x] |
 | 3e | `routes/product/*` → `routes/` + `router_registry` imports | [x] |
-| 3f | `tests/product/*` → `tests/test_*.py` + conftest merge | [ ] |
+| 3f | `tests/product/*` → `tests/test_*.py` + conftest merge | [x] |
 | 3g | Delete empty `*/product/` dirs; update Cursor rules (10x-d) | [ ] |
 
 **Optional in 3c:** `core/tea_pricing.py` → `core/stock_pricing.py`.
