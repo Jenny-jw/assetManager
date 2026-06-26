@@ -26,10 +26,26 @@ alwaysApply: true
 | 8   | `main.py` conditional routers — register inventory/auth; **omit** orders when `modules.orders` false | [x] |
 | 9   | Owner auth on PG below                                                                               | [x] |
 | 10  | Inventory API on PG — see **P1-10 breakdown**; cleanup after → `product-branch-cleanup.mdc`          | [x] |
-| 11  | Dashboard widget registry — render `dashboard_layout` only; hide order widgets when orders off       | [ ] |
+| 11  | Dashboard widget registry — see **P1-11 breakdown** below                                            | [~] |
 | 12  | Frontend routes gated by modules — no Orders nav/pages on personal                                   | [ ] |
 | 13  | i18n (`react-i18next`) — load **one** locale (`zh-TW` \| `en`) from deploy config at startup         | [ ] |
 | 14  | Personal edition tests — capabilities, orders off, widgets, stock API (pytest + Vitest)              | [ ] |
+
+### P1-11 — Dashboard widget registry (incremental)
+
+| Sub | Item | St |
+|-----|------|-----|
+| 11a | `core/dashboard_widgets.py` — widget IDs, module mapping, `effective_dashboard_layout()` | [x] |
+| 11b | `schemas/product/deployment.py` — API response DTO (`modules`, `dashboard_layout`, `locale`, `edition`) | [x] |
+| 11c | `GET /api/deployment` + `router_registry` (subset of P2 #16; no capabilities yet) | [x] |
+| 11d | Frontend `types/Deployment.ts` + `deploymentServices.ts` | [ ] |
+| 11e | `DeploymentContext` — load config once at app startup | [ ] |
+| 11f | Frontend widget registry (`widget id` → component) | [ ] |
+| 11g | `Dashboard.tsx` — render `dashboard_layout` only; drop `isAdmin` gating for `pending_orders` | [ ] |
+| 11h | Dashboard actions for `owner` (Add Asset / Manage Inventory); defer nav gating to **#12** | [ ] |
+| 11i | Vitest — personal layout hides `PendingOrdersInbox` | [ ] |
+
+**Deferred:** full `capabilities` in deployment API → **P2 #16**; i18n labels → **#13**; stock API on frontend (`/api/stock`) → align with P1-12 or follow-up.
 
 **Deferred from P1-9** (other roadmap items):
 
