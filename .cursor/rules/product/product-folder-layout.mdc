@@ -1,47 +1,46 @@
 ---
-description: Separate master (v1) and product (v2) code under product/ subfolders
+description: Product branch backend layout (flattened; Phase 3 complete)
 alwaysApply: true
 ---
 
-# Master vs Product Folder Layout
+# Product Branch Folder Layout
 
 **`main`** = MongoDB portfolio demo (v1). **`product`** = PostgreSQL sellable line (v2).
 
-Do not mix v1 and v2 artifacts in the same folder. Mirror the `product/` subfolder pattern everywhere it applies.
+On **`product`**, backend uses a **single top-level layout** — no `models/product/`, `routes/product/`, or `tests/product/` subfolders (Phase 3 flatten done).
 
-## Backend
+## Backend (product branch)
 
-| Area | v1 (master) | v2 (product branch) |
-|------|-------------|------------------------|
-| Models | `backend/models/` (e.g. `tea.py`) | `backend/models/product/` |
-| Schemas | `backend/schemas/` | `backend/schemas/product/` |
-| Tests | `backend/tests/` | `backend/tests/product/` |
-| Repositories (future) | — | `backend/repositories/postgres/` |
-
-## Tests
-
-- **v1 tests** — Mongo, `admin`/`user`/`guest`, `tea` routes → `backend/tests/` (`conftest.py`, `test_tea_*.py`, `test_orders_api.py`, …)
-- **v2 tests** — deployment, capabilities, PG models/schemas, `owner` only → `backend/tests/product/` (`conftest.py`, `test_deployment.py`, …)
+| Area | Path |
+|------|------|
+| Models | `backend/models/` (`user.py`, `stock.py`; `order.py` until Phase 2) |
+| Schemas | `backend/schemas/` (`user.py`, `stock.py`, `order.py` until Phase 2) |
+| Routes | `backend/routes/` (`auth`, `security`, `stock`, `health`; `orders` until Phase 2) |
+| Dependencies | `backend/dependencies/` (`auth.py` PG owner; `mongo_auth.py` until Phase 2) |
+| Services | `backend/services/` (`stock_queries.py`, `stock_summary_service.py`, …) |
+| Tests | `backend/tests/test_*.py`; legacy Mongo orders in `backend/tests/mongo/` |
 
 ```text
 backend/tests/
-  conftest.py          # v1 FakeDB, admin/user/guest fixtures
-  test_orders_api.py   # v1 Mongo order flow
-  product/
-    conftest.py        # owner fixtures, personal/professional apps
-    test_capabilities.py
-    test_models.py
+  conftest.py           # PG fixtures, owner clients, skip_startup_postgres_ping
+  test_stock_api.py     # v2 PG stock
+  test_auth.py          # v2 owner auth
+  mongo/                # v1 Mongo orders (Phase 2 delete)
+    conftest.py
+    test_orders_api.py
 ```
 
 ## Roles in tests
 
-| Branch | Roles in tests |
-|--------|----------------|
-| master / v1 tests | `admin`, `user`, `guest` |
-| product / v2 tests | `owner` only — never `admin`, `user`, or `guest` |
+| Area | Roles |
+|------|-------|
+| `tests/test_*.py` (PG) | `owner` only |
+| `tests/mongo/` (legacy) | `admin`, `user`, `guest` until Phase 2 |
 
 ## Avoid
 
-- Product tests in `backend/tests/test_product_*.py` (use `tests/product/` instead)
-- v1 role names in `tests/product/`
-- Importing v1 `tea` schemas from product routes or vice versa without an explicit migration path
+- Reintroducing `*/product/` subfolders on product branch
+- v1 role names in PG tests (`tests/test_*.py`)
+- Importing v1 `tea` artifacts on product branch
+
+See `product-branch-cleanup.mdc` for Phase 2 (Mongo orders delete) and remaining infra items.

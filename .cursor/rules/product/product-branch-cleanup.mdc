@@ -7,11 +7,11 @@ alwaysApply: false
 
 **Branches are separate forever:** `product` is **not** merged into `main`/`master`. Portfolio demo stays on `main`; sellable v2 stays on `product`. Shared fixes use **cherry-pick**, not whole-branch merges.
 
-**Current layout (transition):** v1 Mongo + `models/product/`, `routes/product/`, `tests/product/` coexist until cleanup.
+**Current layout (product branch, Phase 3 done):** flattened `models/`, `schemas/`, `routes/`, `dependencies/`, `services/`, `tests/test_*.py`. Legacy Mongo orders remain in `routes/orders.py`, `tests/mongo/` until Phase 2.
 
-**Target layout (product branch):** single structure — `models/stock.py`, `routes/stock.py`, `tests/test_stock_api.py` — no `product/` subfolders, no v1 tea/auth/mongo.
+**Target after Phase 2:** no v1 tea/auth/mongo; optional `core/stock_pricing.py` rename.
 
-See `product-folder-layout.mdc` for transition rules; **this file supersedes it after cleanup**.
+See `product-folder-layout.mdc` for paths.
 
 ---
 
@@ -84,7 +84,7 @@ Keep: PG fixtures, `owner` client, `skip_startup_postgres_ping`.
 | `backend/schemas/order.py` |
 | `backend/tests/test_orders_api.py` |
 | `backend/tests/test_order_stock_transactions.py` |
-| `backend/tests/product/test_orders_routes.py` (rewrite for PG or replace) |
+| `backend/tests/test_orders_routes.py` (rewrite for PG or replace) |
 | `pymongo` in `backend/requirements.txt` |
 
 ---
@@ -98,18 +98,37 @@ Keep: PG fixtures, `owner` client, `skip_startup_postgres_ping`.
 | `schemas/product/*.py` | `schemas/*.py` |
 | `routes/product/auth.py` | `routes/auth.py` |
 | `routes/product/security.py` | `routes/security.py` |
+| `routes/product/stock.py` | `routes/stock.py` |
+| `routes/product/deployment.py` | `routes/deployment.py` |
 | `dependencies/product/auth.py` | `dependencies/auth.py` |
 | `services/product/stock_queries.py` | `services/stock_queries.py` |
+| `services/product/stock_summary_service.py` | `services/stock_summary_service.py` |
 | `tests/product/*.py` | `tests/test_*.py` |
 
 Update imports project-wide; `alembic/env.py` model imports; delete empty `*/product/` dirs.
+
+### Phase 3 — Incremental (small PRs on `feature/product-cleanup`)
+
+| Sub | Item | St |
+|-----|------|-----|
+| 3a | `models/product/*` → `models/` + `alembic/env.py` | [x] |
+| 3b | `schemas/product/*` → `schemas/` | [x] |
+| 3c | `services/product/*` → `services/` | [x] |
+| 3d | `dependencies/product/auth.py` → `dependencies/auth.py` (PG; keep `mongo_auth.py`) | [x] |
+| 3e | `routes/product/*` → `routes/` + `router_registry` imports | [x] |
+| 3f | `tests/product/*` → `tests/test_*.py` + conftest merge | [x] |
+| 3g | Delete empty `*/product/` dirs; update Cursor rules (10x-d) | [x] |
+
+**Optional in 3c:** `core/tea_pricing.py` → `core/stock_pricing.py`.
+
+**Phase 3 does not require Phase 2** — Mongo orders (`mongo_legacy`, `routes/orders.py`) stay until P3 PG orders + Phase 2 delete.
 
 ### Keep and adjust
 
 | Area | Action |
 |------|--------|
 | `core/deployment.py`, `core/db.py` | unchanged |
-| `core/capabilities.py` | `get_current_user` → PG `dependencies/auth` |
+| `core/capabilities.py` | `get_current_user` → PG `dependencies/auth` (done) |
 | `core/router_registry.py` | stock + auth + security only; orders when module on |
 | `core/tea_pricing.py` | rename → `stock_pricing.py` (`weight_grams`, `price_per_jin`) |
 | `routes/health.py`, `main.py` | unchanged |
@@ -141,13 +160,14 @@ Backend cleanup PR may ship before frontend; document mismatch in README until P
 
 ## Cursor rules after cleanup
 
-| File | Action |
-|------|--------|
-| `product-folder-layout.mdc` | replace or delete — single layout on `product` |
-| `add-tests-on-change.mdc` | remove `tests/product/` table |
-| `product-data-schema.mdc` | `schemas/` not `schemas/product/` |
-| `product-modularization.mdc` | path examples |
-| `product-roadmap.mdc` | mark 10x items done |
+| File | Action | St |
+|------|--------|-----|
+| `product-folder-layout.mdc` | replace — single layout on `product` | [x] |
+| `add-tests-on-change.mdc` | remove `tests/product/` table | [x] |
+| `product-data-schema.mdc` | `schemas/` not `schemas/product/` | [x] |
+| `product-modularization.mdc` | path examples | [x] |
+| `product-roadmap.mdc` | path notes (P0-6) | [x] |
+| `README.md` | product-only PG section | [ ] |
 
 ---
 
@@ -170,14 +190,14 @@ Backend cleanup PR may ship before frontend; document mismatch in README until P
 
 ## Roadmap cross-ref (10x)
 
-| # | Item |
-|---|------|
-| 10x-a | Flatten `product/` → top-level folders |
-| 10x-b | Delete v1 tea/auth/mongo tests + `FakeDB` |
-| 10x-c | Consolidate `tests/product/` → `tests/` |
-| 10x-d | Update Cursor rules + README |
-| 10x-e | Product CI + postgres compose |
-| 10x-f | Delete mongo orders (after P3) |
+| # | Item | St |
+|---|------|-----|
+| 10x-a | Flatten `product/` → top-level folders | [x] |
+| 10x-b | Delete v1 tea/auth/mongo tests + `FakeDB` (Phase 1; `tests/mongo/` until Phase 2) | [~] |
+| 10x-c | Consolidate `tests/product/` → `tests/` | [x] |
+| 10x-d | Update Cursor rules + README | [~] |
+| 10x-e | Product CI + postgres compose | [ ] |
+| 10x-f | Delete mongo orders (after P3) | [ ] |
 
 ---
 

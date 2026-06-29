@@ -7,7 +7,7 @@ import core.env  # noqa: F401 — repo-root .env
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-import models.product  # noqa: F401 — registers ORM tables when added (P0-6)
+import models  # noqa: F401 — registers ORM tables when added (P0-6)
 from core.db import Base
 
 config = context.config

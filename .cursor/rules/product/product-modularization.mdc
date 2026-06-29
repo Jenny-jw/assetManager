@@ -16,7 +16,7 @@ core/deployment.py, capabilities.py, db.py (SQLAlchemy)
 alembic/
 modules/{inventory,orders,analytics}/
 repositories/postgres/   # PG only — no mongo/
-schemas/product/, models/product/
+schemas/, models/
 ```
 
 `main.py`: conditional routers by module. `GET /api/deployment` → modules, capabilities, **locale**.

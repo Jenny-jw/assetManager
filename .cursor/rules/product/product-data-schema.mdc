@@ -8,7 +8,7 @@ alwaysApply: false
 
 **PG only:** `POSTGRE_URL` — never `MONGO_URI`; no fallback (ADR 004). Alembic owns schema.
 
-**Domain:** `stock` in `schemas/product/`, `models/product/`; tables `stocks`, `users`, `orders`, …
+**Domain:** `stock` in `schemas/`, `models/`; tables `stocks`, `users`, `orders`, …
 
 **main** keeps v1 Mongo `tea` for demo (ADR 003).
 

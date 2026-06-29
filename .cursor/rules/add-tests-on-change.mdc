@@ -22,7 +22,7 @@ Whenever you change application code (not docs-only), check whether related test
 ## Project conventions
 
 - **Backend v1 (master):** `backend/tests/` (`test_*.py`, `conftest.py`), `pytest -v` from `backend/`
-- **Backend v2 (product):** `backend/tests/product/` — mirror `models/product/` and `schemas/product/`
+- **Backend v2 (product):** `backend/tests/test_*.py` — mirror `models/`, `schemas/`; legacy Mongo orders in `backend/tests/mongo/`
 - **Frontend:** `frontend/tests/`, `npm run test` from `frontend/`
   - Setup: `tests/setup.ts`
   - Import app code: `@/` → `src/`
@@ -32,10 +32,11 @@ Whenever you change application code (not docs-only), check whether related test
 
 | Code under test | Test file |
 |-----------------|-----------|
-| v1 routes, Mongo, `admin`/`user`/`guest` | `backend/tests/test_*.py` |
-| `models/product/`, `schemas/product/`, deployment, capabilities, `owner` auth | `backend/tests/product/test_*.py` |
+| v1 routes, Mongo, `admin`/`user`/`guest` (master) | `backend/tests/test_*.py` |
+| PG models, schemas, deployment, capabilities, `owner` auth, stock API | `backend/tests/test_*.py` |
+| Legacy Mongo orders (product branch until Phase 2) | `backend/tests/mongo/test_*.py` |
 
-See `product/product-folder-layout.mdc` for the full master vs product layout.
+See `product/product-folder-layout.mdc` for product branch layout.
 
 ## Where to put new frontend tests
 
