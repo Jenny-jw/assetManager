@@ -1,9 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import Summary from "../components/Summary";
-import OriginDistribution from "../components/OriginDistribution";
-import GenreDistribution from "../components/GenreDistribution";
-import PendingOrdersInbox from "../components/PendingOrdersInbox";
-import RecentAssets from "../components/RecentAssets";
 import {
   DASHBOARD_RECENT_LIMIT,
   getTeaSummary,
@@ -13,6 +8,15 @@ import type { Asset } from "../types/Asset";
 import type { TeaSummary } from "../types/TeaList";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
+import { useDeployment } from "../context/useDeployment";
+import {
+  DashboardWidget,
+  type DashboardWidgetId,
+} from "../types/Deployment";
+import {
+  isDashboardWidgetId,
+  renderDashboardWidget,
+} from "../lib/dashboardWidgetRegistry";
 
 const EMPTY_SUMMARY: TeaSummary = {
   total_assets: 0,
@@ -25,7 +29,7 @@ const EMPTY_SUMMARY: TeaSummary = {
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const { deployment } = useDeployment();
   const [summary, setSummary] = useState<TeaSummary>(EMPTY_SUMMARY);
   const [recentAssets, setRecentAssets] = useState<Asset[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
@@ -69,13 +73,39 @@ const Dashboard = () => {
     refreshDashboard();
     setOrdersRefresh((token) => token + 1);
   }, [refreshDashboard]);
+  const enabledWidgetIds: DashboardWidgetId[] = (deployment?.dashboard_layout ?? [])
+    .filter(isDashboardWidgetId);
+  const includesPendingOrders = enabledWidgetIds.includes(
+    DashboardWidget.PENDING_ORDERS,
+  );
+  const showTotalValue = deployment?.modules.pricing_visibility ?? false;
+  const dashboardContext = {
+    summary,
+    recentAssets,
+    showTotalValue,
+    ordersRefresh,
+    onPendingCountChange: setPendingCount,
+    onInventoryChange: handleInventoryChange,
+  };
+  const summaryWidget = enabledWidgetIds.filter(
+    (widgetId) => widgetId === DashboardWidget.SUMMARY,
+  );
+  const middleWidgets = enabledWidgetIds.filter(
+    (widgetId) =>
+      widgetId === DashboardWidget.ORIGIN ||
+      widgetId === DashboardWidget.GENRE ||
+      widgetId === DashboardWidget.PENDING_ORDERS,
+  );
+  const footerWidgets = enabledWidgetIds.filter(
+    (widgetId) => widgetId === DashboardWidget.RECENT_ASSETS,
+  );
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between gap-4 px-2">
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold">Tea Keeper Dashboard</h1>
-          {isAdmin && pendingCount > 0 && (
+          {includesPendingOrders && pendingCount > 0 && (
             <span className="inline-flex items-center justify-center min-w-6 h-6 px-2 text-xs font-semibold rounded-full bg-[#894f45] text-white">
               {pendingCount}
             </span>
@@ -90,28 +120,28 @@ const Dashboard = () => {
           Log out
         </button>
       </div>
-      <Summary summary={summary} showTotalValue={isAdmin} />
-      <div
-        className={
-          isAdmin
-            ? "grid grid-cols-1 lg:grid-cols-3 gap-6"
-            : "grid grid-cols-1 lg:grid-cols-2 gap-6"
-        }
-      >
-        <OriginDistribution counts={summary.by_origin} />
-        <GenreDistribution counts={summary.by_genre} />
-        {isAdmin && (
-          <PendingOrdersInbox
-            refreshToken={ordersRefresh}
-            onPendingCountChange={setPendingCount}
-            onInventoryChange={handleInventoryChange}
-          />
-        )}
-      </div>
+      {summaryWidget.map((widgetId, index) => (
+        <div key={`${widgetId}-${index}`}>
+          {renderDashboardWidget(widgetId, dashboardContext)}
+        </div>
+      ))}
+      {middleWidgets.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {middleWidgets.map((widgetId, index) => (
+            <div key={`${widgetId}-${index}`}>
+              {renderDashboardWidget(widgetId, dashboardContext)}
+            </div>
+          ))}
+        </div>
+      )}
       <div className="grid md:grid-cols-6 gap-6">
-        <RecentAssets assets={recentAssets} className="md:col-span-4" />
+        {footerWidgets.map((widgetId, index) => (
+          <div key={`${widgetId}-${index}`}>
+            {renderDashboardWidget(widgetId, dashboardContext)}
+          </div>
+        ))}
         <div className="md:col-span-2 flex flex-col gap-4">
-          {isAdmin && (
+          {user?.role === "owner" && (
             <>
               <button
                 className="flex-1 rounded-xl bg-[#78a043] hover:border-lime-200 text-white"
@@ -126,22 +156,6 @@ const Dashboard = () => {
                 Manage Inventory
               </button>
             </>
-          )}
-          {user?.role === "user" && (
-            <button
-              className="flex-1 rounded-xl bg-bg-[#78a043] hover:border-lime-100 text-white"
-              onClick={() => navigate("/assets")}
-            >
-              Order
-            </button>
-          )}
-          {user?.role === "guest" && (
-            <button
-              className="flex-1 rounded-xl bg-[#b8cb75] hover:border-lime-100 text-white"
-              onClick={() => navigate("/assets")}
-            >
-              Asset List
-            </button>
           )}
         </div>
       </div>

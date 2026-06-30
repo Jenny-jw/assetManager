@@ -38,10 +38,10 @@ alwaysApply: true
 | 11a | `core/dashboard_widgets.py` — widget IDs, module mapping, `effective_dashboard_layout()` | [x] |
 | 11b | `schemas/product/deployment.py` — API response DTO (`modules`, `dashboard_layout`, `locale`, `edition`) | [x] |
 | 11c | `GET /api/deployment` + `router_registry` (subset of P2 #16; no capabilities yet) | [x] |
-| 11d | Frontend `types/Deployment.ts` + `deploymentServices.ts` | [ ] |
-| 11e | `DeploymentContext` — load config once at app startup | [ ] |
-| 11f | Frontend widget registry (`widget id` → component) | [ ] |
-| 11g | `Dashboard.tsx` — render `dashboard_layout` only; drop `isAdmin` gating for `pending_orders` | [ ] |
+| 11d | Frontend `types/Deployment.ts` + `deploymentServices.ts` | [x] |
+| 11e | `DeploymentContext` — load config once at app startup | [x] |
+| 11f | Frontend widget registry (`widget id` → component) | [x] |
+| 11g | `Dashboard.tsx` — render `dashboard_layout` only; drop `isAdmin` gating for `pending_orders` | [x] |
 | 11h | Dashboard actions for `owner` (Add Asset / Manage Inventory); defer nav gating to **#12** | [ ] |
 | 11i | Vitest — personal layout hides `PendingOrdersInbox` | [ ] |
 
