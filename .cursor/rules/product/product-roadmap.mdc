@@ -26,7 +26,7 @@ alwaysApply: true
 | 8   | `main.py` conditional routers — register inventory/auth; **omit** orders when `modules.orders` false | [x] |
 | 9   | Owner auth on PG below                                                                               | [x] |
 | 10  | Inventory API on PG — see **P1-10 breakdown**; cleanup after → `product-branch-cleanup.mdc`          | [x] |
-| 11  | Dashboard widget registry — see **P1-11 breakdown** below                                            | [~] |
+| 11  | Dashboard widget registry — see **P1-11 breakdown** below                                            | [x] |
 | 12  | Frontend routes gated by modules — no Orders nav/pages on personal                                   | [ ] |
 | 13  | i18n (`react-i18next`) — load **one** locale (`zh-TW` \| `en`) from deploy config at startup         | [ ] |
 | 14  | Personal edition tests — capabilities, orders off, widgets, stock API (pytest + Vitest)              | [ ] |
@@ -43,7 +43,7 @@ alwaysApply: true
 | 11f | Frontend widget registry (`widget id` → component) | [x] |
 | 11g | `Dashboard.tsx` — render `dashboard_layout` only; drop `isAdmin` gating for `pending_orders` | [x] |
 | 11h | Dashboard actions for `owner` (Add Asset / Manage Inventory); defer nav gating to **#12** | [x] |
-| 11i | Vitest — personal layout hides `PendingOrdersInbox` | [ ] |
+| 11i | Vitest — personal layout hides `PendingOrdersInbox` | [x] |
 
 **Deferred:** full `capabilities` in deployment API → **P2 #16**; i18n labels → **#13**; stock API on frontend (`/api/stock`) → align with P1-12 or follow-up.
 
@@ -87,4 +87,4 @@ alwaysApply: true
 
 | — | `customer` role; catalog browse; place orders / trades | not started |
 
-**Next:** P1 #11 (dashboard widget registry) or branch cleanup (`product-branch-cleanup.mdc`). **This version:** `owner` only on all editions.
+**Next:** P1 #12 (frontend routes gated by modules). **This version:** `owner` only on all editions.

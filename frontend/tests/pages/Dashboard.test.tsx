@@ -5,7 +5,12 @@ import Dashboard from "@/pages/Dashboard";
 import { AuthContext } from "@/context/authContextImpl";
 import { DeploymentContext } from "@/context/deploymentContextImpl";
 import type { AuthContextType } from "@/context/authContextImpl";
-import { DashboardWidget, type DashboardWidgetId } from "@/types/Deployment";
+import { personalDeployment } from "../fixtures/personalDeployment";
+import {
+  DashboardWidget,
+  type Deployment,
+} from "@/types/Deployment";
+import type { UserRole } from "@/types/User";
 
 const { getTeaSummaryMock, listTeasMock } = vi.hoisted(() => ({
   getTeaSummaryMock: vi.fn(),
@@ -35,33 +40,14 @@ const baseAuth: Omit<AuthContextType, "user"> = {
 };
 
 function renderDashboard(
-  layout: DashboardWidgetId[],
-  role: AuthContextType["user"] extends infer T
-    ? T extends { role: infer R }
-      ? R
-      : never
-    : never = "owner",
+  deployment: Deployment = personalDeployment,
+  role: UserRole = "owner",
 ) {
   return render(
     <DeploymentContext.Provider
       value={{
         loading: false,
-        deployment: {
-          edition: "personal",
-          locale: "zh-TW",
-          modules: {
-            inventory: true,
-            dashboard_summary: true,
-            dashboard_origin_chart: true,
-            dashboard_genre_chart: true,
-            dashboard_recent_assets: true,
-            orders: false,
-            order_notifications: false,
-            pricing_visibility: true,
-            profit_analytics: false,
-          },
-          dashboard_layout: layout,
-        },
+        deployment,
       }}
     >
       <AuthContext.Provider
@@ -106,29 +92,37 @@ describe("Dashboard", () => {
     });
   });
 
-  it("does not render pending orders widget when layout excludes it", async () => {
-    renderDashboard([
-      DashboardWidget.SUMMARY,
-      DashboardWidget.ORIGIN,
-      DashboardWidget.GENRE,
-      DashboardWidget.RECENT_ASSETS,
-    ]);
+  it("personal preset layout hides PendingOrdersInbox", async () => {
+    renderDashboard(personalDeployment);
 
     await waitFor(() => {
       expect(screen.getByText("Tea Keeper Dashboard")).toBeInTheDocument();
     });
 
+    expect(personalDeployment.modules.orders).toBe(false);
+    expect(personalDeployment.dashboard_layout).not.toContain(
+      DashboardWidget.PENDING_ORDERS,
+    );
     expect(screen.queryByText("Pending Orders Widget")).not.toBeInTheDocument();
   });
 
   it("renders pending orders widget when layout includes it", async () => {
-    renderDashboard([
-      DashboardWidget.SUMMARY,
-      DashboardWidget.ORIGIN,
-      DashboardWidget.GENRE,
-      DashboardWidget.PENDING_ORDERS,
-      DashboardWidget.RECENT_ASSETS,
-    ]);
+    renderDashboard({
+      ...personalDeployment,
+      edition: "professional",
+      modules: {
+        ...personalDeployment.modules,
+        orders: true,
+        order_notifications: true,
+      },
+      dashboard_layout: [
+        DashboardWidget.SUMMARY,
+        DashboardWidget.ORIGIN,
+        DashboardWidget.GENRE,
+        DashboardWidget.PENDING_ORDERS,
+        DashboardWidget.RECENT_ASSETS,
+      ],
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Pending Orders Widget")).toBeInTheDocument();
@@ -136,12 +130,7 @@ describe("Dashboard", () => {
   });
 
   it("shows owner actions and navigates to create/list pages", async () => {
-    renderDashboard([
-      DashboardWidget.SUMMARY,
-      DashboardWidget.ORIGIN,
-      DashboardWidget.GENRE,
-      DashboardWidget.RECENT_ASSETS,
-    ]);
+    renderDashboard();
 
     await waitFor(() => {
       expect(screen.getByText("Add Asset")).toBeInTheDocument();
@@ -153,15 +142,7 @@ describe("Dashboard", () => {
   });
 
   it("hides owner actions for non-owner roles", async () => {
-    renderDashboard(
-      [
-        DashboardWidget.SUMMARY,
-        DashboardWidget.ORIGIN,
-        DashboardWidget.GENRE,
-        DashboardWidget.RECENT_ASSETS,
-      ],
-      "admin",
-    );
+    renderDashboard(personalDeployment, "admin");
 
     await waitFor(() => {
       expect(screen.getByText("Tea Keeper Dashboard")).toBeInTheDocument();
