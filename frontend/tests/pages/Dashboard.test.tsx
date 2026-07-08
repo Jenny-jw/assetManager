@@ -1,5 +1,5 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Dashboard from "@/pages/Dashboard";
 import { AuthContext } from "@/context/authContextImpl";
@@ -34,7 +34,14 @@ const baseAuth: Omit<AuthContextType, "user"> = {
   logout: async () => {},
 };
 
-function renderDashboard(layout: DashboardWidgetId[]) {
+function renderDashboard(
+  layout: DashboardWidgetId[],
+  role: AuthContextType["user"] extends infer T
+    ? T extends { role: infer R }
+      ? R
+      : never
+    : never = "owner",
+) {
   return render(
     <DeploymentContext.Provider
       value={{
@@ -64,14 +71,18 @@ function renderDashboard(layout: DashboardWidgetId[]) {
             id: "owner-1",
             name: "Owner",
             email: "owner@example.com",
-            role: "owner",
+            role,
             is_active: true,
             created_at: "2026-01-01T00:00:00Z",
           },
         }}
       >
-        <MemoryRouter>
-          <Dashboard />
+        <MemoryRouter initialEntries={["/dashboard"]}>
+          <Routes>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/assets" element={<div>Asset list page</div>} />
+            <Route path="/assets/new" element={<div>Create asset page</div>} />
+          </Routes>
         </MemoryRouter>
       </AuthContext.Provider>
     </DeploymentContext.Provider>,
@@ -122,5 +133,41 @@ describe("Dashboard", () => {
     await waitFor(() => {
       expect(screen.getByText("Pending Orders Widget")).toBeInTheDocument();
     });
+  });
+
+  it("shows owner actions and navigates to create/list pages", async () => {
+    renderDashboard([
+      DashboardWidget.SUMMARY,
+      DashboardWidget.ORIGIN,
+      DashboardWidget.GENRE,
+      DashboardWidget.RECENT_ASSETS,
+    ]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Add Asset")).toBeInTheDocument();
+      expect(screen.getByText("Manage Inventory")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Add Asset"));
+    expect(screen.getByText("Create asset page")).toBeInTheDocument();
+  });
+
+  it("hides owner actions for non-owner roles", async () => {
+    renderDashboard(
+      [
+        DashboardWidget.SUMMARY,
+        DashboardWidget.ORIGIN,
+        DashboardWidget.GENRE,
+        DashboardWidget.RECENT_ASSETS,
+      ],
+      "admin",
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Tea Keeper Dashboard")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Add Asset")).not.toBeInTheDocument();
+    expect(screen.queryByText("Manage Inventory")).not.toBeInTheDocument();
   });
 });

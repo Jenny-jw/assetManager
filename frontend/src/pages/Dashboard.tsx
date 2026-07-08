@@ -30,6 +30,7 @@ const EMPTY_SUMMARY: TeaSummary = {
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const { deployment } = useDeployment();
+  const isOwner = user?.role === "owner";
   const [summary, setSummary] = useState<TeaSummary>(EMPTY_SUMMARY);
   const [recentAssets, setRecentAssets] = useState<Asset[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
@@ -141,7 +142,7 @@ const Dashboard = () => {
           </div>
         ))}
         <div className="md:col-span-2 flex flex-col gap-4">
-          {user?.role === "owner" && (
+          {isOwner && (
             <>
               <button
                 className="flex-1 rounded-xl bg-[#78a043] hover:border-lime-200 text-white"
