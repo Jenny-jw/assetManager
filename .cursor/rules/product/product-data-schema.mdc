@@ -1,17 +1,15 @@
 ---
-description: Product schemas, stock domain, PostgreSQL only (ADR 002, 004)
+description: Stock domain, PostgreSQL SaaS schema (ADR 002, 004, 005)
 globs: backend/schemas/**,backend/models/**,backend/repositories/**
 alwaysApply: false
 ---
 
 # Product Data & Schema
 
-**PG only:** `POSTGRE_URL` — never `MONGO_URI`; no fallback (ADR 004). Alembic owns schema.
+**PostgreSQL only:** `POSTGRES_URL` — no `MONGO_URI`, no fallback (ADR 004). Alembic owns schema.
 
-**Domain:** `stock` in `schemas/`, `models/`; tables `stocks`, `users`, `orders`, …
+**Domain:** `stock` in `schemas/`, `models/`; tables `tenants`, `stocks`, `users`, `orders`, …
 
-**main** keeps v1 Mongo `tea` for demo (ADR 003).
+**Isolation (ADR 005):** one shared PostgreSQL; **`tenant_id`** FK on all domain tables. Uniqueness is per tenant (e.g. `(tenant_id, username)`). Every repository query filters by current tenant.
 
-Per-deploy: separate database (or schema) via connection string in buyer `.env`.
-
-`schema_version` on rows: optional; single-deployment migration only.
+`schema_version` on rows: optional; not required for SaaS.

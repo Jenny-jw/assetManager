@@ -1,15 +1,15 @@
 ---
-description: Product branch v1 cleanup — delete Mongo, flatten product/ subfolders (no merge to main)
+description: Remove legacy leftovers on product (Mongo orders, old paths); Phase 3 flatten done
 alwaysApply: false
 ---
 
 # Product Branch Cleanup Plan
 
-**Branches are separate forever:** `product` is **not** merged into `main`/`master`. Portfolio demo stays on `main`; sellable v2 stays on `product`. Shared fixes use **cherry-pick**, not whole-branch merges.
+**Transitional checklist** for leftover files still on `product` (Mongo orders path, old names). Branch split policy: **ADR 003** / `product-git-workflow.mdc` — do not merge whole `product` ↔ `main`.
 
-**Current layout (product branch, Phase 3 done):** flattened `models/`, `schemas/`, `routes/`, `dependencies/`, `services/`, `tests/test_*.py`. Legacy Mongo orders remain in `routes/orders.py`, `tests/mongo/` until Phase 2.
+**Current layout (Phase 3 done):** flattened `models/`, `schemas/`, `routes/`, `dependencies/`, `services/`, `tests/test_*.py`. Legacy orders remain in `routes/orders.py`, `tests/mongo/` until Phase 2.
 
-**Target after Phase 2:** no v1 tea/auth/mongo; optional `core/stock_pricing.py` rename.
+**Target after Phase 2:** no tea/auth/mongo leftovers; optional `core/stock_pricing.py` rename.
 
 See `product-folder-layout.mdc` for paths.
 
@@ -203,7 +203,6 @@ Backend cleanup PR may ship before frontend; document mismatch in README until P
 
 ## Risks
 
-1. Do **not** merge `product` → `main` or whole `main` → `product`.
-2. **`main` keeps v1** for portfolio interviews.
-3. One PR per layer: flatten imports before deleting files.
-4. **Professional orders** stay on Mongo until P3; Phase 1 does not remove `mongo_legacy`.
+1. Do **not** merge whole `product` ↔ `main` (see ADR 003).
+2. One PR per layer: flatten imports before deleting files.
+3. Orders stay on legacy Mongo path until P3 PG orders; Phase 1 does not remove `mongo_legacy`.

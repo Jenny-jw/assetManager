@@ -17,14 +17,14 @@ Project guidance is split into `.cursor/rules/*.mdc` for focused context. Cursor
 
 | Rule file | Purpose |
 |-----------|---------|
-| `product/product-overview.mdc` | Editions, three-layer model |
-| `product/product-modularization.mdc` | Config, modules, widgets, repositories |
-| `product/product-capabilities.mdc` | Roles & capabilities (v2) |
-| `product/product-folder-layout.mdc` | Flattened product branch layout (tests, models, schemas) |
-| `product/product-data-schema.mdc` | stock schemas, PostgreSQL only |
-| `product/product-deployment-tenancy.mdc` | Deploy vs SaaS |
+| `product/product-overview.mdc` | Editions, SaaS overview |
+| `product/product-modularization.mdc` | Tenant config, modules, widgets, repositories |
+| `product/product-capabilities.mdc` | Roles & capabilities |
+| `product/product-folder-layout.mdc` | Flattened layout (tests, models, schemas) |
+| `product/product-data-schema.mdc` | stock schemas, PostgreSQL SaaS |
+| `product/product-deployment-tenancy.mdc` | SaaS tenancy (ADR 005) |
 | `product/product-roadmap.mdc` | P0–P4 checklist |
-| `product/product-git-workflow.mdc` | `main` / `product` / `feature/*` |
-| `product/product-branch-cleanup.mdc` | Delete v1 Mongo, flatten `product/` (no merge to main) |
+| `product/product-git-workflow.mdc` | Branch split + `feature/*` → `product` |
+| `product/product-branch-cleanup.mdc` | Remove legacy leftovers on product |
 
 Edit the `.mdc` files in `.cursor/rules/` rather than duplicating long guidance here.

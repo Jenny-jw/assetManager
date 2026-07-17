@@ -1,31 +1,29 @@
 ---
-description: Product branch backend layout (flattened; Phase 3 complete)
+description: Backend layout (flattened; Phase 3 complete)
 alwaysApply: true
 ---
 
 # Product Branch Folder Layout
 
-**`main`** = MongoDB portfolio demo (v1). **`product`** = PostgreSQL sellable line (v2).
+Backend uses a **single top-level layout** — no `models/product/`, `routes/product/`, or `tests/product/` subfolders (Phase 3 flatten done).
 
-On **`product`**, backend uses a **single top-level layout** — no `models/product/`, `routes/product/`, or `tests/product/` subfolders (Phase 3 flatten done).
-
-## Backend (product branch)
+## Backend
 
 | Area | Path |
 |------|------|
-| Models | `backend/models/` (`user.py`, `stock.py`; `order.py` until Phase 2) |
-| Schemas | `backend/schemas/` (`user.py`, `stock.py`, `order.py` until Phase 2) |
-| Routes | `backend/routes/` (`auth`, `security`, `stock`, `health`; `orders` until Phase 2) |
-| Dependencies | `backend/dependencies/` (`auth.py` PG owner; `mongo_auth.py` until Phase 2) |
+| Models | `backend/models/` (`user.py`, `stock.py`; `order.py` until Phase 2 cleanup) |
+| Schemas | `backend/schemas/` (`user.py`, `stock.py`, `order.py` until Phase 2 cleanup) |
+| Routes | `backend/routes/` (`auth`, `security`, `stock`, `health`; `orders` until Phase 2 cleanup) |
+| Dependencies | `backend/dependencies/` (`auth.py` PG owner; `mongo_auth.py` until Phase 2 cleanup) |
 | Services | `backend/services/` (`stock_queries.py`, `stock_summary_service.py`, …) |
-| Tests | `backend/tests/test_*.py`; legacy Mongo orders in `backend/tests/mongo/` |
+| Tests | `backend/tests/test_*.py`; legacy orders under `backend/tests/mongo/` until Phase 2 |
 
 ```text
 backend/tests/
   conftest.py           # PG fixtures, owner clients, skip_startup_postgres_ping
-  test_stock_api.py     # v2 PG stock
-  test_auth.py          # v2 owner auth
-  mongo/                # v1 Mongo orders (Phase 2 delete)
+  test_stock_api.py     # stock API
+  test_auth.py          # owner auth
+  mongo/                # legacy orders tests (Phase 2 delete)
     conftest.py
     test_orders_api.py
 ```
@@ -39,8 +37,8 @@ backend/tests/
 
 ## Avoid
 
-- Reintroducing `*/product/` subfolders on product branch
-- v1 role names in PG tests (`tests/test_*.py`)
-- Importing v1 `tea` artifacts on product branch
+- Reintroducing `*/product/` subfolders
+- Non-`owner` roles in PG tests
+- Non-stock inventory domain names in new code
 
-See `product-branch-cleanup.mdc` for Phase 2 (Mongo orders delete) and remaining infra items.
+See `product-branch-cleanup.mdc` for Phase 2 (remove legacy orders + mongo leftovers).

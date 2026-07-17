@@ -1,19 +1,40 @@
 ---
-description: Deploy vs SaaS, locale, merchant delivery
+description: SaaS tenancy, trial, subscription, locale (ADR 005)
 alwaysApply: false
 ---
 
 # Deployment & Tenancy
 
-One Docker deploy per buyer: `customers/{slug}/config.yaml` + `.env` (`POSTGRE_URL`, secrets).
+**Default delivery (ADR 005):** shared SaaS — one app deployment, one PostgreSQL, **`tenant_id`** row isolation.
 
-Config includes **`locale`** (`zh-TW` default for Taiwan merchants) — fixed at onboarding, not changeable in app.
+|          | SaaS (default)              | Independent deploy (deferred) |
+| -------- | --------------------------- | ----------------------------- |
+| App      | Shared API process(es)      | One Docker stack per buyer    |
+| DB       | Shared PG + `tenant_id`     | PG per buyer                  |
+| Signup   | Self-service trial → tenant | Manual provision per buyer    |
+| Billing  | Subscription (`status`)     | Per-deploy contract           |
+| Language | `locale` on tenant row      | `locale` in buyer YAML        |
 
-|          | Independent deploy | SaaS (defer)            |
-| -------- | ------------------ | ----------------------- |
-| DB       | PG per buyer       | shared PG + `tenant_id` |
-| Language | `locale` in YAML   | per-tenant setting      |
+## Tenant lifecycle
 
-**Delivery:** discovery → config (modules + locale) → compose deploy → expand via config.
+```text
+signup → tenant (trial) + owner → trial_ends_at → subscribe → active | suspended
+```
 
-Features + locale in config; secrets in `.env`.
+Payment integration deferred; manual status updates OK initially.
+
+## Tenant record
+
+`tenants`: `slug`, `edition`, `modules`, `locale`, `dashboard_layout`, `status`, `trial_ends_at`.
+
+Onboarding copies from `deploy/presets/personal.yaml` or `professional.yaml`. **`deploy/config.yaml`** is local dev bootstrap only (single-tenant until tenant-backed config ships).
+
+## Resolution
+
+JWT carries `tenant_id`; auth deps scope all queries. Subdomain routing optional later.
+
+## Out of scope / deferred
+
+- Fleet (same image, N stacks + N PG) — optional data-sovereignty / on-prem tier later
+- Multi-DB import (N buyer PGs → one PG) — out of scope (no independent-deploy buyers)
+- Import from other databases into SaaS — cancelled; tenants start empty via signup

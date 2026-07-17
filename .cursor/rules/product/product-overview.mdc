@@ -1,11 +1,11 @@
 ---
-description: Product editions, PG-only, locale, three-layer model
+description: Product editions, PG SaaS, locale (ADR 005)
 alwaysApply: true
 ---
 
 # Product Overview
 
-**`product`** = sellable line (v2, PG). **`main`** = Mongo demo (v1, MongoDB).
+Sellable SaaS: shared app + shared PostgreSQL + `tenant_id` (ADR 005). Self-service trial; subscription billing.
 
 | Edition        | Buyer     | Roles (this version)                       |
 | -------------- | --------- | ------------------------------------------ |
@@ -16,6 +16,8 @@ alwaysApply: true
 
 **DB:** `POSTGRES_URL` only (ADR 004).
 
-**Locale:** `zh-TW` \| `en` in deploy config; fixed at onboarding.
+**Locale:** `zh-TW` \| `en` on tenant at onboarding; fixed per tenant.
 
-**Code:** `schemas/`, `models/`; domain **stock**.
+**Domain:** **stock** — `schemas/`, `models/`.
+
+Branch split vs portfolio demo: **ADR 003** / `product-git-workflow.mdc`.

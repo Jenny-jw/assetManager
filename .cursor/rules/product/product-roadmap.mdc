@@ -1,5 +1,5 @@
 ---
-description: Product branch roadmap P0–P4
+description: Product roadmap P0–P4 (ADR 005 SaaS)
 alwaysApply: true
 ---
 
@@ -11,24 +11,36 @@ alwaysApply: true
 
 | #   | Item                                                      | St  |
 | --- | --------------------------------------------------------- | --- |
-| 1   | ADRs (001–004)                                            | [x] |
+| 1   | ADRs (001–005)                                            | [~] |
 | 2   | `product` branch                                          | [x] |
 | 3   | `deploy/config.yaml` + loader (`locale`, modules)         | [x] |
 | 4   | `core/capabilities.py`                                    | [x] |
 | 5   | PostgreSQL: SQLAlchemy + Alembic + compose `postgres`     | [x] |
-| 6   | `schemas/`, initial migration (`users`, `stocks`) | [x] |
+| 6   | `schemas/`, initial migration (`users`, `stocks`)         | [x] |
+
+## P1 — SaaS tenancy (ADR 005)
+
+| #   | Item                                                                                                 | St  |
+| --- | ---------------------------------------------------------------------------------------------------- | --- |
+| 5a  | ADR 005 + rules aligned (docs-only on `feature/tenancy`)                                             | [~] |
+| 5b  | `tenants` table + `tenant_id` on `users`, `stocks` (Alembic)                                         | [ ] |
+| 5c  | Tenant resolution (JWT `tenant_id`, scoped `get_current_user`)                                       | [ ] |
+| 5d  | Self-service signup: create tenant + owner; trial `status` / `trial_ends_at`                         | [ ] |
+| 5e  | `GET /api/deployment` from current tenant (not process-global YAML)                                  | [ ] |
+| 5f  | Register all module routers; per-request `module_disabled` (supersedes P1 #8 startup omission)       | [ ] |
+| 5g  | Multi-tenant isolation tests (tenant A ≠ tenant B)                                                   | [ ] |
 
 ## P1 — Personal edition
 
 | #   | Item                                                                                                 | St  |
 | --- | ---------------------------------------------------------------------------------------------------- | --- |
 | 7   | Personal preset as default (`deploy/config.yaml` = personal; `orders: false`)                        | [x] |
-| 8   | `main.py` conditional routers — register inventory/auth; **omit** orders when `modules.orders` false | [x] |
-| 9   | Owner auth on PG below                                                                               | [x] |
+| 8   | ~~`main.py` conditional routers~~ → **5f** per-request module checks (ADR 005)                       | [~] |
+| 9   | Owner auth on PG                                                                                     | [x] |
 | 10  | Inventory API on PG — see **P1-10 breakdown**; cleanup after → `product-branch-cleanup.mdc`          | [x] |
 | 11  | Dashboard widget registry — see **P1-11 breakdown** below                                            | [x] |
 | 12  | Frontend routes gated by modules — no Orders nav/pages on personal                                   | [ ] |
-| 13  | i18n (`react-i18next`) — load **one** locale (`zh-TW` \| `en`) from deploy config at startup         | [ ] |
+| 13  | i18n (`react-i18next`) — load **one** locale from tenant/deployment at startup                       | [ ] |
 | 14  | Personal edition tests — capabilities, orders off, widgets, stock API (pytest + Vitest)              | [ ] |
 
 ### P1-11 — Dashboard widget registry (incremental)
@@ -49,42 +61,50 @@ alwaysApply: true
 
 **Deferred from P1-9** (other roadmap items):
 
-| Concern                                                 | Roadmap    | Notes                                                    |
-| ------------------------------------------------------- | ---------- | -------------------------------------------------------- |
-| Frontend username login; hide Sign up after first owner | **#12–13** | Login/SignUp pages still v1 email flow until then        |
-| Structured error codes (`signup_disabled`, …)           | **#17**    | P1-9 uses HTTP status + `detail` string; formalize in P2 |
-| Owner password reset (email or token flow)              | **#26**    | See P4 below                                             |
-| Auth rate limiting; HTTPS cookie hardening in prod      | **#24**    | Compose prod profile + deploy docs                       |
+| Concern | Roadmap | Notes |
+| ------- | ------- | ----- |
+| Frontend username login; trial signup (new tenant + owner) | **#12–13, 5d** | Open signup creates a **new tenant**; not global single-owner gate |
+| Structured error codes (`signup_disabled`, …) | **#17** | P1-9 uses HTTP status + `detail` string; formalize in P2 |
+| Owner password reset (email or token flow) | **#26** | See P4 below |
+| Auth rate limiting; HTTPS cookie hardening in prod | **#24** | Compose prod profile + SaaS deploy docs |
 
 ## P2 — Structure
 
-| #   | Item                                                                                 | St  |
-| --- | ------------------------------------------------------------------------------------ | --- |
-| 15  | `repositories/postgres/` — `StockRepository` (PG only; no raw SQL in routes)         | [ ] |
+| #   | Item | St  |
+| --- | ---- | --- |
+| 15  | `repositories/postgres/` — tenant-scoped `StockRepository` (no raw SQL in routes) | [ ] |
 | 16  | `GET /api/deployment` — edition, modules, capabilities, `locale`, `dashboard_layout` | [ ] |
-| 17  | Structured API error codes (`module_disabled`, `capability_disabled`, …)             | [ ] |
-| 18  | `modules/{inventory,orders,analytics}/` package layout; routes thin                  | [ ] |
+| 17  | Structured API error codes (`module_disabled`, `capability_disabled`, `trial_expired`, …) | [ ] |
+| 18  | `modules/{inventory,orders,analytics}/` package layout; routes thin | [ ] |
 
 ## P3 — Professional edition (owner-only)
 
-| #   | Item                                                                                | St  |
-| --- | ----------------------------------------------------------------------------------- | --- |
-| 19  | Professional preset wiring (`orders`, `profit_analytics` on)                        | [ ] |
+| #   | Item | St  |
+| --- | ---- | --- |
+| 19  | Professional preset wiring (`orders`, `profit_analytics` on) at tenant signup | [ ] |
 | 20  | Owner-managed orders on PG (`orders` / `order_items` / `stock_movements` migration) | [ ] |
-| 21  | Cost models + `view_profit` / pricing analytics                                     | [ ] |
-| 22  | Order states (pending → approve/reject); stock decrement on approve                 | [ ] |
+| 21  | Cost models + `view_profit` / pricing analytics | [ ] |
+| 22  | Order states (pending → approve/reject); stock decrement on approve | [ ] |
 
 ## P4 — Polish & delivery
 
-| #   | Item                                                                                 | St  |
-| --- | ------------------------------------------------------------------------------------ | --- |
-| 23  | Buyer deploy docs (config + `.env` + compose)                                        | [ ] |
-| 24  | Compose prod profile                                                                 | [ ] |
-| 25  | Optional v1 Mongo → v2 PG data import                                                | [ ] |
-| 26  | Owner password reset + CLI `create_owner` recovery (signup closed after first owner) | [ ] |
+| #   | Item | St  |
+| --- | ---- | --- |
+| 23  | SaaS ops docs (trial, subscription status, compose prod, `.env`) | [ ] |
+| 24  | Compose prod profile | [ ] |
+| 26  | Owner password reset + admin recovery | [ ] |
+| 27  | Payment provider hook for subscription (Stripe or local equivalent) — optional | [ ] |
 
 ## Future — customer-facing
 
 | — | `customer` role; catalog browse; place orders / trades | not started |
 
-**Next:** P1 #12 (frontend routes gated by modules). **This version:** `owner` only on all editions.
+## Out of scope / deferred
+
+| Item | Why |
+|------|-----|
+| External / legacy DB import into SaaS | Tenants start empty via self-service signup |
+| Multi-DB import (N buyer PGs → one PG) | No independent-deploy buyers to merge (ADR 005) |
+| Fleet / per-buyer Docker + dedicated PG | Optional data-sovereignty tier later; not default delivery |
+
+**Next:** P1 **5b–5g** (implement ADR 005 tenancy). **This version:** `owner` only on all editions.
