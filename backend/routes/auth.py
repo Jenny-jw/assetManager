@@ -64,7 +64,10 @@ def login(body: UserLogin, response: Response, db: DbSession):
             detail="Invalid username or password",
         )
 
-    token = create_token({"sub": str(db_user.id), "role": db_user.role})
+    claims: dict = {"sub": str(db_user.id), "role": db_user.role}
+    if db_user.tenant_id is not None:
+        claims["tenant_id"] = str(db_user.tenant_id)
+    token = create_token(claims)
     response.set_cookie(
         key="token",
         value=token,

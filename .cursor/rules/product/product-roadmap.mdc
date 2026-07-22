@@ -11,7 +11,7 @@ alwaysApply: true
 
 | #   | Item                                                      | St  |
 | --- | --------------------------------------------------------- | --- |
-| 1   | ADRs (001–005)                                            | [~] |
+| 1   | ADRs (001–005)                                            | [x] |
 | 2   | `product` branch                                          | [x] |
 | 3   | `deploy/config.yaml` + loader (`locale`, modules)         | [x] |
 | 4   | `core/capabilities.py`                                    | [x] |
@@ -22,13 +22,14 @@ alwaysApply: true
 
 | #   | Item                                                                                                 | St  |
 | --- | ---------------------------------------------------------------------------------------------------- | --- |
-| 5a  | ADR 005 + rules aligned (docs-only on `feature/tenancy`)                                             | [~] |
-| 5b  | `tenants` table + `tenant_id` on `users`, `stocks` (Alembic)                                         | [ ] |
-| 5c  | Tenant resolution (JWT `tenant_id`, scoped `get_current_user`)                                       | [ ] |
-| 5d  | Self-service signup: create tenant + owner; trial `status` / `trial_ends_at`                         | [ ] |
+| 5a  | ADR 005 + rules aligned (ADR files remain local/gitignored by policy)                                | [x] |
+| 5b  | Expand schema: `tenants` + nullable transition `tenant_id` FK on `users`, `stocks` (Alembic)          | [x] |
+| 5c  | Tenant resolution (JWT `tenant_id`, scoped `get_current_user`)                                       | [x] |
+| 5d  | Signup creates tenant + owner; login resolves tenant (`slug` + username); trial lifecycle             | [ ] |
 | 5e  | `GET /api/deployment` from current tenant (not process-global YAML)                                  | [ ] |
 | 5f  | Register all module routers; per-request `module_disabled` (supersedes P1 #8 startup omission)       | [ ] |
 | 5g  | Multi-tenant isolation tests (tenant A ≠ tenant B)                                                   | [ ] |
+| 5h  | Contract schema: backfill/verify tenant ownership, then make all `tenant_id` columns `NOT NULL`       | [ ] |
 
 ## P1 — Personal edition
 
@@ -107,4 +108,4 @@ alwaysApply: true
 | Multi-DB import (N buyer PGs → one PG) | No independent-deploy buyers to merge (ADR 005) |
 | Fleet / per-buyer Docker + dedicated PG | Optional data-sovereignty tier later; not default delivery |
 
-**Next:** P1 **5b–5g** (implement ADR 005 tenancy). **This version:** `owner` only on all editions.
+**Next:** P1 **5d–5h** (signup creates tenant, tenant-backed deployment, isolation, NOT NULL). **This version:** `owner` only on all editions.

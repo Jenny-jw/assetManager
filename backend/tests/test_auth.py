@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.db import get_db
+from models.tenant import Tenant
 from models.user import User
 from routes.auth import router as product_auth_router
 
@@ -38,6 +39,7 @@ def auth_session() -> Generator[Session, None, None]:
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+    Tenant.__table__.create(bind=engine)
     User.__table__.create(bind=engine)
     session_factory = sessionmaker(
         bind=engine,
@@ -51,6 +53,7 @@ def auth_session() -> Generator[Session, None, None]:
     finally:
         session.close()
         User.__table__.drop(bind=engine)
+        Tenant.__table__.drop(bind=engine)
         engine.dispose()
 
 @pytest.fixture
