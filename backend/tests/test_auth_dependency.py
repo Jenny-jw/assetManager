@@ -21,6 +21,7 @@ from models.user import User
 from routes.auth import router as product_auth_router
 
 _SIGNUP_PAYLOAD = {
+    "slug": "sample-shop",
     "username": "owner1",
     "name": "Owner",
     "email": "owner@example.com",
@@ -36,7 +37,7 @@ def _make_tenant(**overrides) -> Tenant:
         "modules": {"inventory": True, "orders": False},
         "dashboard_layout": ["summary"],
         "status": "trial",
-        "trial_ends_at": datetime.now(timezone.utc) + timedelta(days=14),
+        "trial_ends_at": datetime.now(timezone.utc) + timedelta(days=90),
     }
     values.update(overrides)
     return Tenant(**values)
@@ -98,10 +99,17 @@ def auth_probe_client(auth_session: Session) -> Generator[TestClient, None, None
     app.dependency_overrides.clear()
 
 def test_get_current_user_returns_owner_after_login(auth_probe_client: TestClient):
-    auth_probe_client.post("/api/auth/signup", json=_SIGNUP_PAYLOAD)
+    signup = auth_probe_client.post("/api/auth/signup", json=_SIGNUP_PAYLOAD)
+    assert signup.status_code == 201
+    tenant_id = signup.json()["tenant_id"]
+
     auth_probe_client.post(
         "/api/auth/login",
-        json={"username": "owner1", "password": "secretpass"},
+        json={
+            "slug": "sample-shop",
+            "username": "owner1",
+            "password": "secretpass",
+        },
     )
 
     response = auth_probe_client.get("/api/auth/probe")
@@ -111,8 +119,8 @@ def test_get_current_user_returns_owner_after_login(auth_probe_client: TestClien
     assert body["username"] == "owner1"
     assert body["role"] == "owner"
     assert body["is_active"] is True
-    assert body["tenant_id"] is None
-    assert body["resolved_tenant_id"] is None
+    assert body["tenant_id"] == tenant_id
+    assert body["resolved_tenant_id"] == tenant_id
 
 def test_get_current_user_without_cookie_returns_401(auth_probe_client: TestClient):
     response = auth_probe_client.get("/api/auth/probe")
@@ -159,35 +167,27 @@ def test_get_current_user_rejects_inactive_owner(auth_session: Session, auth_pro
     assert response.json()["detail"] == "Not authenticated"
 
 def test_login_includes_tenant_id_claim_for_tenant_bound_owner(
-    auth_session: Session,
     auth_probe_client: TestClient,
 ):
-    tenant = _make_tenant()
-    auth_session.add(tenant)
-    auth_session.flush()
-    owner = User(
-        tenant_id=tenant.id,
-        username="owner1",
-        name="Owner",
-        email="owner@example.com",
-        hashed_password="hashed:secretpass",
-        role="owner",
-        is_active=True,
-    )
-    auth_session.add(owner)
-    auth_session.commit()
+    signup = auth_probe_client.post("/api/auth/signup", json=_SIGNUP_PAYLOAD)
+    assert signup.status_code == 201
+    tenant_id = signup.json()["tenant_id"]
 
     login = auth_probe_client.post(
         "/api/auth/login",
-        json={"username": "owner1", "password": "secretpass"},
+        json={
+            "slug": "sample-shop",
+            "username": "owner1",
+            "password": "secretpass",
+        },
     )
     assert login.status_code == 200
 
     response = auth_probe_client.get("/api/auth/probe")
     assert response.status_code == 200
     body = response.json()
-    assert body["tenant_id"] == str(tenant.id)
-    assert body["resolved_tenant_id"] == str(tenant.id)
+    assert body["tenant_id"] == tenant_id
+    assert body["resolved_tenant_id"] == tenant_id
     assert body["username"] == "owner1"
 
 def test_get_current_user_scopes_by_jwt_tenant_id(

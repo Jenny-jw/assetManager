@@ -25,7 +25,7 @@ alwaysApply: true
 | 5a  | ADR 005 + rules aligned (ADR files remain local/gitignored by policy)                                | [x] |
 | 5b  | Expand schema: `tenants` + nullable transition `tenant_id` FK on `users`, `stocks` (Alembic)          | [x] |
 | 5c  | Tenant resolution (JWT `tenant_id`, scoped `get_current_user`)                                       | [x] |
-| 5d  | Signup creates tenant + owner; login resolves tenant (`slug` + username); trial lifecycle             | [ ] |
+| 5d  | Signup creates tenant + owner; login resolves tenant (`slug` + username); trial lifecycle             | [x] |
 | 5e  | `GET /api/deployment` from current tenant (not process-global YAML)                                  | [ ] |
 | 5f  | Register all module routers; per-request `module_disabled` (supersedes P1 #8 startup omission)       | [ ] |
 | 5g  | Multi-tenant isolation tests (tenant A ≠ tenant B)                                                   | [ ] |
@@ -108,4 +108,4 @@ alwaysApply: true
 | Multi-DB import (N buyer PGs → one PG) | No independent-deploy buyers to merge (ADR 005) |
 | Fleet / per-buyer Docker + dedicated PG | Optional data-sovereignty tier later; not default delivery |
 
-**Next:** P1 **5d–5h** (signup creates tenant, tenant-backed deployment, isolation, NOT NULL). **This version:** `owner` only on all editions.
+**Next:** P1 **5e–5h** (tenant-backed deployment, per-request modules, isolation, NOT NULL). **This version:** `owner` only on all editions.

@@ -17,15 +17,32 @@ from schemas.user import UserCreate, UserLogin, UserResponse
 
 def test_user_create_allows_null_email():
     user = UserCreate(
+        slug="sample-shop",
         username="farmer01",
         name="陳伯伯",
         email=None,
         password="secretpass",
     )
     assert user.email is None
+    assert user.slug == "sample-shop"
+    assert user.edition.value == "personal"
 
-def test_user_login_uses_username():
-    login = UserLogin(username="farmer01", password="secretpass")
+def test_user_create_normalizes_slug():
+    user = UserCreate(
+        slug=" Sample-Shop ",
+        username="farmer01",
+        name="Owner",
+        password="secretpass",
+    )
+    assert user.slug == "sample-shop"
+
+def test_user_login_requires_slug_and_username():
+    login = UserLogin(
+        slug="sample-shop",
+        username="farmer01",
+        password="secretpass",
+    )
+    assert login.slug == "sample-shop"
     assert login.username == "farmer01"
 
 def test_stock_create_allows_null_genre_and_origin():

@@ -13,3 +13,4 @@ def _as_bool(value: str | None, default: bool) -> bool:
 JWT_COOKIE_SECURE = _as_bool(os.getenv("JWT_COOKIE_SECURE"), True)
 JWT_COOKIE_SAMESITE = os.getenv("JWT_COOKIE_SAMESITE", "lax")
 JWT_COOKIE_MAX_AGE_SECONDS = int(os.getenv("JWT_COOKIE_MAX_AGE_SECONDS", "3600"))
+TRIAL_DAYS = int(os.getenv("TRIAL_DAYS", "90"))

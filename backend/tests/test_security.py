@@ -10,11 +10,13 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.db import get_db
+from models.tenant import Tenant
 from models.user import User
 from routes.auth import router as product_auth_router
 from routes.security import router as product_security_router
 
 _SIGNUP_PAYLOAD = {
+    "slug": "sample-shop",
     "username": "owner1",
     "name": "Owner",
     "email": "owner@example.com",
@@ -39,6 +41,7 @@ def auth_session() -> Generator[Session, None, None]:
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+    Tenant.__table__.create(bind=engine)
     User.__table__.create(bind=engine)
     session_factory = sessionmaker(
         bind=engine,
@@ -52,6 +55,7 @@ def auth_session() -> Generator[Session, None, None]:
     finally:
         session.close()
         User.__table__.drop(bind=engine)
+        Tenant.__table__.drop(bind=engine)
         engine.dispose()
 
 @pytest.fixture
@@ -69,10 +73,15 @@ def auth_me_client(auth_session: Session) -> Generator[TestClient, None, None]:
     app.dependency_overrides.clear()
 
 def test_me_returns_owner_profile_after_login(auth_me_client: TestClient):
-    auth_me_client.post("/api/auth/signup", json=_SIGNUP_PAYLOAD)
+    signup = auth_me_client.post("/api/auth/signup", json=_SIGNUP_PAYLOAD)
+    assert signup.status_code == 201
     auth_me_client.post(
         "/api/auth/login",
-        json={"username": "owner1", "password": "secretpass"},
+        json={
+            "slug": "sample-shop",
+            "username": "owner1",
+            "password": "secretpass",
+        },
     )
 
     response = auth_me_client.get("/api/security/me")
@@ -84,6 +93,7 @@ def test_me_returns_owner_profile_after_login(auth_me_client: TestClient):
     assert body["email"] == "owner@example.com"
     assert body["role"] == "owner"
     assert body["is_active"] is True
+    assert body["tenant_id"] == signup.json()["tenant_id"]
     assert "id" in body
     assert "created_at" in body
     assert "hashed_password" not in body

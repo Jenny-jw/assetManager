@@ -10,7 +10,9 @@ from sqlalchemy import select
 from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
 from core.tenant import bind_request_tenant, clear_current_tenant_id
 from dependencies.db import DbSession
+from models.tenant import Tenant
 from models.user import User
+from services.tenant_onboarding import assert_tenant_access
 
 OWNER_ROLE = "owner"
 
@@ -75,6 +77,10 @@ def get_current_user(request: Request, db: DbSession) -> dict[str, Any]:
         )
         if user is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        tenant = db.get(Tenant, tenant_id)
+        if tenant is None:
+            raise _auth_error("Invalid token payload")
+        assert_tenant_access(tenant)
         bind_request_tenant(request, tenant_id)
 
     if not user.is_active:

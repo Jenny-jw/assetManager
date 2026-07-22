@@ -88,8 +88,19 @@ def default_config_path() -> Path:
 def personal_preset_path() -> Path:
     return _repo_root() / "deploy" / "presets" / "personal.yaml"
 
+def professional_preset_path() -> Path:
+    return _repo_root() / "deploy" / "presets" / "professional.yaml"
+
 def load_personal_preset() -> DeploymentConfig:
     return load_deployment_config(personal_preset_path())
+
+def load_professional_preset() -> DeploymentConfig:
+    return load_deployment_config(professional_preset_path())
+
+def load_preset_for_edition(edition: Edition) -> DeploymentConfig:
+    if edition is Edition.professional:
+        return load_professional_preset()
+    return load_personal_preset()
 
 def resolve_config_path() -> Path:
     override = os.getenv("DEPLOY_CONFIG_PATH")
