@@ -2,12 +2,27 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, DateTime, Index, Integer, SmallInteger, String, Text, func, text
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    SmallInteger,
+    String,
+    Text,
+    func,
+    text,
+)
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.db import Base
+
+if TYPE_CHECKING:
+    from models.tenant import Tenant
 
 class Stock(Base):
     __tablename__ = "stocks"
@@ -33,6 +48,7 @@ class Stock(Base):
             "price_per_jin IS NULL OR price_per_jin >= 0",
             name="ck_stocks_price_per_jin",
         ),
+        Index("ix_stocks_tenant_id", "tenant_id"),
         Index("ix_stocks_genre", "genre"),
         Index("ix_stocks_origin", "origin"),
         Index(
@@ -47,6 +63,11 @@ class Stock(Base):
         primary_key=True,
         default=uuid.uuid4,
         server_default=text("gen_random_uuid()"),
+    )
+    tenant_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("tenants.id", ondelete="RESTRICT"),
+        nullable=True,
     )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     genre: Mapped[str | None] = mapped_column(String(50), nullable=True)
@@ -76,3 +97,5 @@ class Stock(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+
+    tenant: Mapped[Tenant | None] = relationship(back_populates="stocks")

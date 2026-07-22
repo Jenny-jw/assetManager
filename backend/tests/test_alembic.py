@@ -21,3 +21,17 @@ def test_alembic_env_wires_base_metadata(monkeypatch):
     assert "target_metadata = Base.metadata" in env_source
     assert "import models" in env_source
     assert Base.metadata is not None
+
+def test_tenant_migration_follows_initial_schema():
+    migration = (
+        _BACKEND_ROOT
+        / "alembic"
+        / "versions"
+        / "8f3a1c7d2e4b_add_tenant_foundation.py"
+    )
+    source = migration.read_text(encoding="utf-8")
+
+    assert 'revision: str = "8f3a1c7d2e4b"' in source
+    assert 'down_revision: Union[str, None] = "b7c4e2a91d30"' in source
+    assert '"tenants"' in source
+    assert '"tenant_id"' in source
