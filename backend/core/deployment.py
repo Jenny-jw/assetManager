@@ -9,6 +9,8 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from models.tenant import Tenant
+
 class Edition(str, Enum):
     personal = "personal"
     professional = "professional"
@@ -123,6 +125,17 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 def load_deployment_config(path: Path | None = None) -> DeploymentConfig:
     config_path = path if path is not None else resolve_config_path()
     return DeploymentConfig.model_validate(_load_yaml(config_path))
+
+def deployment_from_tenant(tenant: Tenant) -> DeploymentConfig:
+    return DeploymentConfig.model_validate(
+        {
+            "edition": tenant.edition,
+            "locale": tenant.locale,
+            "roles_enabled": tenant.roles_enabled,
+            "modules": tenant.modules,
+            "dashboard_layout": tenant.dashboard_layout,
+        }
+    )
 
 @lru_cache
 def get_deployment() -> DeploymentConfig:
