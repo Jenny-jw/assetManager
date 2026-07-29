@@ -5,9 +5,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from core.deployment import DeploymentConfig, get_deployment
-from dependencies.db import DbSession
+from core.capabilities import require_module
+from core.deployment import DeploymentConfig
 from dependencies.auth import require_owner
+from dependencies.db import DbSession
+from dependencies.deployment import get_request_deployment
 from models.stock import Stock
 from schemas.stock import (
     StockCreate,
@@ -26,14 +28,14 @@ from services.stock_summary_service import build_stock_summary
 router = APIRouter(
     prefix="/stock",
     tags=["Stock"],
-    dependencies=[Depends(require_owner())],
+    dependencies=[Depends(require_owner()), Depends(require_module("inventory"))],
 )
 
 @router.post("/", response_model=StockResponse, status_code=status.HTTP_201_CREATED)
 def create_stock(
     body: StockCreate,
     db: DbSession,
-    deployment: DeploymentConfig = Depends(get_deployment),
+    deployment: DeploymentConfig = Depends(get_request_deployment),
 ):
     payload = body.model_dump()
     try:
@@ -97,7 +99,7 @@ def update_stock(
     stock_id: str,
     body: StockUpdate,
     db: DbSession,
-    deployment: DeploymentConfig = Depends(get_deployment),
+    deployment: DeploymentConfig = Depends(get_request_deployment),
 ):
     try:
         stock_uuid = UUID(stock_id)

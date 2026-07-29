@@ -5,8 +5,9 @@ from typing import Any
 
 from fastapi import Depends, HTTPException, status
 
-from core.deployment import DeploymentConfig, DeploymentModules, get_deployment
+from core.deployment import DeploymentConfig, DeploymentModules
 from dependencies.auth import get_current_user
+from dependencies.deployment import get_request_deployment
 
 class Capability(str, Enum):
     manage_inventory = "manage_inventory"
@@ -94,12 +95,25 @@ def capability_denial_detail(
 
     return "capability_disabled"
 
+def require_module(module_key: str):
+    def _checker(
+        deployment: DeploymentConfig = Depends(get_request_deployment),
+    ) -> DeploymentConfig:
+        if not _module_flag(deployment.modules, module_key):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="module_disabled",
+            )
+        return deployment
+
+    return _checker
+
 def require_capability(capability: Capability | str):
     cap = Capability(capability) if isinstance(capability, str) else capability
 
     def _checker(
         current_user: dict[str, Any] = Depends(get_current_user),
-        deployment: DeploymentConfig = Depends(get_deployment),
+        deployment: DeploymentConfig = Depends(get_request_deployment),
     ) -> dict[str, Any]:
         if has_capability(current_user, cap, deployment):
             return current_user

@@ -27,7 +27,7 @@ def create_app(deployment: DeploymentConfig | None = None) -> FastAPI:
     app = FastAPI(title="Asset Manager API", version="0.1.0", lifespan=lifespan)
     if deployment is not None:
         app.dependency_overrides[get_deployment] = lambda: active_deployment
-    register_routes(app, active_deployment)
+    register_routes(app)
     app.add_middleware(RequestLoggingMiddleware)
     app.add_middleware(
         CORSMiddleware,

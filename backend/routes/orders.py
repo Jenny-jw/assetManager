@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 
+from core.capabilities import require_module
 from dependencies.mongo_auth import UserRole, get_current_user, require_role
 from models.order import OrderStatus
 from schemas.order import OrderCreate, OrderListResponse, OrderResponse
@@ -11,7 +12,11 @@ from services.order_service import (
     reject_order,
 )
 
-router = APIRouter(prefix="/orders", tags=["Orders"])
+router = APIRouter(
+    prefix="/orders",
+    tags=["Orders"],
+    dependencies=[Depends(require_module("orders"))],
+)
 
 @router.post("/", response_model=OrderResponse, status_code=201)
 def create_order(
