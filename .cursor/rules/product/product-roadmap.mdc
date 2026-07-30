@@ -28,7 +28,7 @@ alwaysApply: true
 | 5d  | Signup creates tenant + owner; login resolves tenant (`slug` + username); trial lifecycle             | [x] |
 | 5e  | `GET /api/deployment` from current tenant (not process-global YAML)                                  | [x] |
 | 5f  | Register all module routers; per-request `module_disabled` (supersedes P1 #8 startup omission)       | [x] |
-| 5g  | Multi-tenant isolation tests (tenant A ≠ tenant B)                                                   | [ ] |
+| 5g  | Multi-tenant isolation tests (tenant A ≠ tenant B)                                                   | [x] |
 | 5h  | Contract schema: backfill/verify tenant ownership, then make all `tenant_id` columns `NOT NULL`       | [ ] |
 
 ## P1 — Personal edition
@@ -108,4 +108,4 @@ alwaysApply: true
 | Multi-DB import (N buyer PGs → one PG) | No independent-deploy buyers to merge (ADR 005) |
 | Fleet / per-buyer Docker + dedicated PG | Optional data-sovereignty tier later; not default delivery |
 
-**Next:** P1 **5g–5h** (isolation tests, NOT NULL). **This version:** `owner` only on all editions.
+**Next:** P1 **5h** (contract schema: backfill then `tenant_id` NOT NULL). **This version:** `owner` only on all editions.

@@ -16,11 +16,16 @@ from core.db import get_db
 from core.deployment import DeploymentConfig, get_deployment, load_personal_preset
 from dependencies.auth import get_current_user
 from models.stock import Stock
+from models.tenant import Tenant
 from models.user import User
 from routes.stock import router as product_stock_router
 
+# Avoid all-digit UUID hex: SQLite can coerce it to float on round-trip.
+_TENANT_ID = "a1111111-b222-c333-d444-e55555555555"
+
 _OWNER: dict[str, Any] = {
     "id": "00000000-0000-0000-0000-000000000001",
+    "tenant_id": _TENANT_ID,
     "username": "owner1",
     "role": "owner",
     "name": "Owner",
@@ -44,6 +49,7 @@ def stock_session() -> Generator[Session, None, None]:
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+    Tenant.__table__.create(bind=engine)
     User.__table__.create(bind=engine)
     Stock.__table__.create(bind=engine)
     session_factory = sessionmaker(
@@ -53,12 +59,26 @@ def stock_session() -> Generator[Session, None, None]:
         expire_on_commit=False,
     )
     session = session_factory()
+    session.add(
+        Tenant(
+            id=UUID(_TENANT_ID),
+            slug="stock-test-shop",
+            edition="personal",
+            locale="zh-TW",
+            roles_enabled=["owner"],
+            modules={"inventory": True, "orders": False},
+            dashboard_layout=["summary"],
+            status="active",
+        )
+    )
+    session.commit()
     try:
         yield session
     finally:
         session.close()
-        User.__table__.drop(bind=engine)
         Stock.__table__.drop(bind=engine)
+        User.__table__.drop(bind=engine)
+        Tenant.__table__.drop(bind=engine)
         engine.dispose()
 
 @pytest.fixture

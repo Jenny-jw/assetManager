@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from core.capabilities import require_module
 from core.deployment import DeploymentConfig
-from dependencies.auth import require_owner
+from dependencies.auth import require_owner, require_tenant_id
 from dependencies.db import DbSession
 from dependencies.deployment import get_request_deployment
 from models.stock import Stock
@@ -35,6 +35,7 @@ router = APIRouter(
 def create_stock(
     body: StockCreate,
     db: DbSession,
+    tenant_id: UUID = Depends(require_tenant_id),
     deployment: DeploymentConfig = Depends(get_request_deployment),
 ):
     payload = body.model_dump()
@@ -46,7 +47,7 @@ def create_stock(
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
-    stock = Stock(**payload)
+    stock = Stock(**payload, tenant_id=tenant_id)
     db.add(stock)
     db.commit()
     db.refresh(stock)
@@ -55,6 +56,7 @@ def create_stock(
 @router.get("/", response_model=StockListResponse)
 def list_stocks(
     db: DbSession,
+    tenant_id: UUID = Depends(require_tenant_id),
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     search: str | None = None,
@@ -68,6 +70,7 @@ def list_stocks(
 ):
     rows, total = list_active_stocks(
         db,
+        tenant_id=tenant_id,
         page=page,
         limit=limit,
         sort_by=sort_by,
@@ -79,17 +82,24 @@ def list_stocks(
     return StockListResponse(data=rows, page=page, limit=limit, total=total)
 
 @router.get("/summary", response_model=StockSummaryResponse)
-def stock_summary(db: DbSession):
-    return build_stock_summary(db)
+def stock_summary(
+    db: DbSession,
+    tenant_id: UUID = Depends(require_tenant_id),
+):
+    return build_stock_summary(db, tenant_id=tenant_id)
 
 @router.get("/{stock_id}", response_model=StockResponse)
-def get_stock(stock_id: str, db: DbSession):
+def get_stock(
+    stock_id: str,
+    db: DbSession,
+    tenant_id: UUID = Depends(require_tenant_id),
+):
     try:
         stock_uuid = UUID(stock_id)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid stock id") from exc
 
-    stock = get_active_stock(db, stock_uuid)
+    stock = get_active_stock(db, stock_uuid, tenant_id=tenant_id)
     if stock is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock not found")
     return stock
@@ -99,6 +109,7 @@ def update_stock(
     stock_id: str,
     body: StockUpdate,
     db: DbSession,
+    tenant_id: UUID = Depends(require_tenant_id),
     deployment: DeploymentConfig = Depends(get_request_deployment),
 ):
     try:
@@ -106,7 +117,7 @@ def update_stock(
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid stock id") from exc
 
-    stock = get_active_stock(db, stock_uuid)
+    stock = get_active_stock(db, stock_uuid, tenant_id=tenant_id)
     if stock is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock not found")
 
@@ -137,13 +148,17 @@ def update_stock(
     return stock
 
 @router.delete("/{stock_id}")
-def delete_stock(stock_id: str, db: DbSession):
+def delete_stock(
+    stock_id: str,
+    db: DbSession,
+    tenant_id: UUID = Depends(require_tenant_id),
+):
     try:
         stock_uuid = UUID(stock_id)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid stock id") from exc
 
-    stock = get_active_stock(db, stock_uuid)
+    stock = get_active_stock(db, stock_uuid, tenant_id=tenant_id)
     if stock is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock not found")
 

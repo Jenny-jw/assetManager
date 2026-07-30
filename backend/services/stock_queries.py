@@ -20,8 +20,11 @@ _SORT_COLUMNS = {
     "harvest_time": Stock.harvest_time,
 }
 
-def active_stocks_select() -> Select[tuple[Stock]]:
-    return select(Stock).where(Stock.deleted_at.is_(None))
+def active_stocks_select(*, tenant_id: UUID) -> Select[tuple[Stock]]:
+    return select(Stock).where(
+        Stock.deleted_at.is_(None),
+        Stock.tenant_id == tenant_id,
+    )
 
 def _apply_stock_list_filters(
     statement: Select[tuple[Stock]],
@@ -40,21 +43,27 @@ def _apply_stock_list_filters(
 
 def filtered_active_stocks_select(
     *,
+    tenant_id: UUID,
     search: str | None = None,
     genre: str | None = None,
     origin: str | None = None,
 ) -> Select[tuple[Stock]]:
     return _apply_stock_list_filters(
-        active_stocks_select(),
+        active_stocks_select(tenant_id=tenant_id),
         search=search,
         genre=genre,
         origin=origin,
     )
 
-def count_active_stocks(db: Session) -> int:
+def count_active_stocks(db: Session, *, tenant_id: UUID) -> int:
     return int(
         db.scalar(
-            select(func.count()).select_from(Stock).where(Stock.deleted_at.is_(None))
+            select(func.count())
+            .select_from(Stock)
+            .where(
+                Stock.deleted_at.is_(None),
+                Stock.tenant_id == tenant_id,
+            )
         )
         or 0
     )
@@ -62,6 +71,7 @@ def count_active_stocks(db: Session) -> int:
 def list_active_stocks(
     db: Session,
     *,
+    tenant_id: UUID,
     page: int,
     limit: int,
     sort_by: str,
@@ -70,7 +80,12 @@ def list_active_stocks(
     genre: str | None = None,
     origin: str | None = None,
 ) -> tuple[list[Stock], int]:
-    statement = filtered_active_stocks_select(search=search, genre=genre, origin=origin)
+    statement = filtered_active_stocks_select(
+        tenant_id=tenant_id,
+        search=search,
+        genre=genre,
+        origin=origin,
+    )
     total = int(db.scalar(select(func.count()).select_from(statement.subquery())) or 0)
     column = _SORT_COLUMNS[sort_by]
     order = column.asc() if sort_direction == "asc" else column.desc()
@@ -79,8 +94,10 @@ def list_active_stocks(
     rows = list(db.scalars(statement.offset(offset).limit(limit)).all())
     return rows, total
 
-def get_active_stock(db: Session, stock_id: UUID) -> Stock | None:
-    return db.scalar(active_stocks_select().where(Stock.id == stock_id))
+def get_active_stock(db: Session, stock_id: UUID, *, tenant_id: UUID) -> Stock | None:
+    return db.scalar(
+        active_stocks_select(tenant_id=tenant_id).where(Stock.id == stock_id)
+    )
 
 def coerce_weight_grams_for_edition(
     weight_grams: int | None,

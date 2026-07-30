@@ -8,7 +8,7 @@ from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 
 from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
-from core.tenant import bind_request_tenant, clear_current_tenant_id
+from core.tenant import bind_request_tenant, clear_current_tenant_id, get_request_tenant_id
 from dependencies.db import DbSession
 from models.tenant import Tenant
 from models.user import User
@@ -96,3 +96,24 @@ def require_owner():
         return current_user
 
     return _checker
+
+def require_tenant_id(
+    request: Request,
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> UUID:
+    tenant_id = get_request_tenant_id(request)
+    if tenant_id is not None:
+        return tenant_id
+    raw = current_user.get("tenant_id")
+    if raw is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="tenant_required",
+        )
+    try:
+        return UUID(str(raw))
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="tenant_required",
+        ) from exc
