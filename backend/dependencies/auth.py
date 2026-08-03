@@ -22,7 +22,7 @@ def _auth_error(detail: str) -> HTTPException:
 def user_to_dict(user: User) -> dict[str, Any]:
     return {
         "id": str(user.id),
-        "tenant_id": str(user.tenant_id) if user.tenant_id is not None else None,
+        "tenant_id": str(user.tenant_id),
         "username": user.username,
         "name": user.name,
         "email": user.email,
@@ -58,30 +58,22 @@ def get_current_user(request: Request, db: DbSession) -> dict[str, Any]:
     bind_request_tenant(request, None)
     payload = _decode_token_payload(request)
     user_id = _parse_uuid_claim(payload.get("sub"))
-    tenant_claim = payload.get("tenant_id")
+    tenant_id = _parse_uuid_claim(payload.get("tenant_id"))
 
-    if tenant_claim is None:
-        user = db.get(User, user_id)
-        if user is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-        if user.tenant_id is not None:
-            # Tenant-bound users must carry tenant_id in JWT (ADR 005 / 5c).
-            raise _auth_error("Invalid token payload")
-    else:
-        tenant_id = _parse_uuid_claim(tenant_claim)
-        user = db.scalar(
-            select(User).where(
-                User.id == user_id,
-                User.tenant_id == tenant_id,
-            )
+    user = db.scalar(
+        select(User).where(
+            User.id == user_id,
+            User.tenant_id == tenant_id,
         )
-        if user is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-        tenant = db.get(Tenant, tenant_id)
-        if tenant is None:
-            raise _auth_error("Invalid token payload")
-        assert_tenant_access(tenant)
-        bind_request_tenant(request, tenant_id)
+    )
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    tenant = db.get(Tenant, tenant_id)
+    if tenant is None:
+        raise _auth_error("Invalid token payload")
+    assert_tenant_access(tenant)
+    bind_request_tenant(request, tenant_id)
 
     if not user.is_active:
         clear_current_tenant_id()

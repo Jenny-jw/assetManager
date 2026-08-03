@@ -35,3 +35,20 @@ def test_tenant_migration_follows_initial_schema():
     assert 'down_revision: Union[str, None] = "b7c4e2a91d30"' in source
     assert '"tenants"' in source
     assert '"tenant_id"' in source
+
+def test_contract_tenant_id_migration_follows_expand_phase():
+    migration = (
+        _BACKEND_ROOT
+        / "alembic"
+        / "versions"
+        / "d2064bf95049_contract_tenant_id_not_null.py"
+    )
+    source = migration.read_text(encoding="utf-8")
+
+    assert 'revision: str = "d2064bf95049"' in source
+    assert 'down_revision: Union[str, None] = "8f3a1c7d2e4b"' in source
+    assert "_backfill_orphan_tenant_ids" in source
+    assert 'op.alter_column(\n        "users"' in source
+    assert 'op.alter_column(\n        "stocks"' in source
+    assert "nullable=False" in source
+    assert "legacy-bootstrap" in source

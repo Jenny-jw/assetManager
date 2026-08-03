@@ -53,10 +53,10 @@ class User(Base):
         default=uuid.uuid4,
         server_default=text("gen_random_uuid()"),
     )
-    tenant_id: Mapped[uuid.UUID | None] = mapped_column(
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="RESTRICT"),
-        nullable=True,
+        nullable=False,
     )
     username: Mapped[str] = mapped_column(String(50), nullable=False)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -82,4 +82,4 @@ class User(Base):
         nullable=True,
     )
 
-    tenant: Mapped[Tenant | None] = relationship(back_populates="users")
+    tenant: Mapped[Tenant] = relationship(back_populates="users")

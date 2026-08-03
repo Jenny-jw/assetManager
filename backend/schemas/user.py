@@ -48,14 +48,12 @@ class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
-    tenant_id: str | None = None
+    tenant_id: str
     role: str
     is_active: bool
     created_at: datetime
 
     @field_validator("id", "tenant_id", mode="before")
     @classmethod
-    def coerce_uuid_fields(cls, value: object) -> str | None:
-        if value is None:
-            return None
+    def coerce_uuid_fields(cls, value: object) -> str:
         return str(value)

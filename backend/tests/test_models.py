@@ -75,9 +75,9 @@ def test_user_and_stock_reference_tenants():
     assert user_foreign_key.target_fullname == "tenants.id"
     assert stock_foreign_key.target_fullname == "tenants.id"
 
-def test_tenant_ids_are_nullable_during_expand_migration():
-    assert User.__table__.c.tenant_id.nullable is True
-    assert Stock.__table__.c.tenant_id.nullable is True
+def test_tenant_ids_are_required_after_contract_migration():
+    assert User.__table__.c.tenant_id.nullable is False
+    assert Stock.__table__.c.tenant_id.nullable is False
 
 def test_stocks_table_allows_null_genre_and_origin():
     assert Stock.__table__.c.genre.nullable is True

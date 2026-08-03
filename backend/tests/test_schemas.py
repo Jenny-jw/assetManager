@@ -67,6 +67,7 @@ def test_stock_response_from_orm():
     now = datetime.now(timezone.utc)
     row = Stock(
         id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
         name="Test",
         quantity=2,
         created_at=now,
@@ -77,8 +78,10 @@ def test_stock_response_from_orm():
 
 def test_user_response_from_orm():
     now = datetime.now(timezone.utc)
+    tenant_id = uuid.uuid4()
     row = User(
         id=uuid.uuid4(),
+        tenant_id=tenant_id,
         username="owner1",
         name="Owner",
         hashed_password="hashed",
@@ -89,6 +92,7 @@ def test_user_response_from_orm():
     response = UserResponse.model_validate(row)
     assert response.username == "owner1"
     assert response.role == "owner"
+    assert response.tenant_id == str(tenant_id)
 
 def test_deployment_response_from_config():
     deployment = load_personal_preset()

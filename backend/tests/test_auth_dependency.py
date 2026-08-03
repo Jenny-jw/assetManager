@@ -141,14 +141,24 @@ def test_get_current_user_rejects_non_uuid_sub(auth_probe_client: TestClient):
     assert response.json()["detail"] == "Invalid token payload"
 
 def test_get_current_user_returns_404_when_user_missing(auth_probe_client: TestClient):
-    token = create_token({"sub": str(uuid4()), "role": "owner"})
+    token = create_token(
+        {
+            "sub": str(uuid4()),
+            "role": "owner",
+            "tenant_id": str(uuid4()),
+        }
+    )
     auth_probe_client.cookies.set("token", token)
     response = auth_probe_client.get("/api/auth/probe")
     assert response.status_code == 404
     assert response.json()["detail"] == "User not found"
 
 def test_get_current_user_rejects_inactive_owner(auth_session: Session, auth_probe_client: TestClient):
+    tenant = _make_tenant()
+    auth_session.add(tenant)
+    auth_session.flush()
     owner = User(
+        tenant_id=tenant.id,
         username="owner1",
         name="Owner",
         email="owner@example.com",
@@ -160,7 +170,13 @@ def test_get_current_user_rejects_inactive_owner(auth_session: Session, auth_pro
     auth_session.commit()
     auth_session.refresh(owner)
 
-    token = create_token({"sub": str(owner.id), "role": "owner"})
+    token = create_token(
+        {
+            "sub": str(owner.id),
+            "role": "owner",
+            "tenant_id": str(tenant.id),
+        }
+    )
     auth_probe_client.cookies.set("token", token)
     response = auth_probe_client.get("/api/auth/probe")
     assert response.status_code == 401
@@ -222,6 +238,13 @@ def test_get_current_user_scopes_by_jwt_tenant_id(
     response = auth_probe_client.get("/api/auth/probe")
     assert response.status_code == 404
     assert response.json()["detail"] == "User not found"
+
+def test_get_current_user_requires_tenant_claim(auth_probe_client: TestClient):
+    token = create_token({"sub": str(uuid4()), "role": "owner"})
+    auth_probe_client.cookies.set("token", token)
+    response = auth_probe_client.get("/api/auth/probe")
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid token payload"
 
 def test_get_current_user_rejects_tenant_bound_user_without_tenant_claim(
     auth_session: Session,

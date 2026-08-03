@@ -64,10 +64,10 @@ class Stock(Base):
         default=uuid.uuid4,
         server_default=text("gen_random_uuid()"),
     )
-    tenant_id: Mapped[uuid.UUID | None] = mapped_column(
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="RESTRICT"),
-        nullable=True,
+        nullable=False,
     )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     genre: Mapped[str | None] = mapped_column(String(50), nullable=True)
@@ -98,4 +98,4 @@ class Stock(Base):
         nullable=True,
     )
 
-    tenant: Mapped[Tenant | None] = relationship(back_populates="stocks")
+    tenant: Mapped[Tenant] = relationship(back_populates="stocks")
