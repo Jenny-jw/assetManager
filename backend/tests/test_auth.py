@@ -3,9 +3,9 @@ from __future__ import annotations
 from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool

@@ -1,8 +1,8 @@
-import uuid
 from datetime import datetime, timezone
+import uuid
 
-import pytest
 from pydantic import ValidationError
+import pytest
 
 from core.deployment import Edition, load_personal_preset
 from models.stock import Stock

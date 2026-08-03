@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import os
 from logging.config import fileConfig
+import os
 
-import core.env  # noqa: F401 — repo-root .env
-from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-import models  # noqa: F401 — registers ORM tables when added (P0-6)
+from alembic import context
 from core.db import Base
+import core.env  # noqa: F401 — repo-root .env
+import models  # noqa: F401 — registers ORM tables when added (P0-6)
 
 config = context.config
 

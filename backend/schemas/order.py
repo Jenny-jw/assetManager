@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from typing import Annotated
+
 from pydantic import BaseModel, Field
+
 from models.order import OrderStatus, StockMovementReason
 
 Qty = Annotated[int, Field(ge=1, le=999)]

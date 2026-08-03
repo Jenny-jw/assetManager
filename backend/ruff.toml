@@ -1,0 +1,8 @@
+# Ruff — import order aligned with product-python-style.mdc
+# Run from backend/: ruff check . --select I [--fix]
+
+[lint.isort]
+known-first-party = ["core", "dependencies", "models", "routes", "schemas", "services"]
+lines-after-imports = 1
+combine-as-imports = true
+force-sort-within-sections = true

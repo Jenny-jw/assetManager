@@ -1,8 +1,8 @@
-import models  # noqa: F401
 from sqlalchemy import UniqueConstraint, create_engine
 from sqlalchemy.orm import Session
 
 from core.db import Base
+import models  # noqa: F401
 from models.stock import Stock
 from models.tenant import Tenant
 from models.user import User

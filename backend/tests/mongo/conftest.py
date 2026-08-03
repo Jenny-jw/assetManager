@@ -3,14 +3,14 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import pytest
 from fastapi.testclient import TestClient
+import pytest
 
-import core.mongo_legacy as mongo_legacy_module
-import services.order_service as order_service_module
 from core.deployment import load_deployment_config
+import core.mongo_legacy as mongo_legacy_module
 from dependencies.mongo_auth import get_current_user
 from main import create_app
+import services.order_service as order_service_module
 from tests.mongo_fake import FakeDB, make_user, seed_orderable_tea
 
 _PROFESSIONAL_PRESET = (

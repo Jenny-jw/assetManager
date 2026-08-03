@@ -4,9 +4,9 @@ from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
-import pytest
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool

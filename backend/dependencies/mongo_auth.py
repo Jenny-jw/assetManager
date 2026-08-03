@@ -2,9 +2,9 @@
 from enum import Enum
 from typing import Any
 
-import jwt
 from bson import ObjectId
 from fastapi import Depends, HTTPException, Request, status
+import jwt
 
 from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
 from core.mongo_legacy import db

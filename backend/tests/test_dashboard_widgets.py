@@ -7,7 +7,11 @@ from core.dashboard_widgets import (
     widget_enabled,
     widget_module_key,
 )
-from core.deployment import DeploymentModules, load_deployment_config, load_personal_preset
+from core.deployment import (
+    DeploymentModules,
+    load_deployment_config,
+    load_personal_preset,
+)
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 

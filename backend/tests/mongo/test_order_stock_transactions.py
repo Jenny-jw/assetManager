@@ -3,12 +3,12 @@ from __future__ import annotations
 
 import threading
 
-import pytest
 from bson import ObjectId
 from fastapi import HTTPException
+import pytest
 
-import services.order_service as order_service_module
 from schemas.order import OrderCreate, OrderItemCreate
+import services.order_service as order_service_module
 from services.order_service import approve_order, place_order
 from tests.mongo_fake import make_user, seed_orderable_tea
 

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
+from routes import auth_router, deployment_router, security_router, stock_router
 from routes.health import router as health_router
 from routes.orders import router as orders_router
-from routes import auth_router, security_router, stock_router, deployment_router
 
 def register_routes(app: FastAPI) -> None:
     """Register all module routers; enforce modules per request (ADR 005 / P1-5f)."""

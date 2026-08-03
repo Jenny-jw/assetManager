@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-import jwt
 from fastapi import Depends, HTTPException, Request, status
+import jwt
 
 from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
 from core.db import get_session_factory

@@ -9,17 +9,17 @@ os.environ.setdefault("USE_DB_TRANSACTIONS", "false")
 from pathlib import Path
 from typing import Any
 
-import pytest
 from bson import ObjectId
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+import pytest
 
-import core.mongo_legacy as mongo_legacy_module
-import main as app_module
-import services.order_service as order_service_module
 from core.deployment import load_deployment_config
+import core.mongo_legacy as mongo_legacy_module
 from dependencies.mongo_auth import get_current_user
+import main as app_module
 from main import app, create_app
+import services.order_service as order_service_module
 from tests.mongo_fake import FakeDB
 
 _PROFESSIONAL_PRESET = (

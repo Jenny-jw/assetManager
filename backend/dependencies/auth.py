@@ -3,12 +3,16 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-import jwt
 from fastapi import Depends, HTTPException, Request, status
+import jwt
 from sqlalchemy import select
 
 from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
-from core.tenant import bind_request_tenant, clear_current_tenant_id, get_request_tenant_id
+from core.tenant import (
+    bind_request_tenant,
+    clear_current_tenant_id,
+    get_request_tenant_id,
+)
 from dependencies.db import DbSession
 from models.tenant import Tenant
 from models.user import User
