@@ -1,9 +1,10 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
+import type { UserRole } from "../types/User";
 
 type Props = {
   children: React.ReactNode;
-  allowedRoles: ("admin" | "user" | "guest")[];
+  allowedRoles: UserRole[];
 };
 
 const ProtectedRoute = ({ children, allowedRoles }: Props) => {

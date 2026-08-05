@@ -13,6 +13,7 @@ import {
   DashboardWidget,
   type DashboardWidgetId,
 } from "../types/Deployment";
+import { isModuleEnabled } from "../lib/moduleAccess";
 import {
   isDashboardWidgetId,
   renderDashboardWidget,
@@ -80,6 +81,7 @@ const Dashboard = () => {
     DashboardWidget.PENDING_ORDERS,
   );
   const showTotalValue = deployment?.modules.pricing_visibility ?? false;
+  const inventoryEnabled = isModuleEnabled(deployment, "inventory");
   const dashboardContext = {
     summary,
     recentAssets,
@@ -142,7 +144,7 @@ const Dashboard = () => {
           </div>
         ))}
         <div className="md:col-span-2 flex flex-col gap-4">
-          {isOwner && (
+          {isOwner && inventoryEnabled && (
             <>
               <button
                 className="flex-1 rounded-xl bg-[#78a043] hover:border-lime-200 text-white"

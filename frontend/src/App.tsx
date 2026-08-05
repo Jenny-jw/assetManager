@@ -6,7 +6,10 @@ import CreateAsset from "./pages/CreateAsset";
 import EditAsset from "./pages/EditAsset.tsx";
 import Login from "./pages/Login.tsx";
 import SignUp from "./pages/SignUp.tsx";
-import ProtectedRoute from "./routes/ProtectedRoute.tsx";
+import ModuleRoute from "./routes/ModuleRoute.tsx";
+import { UserRole } from "./types/User.ts";
+
+const OWNER_ROLES = [UserRole.OWNER] as const;
 
 function App() {
   return (
@@ -15,22 +18,36 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/assets" element={<AssetList />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ModuleRoute>
+              <Dashboard />
+            </ModuleRoute>
+          }
+        />
+        <Route
+          path="/assets"
+          element={
+            <ModuleRoute allowedRoles={[...OWNER_ROLES]} requireModule="inventory">
+              <AssetList />
+            </ModuleRoute>
+          }
+        />
         <Route
           path="/assets/new"
           element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+            <ModuleRoute allowedRoles={[...OWNER_ROLES]} requireModule="inventory">
               <CreateAsset />
-            </ProtectedRoute>
+            </ModuleRoute>
           }
         />
         <Route
           path="/assets/:id/edit"
           element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+            <ModuleRoute allowedRoles={[...OWNER_ROLES]} requireModule="inventory">
               <EditAsset />
-            </ProtectedRoute>
+            </ModuleRoute>
           }
         />
       </Routes>

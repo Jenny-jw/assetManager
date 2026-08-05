@@ -9,6 +9,8 @@ import {
   listTeas,
 } from "../services/teaServices";
 import { useAuth } from "../context/useAuth";
+import { useDeployment } from "../context/useDeployment";
+import { isModuleEnabled } from "../lib/moduleAccess";
 import { useNavigate } from "react-router-dom";
 import axios from "../lib/axios";
 import { isAxiosError } from "axios";
@@ -70,7 +72,11 @@ const SortableHeader = ({
 
 const AssetList = () => {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const { deployment } = useDeployment();
+  const isOwner = user?.role === "owner";
+  const canManageInventory = isOwner;
+  const ordersEnabled = isModuleEnabled(deployment, "orders");
+  const showTotalValue = isModuleEnabled(deployment, "pricing_visibility");
   const navigate = useNavigate();
 
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -261,7 +267,7 @@ const AssetList = () => {
   };
 
   const renderActions = (asset: Asset) => {
-    if (user?.role === "admin") {
+    if (canManageInventory) {
       return (
         <div className="flex gap-2 justify-end">
           <button
@@ -292,6 +298,22 @@ const AssetList = () => {
             className="px-3 py-1 text-sm rounded-lg bg-[#894f45] text-white hover:bg-red-700 transition"
           >
             Delete
+          </button>
+        </div>
+      );
+    }
+
+    if (!ordersEnabled) {
+      return (
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              openDesktopDetails(asset);
+            }}
+            className="px-3 py-1 text-sm rounded-lg bg-[#bfc099] text-white hover:bg-[#bbbb82] transition"
+          >
+            Details
           </button>
         </div>
       );
@@ -508,7 +530,7 @@ const AssetList = () => {
                   onSort={handleSort}
                 />
                 <th className="px-4 py-3">PRICE/ PKG</th>
-                {isAdmin && <th className="px-4 py-3">TOTAL VALUE</th>}
+                {showTotalValue && <th className="px-4 py-3">TOTAL VALUE</th>}
                 <SortableHeader
                   label="HARVEST TIME"
                   sortKey="harvest_time"
@@ -524,7 +546,7 @@ const AssetList = () => {
               {!isLoading && assets.length === 0 && (
                 <tr>
                   <td
-                    colSpan={isAdmin ? 11 : 10}
+                    colSpan={showTotalValue ? 11 : 10}
                     className="px-4 py-8 text-center text-gray-500"
                   >
                     No teas match your search or filters.
@@ -543,7 +565,7 @@ const AssetList = () => {
                   <td className="px-4 py-3">
                     {formatMoney(pricePerPackage(asset.price, asset.weight))}
                   </td>
-                  {isAdmin && (
+                  {showTotalValue && (
                     <td className="px-4 py-3 font-medium">
                       {formatMoney(lineTotalValue(asset))}
                     </td>
@@ -715,7 +737,7 @@ const AssetList = () => {
                   pricePerPackage(selectedAsset.price, selectedAsset.weight),
                 )}
               />
-              {isAdmin && (
+              {showTotalValue && (
                 <DetailRow
                   label="Total value"
                   value={formatMoney(lineTotalValue(selectedAsset))}
@@ -724,7 +746,7 @@ const AssetList = () => {
             </div>
 
             <div className="mt-6 flex justify-end">
-              {user?.role === "admin" ? (
+              {canManageInventory ? (
                 <>
                   <button
                     onClick={() => {
@@ -745,7 +767,7 @@ const AssetList = () => {
                     Delete
                   </button>
                 </>
-              ) : (
+              ) : ordersEnabled ? (
                 <button
                   onClick={() => {
                     void handleOrder(selectedAsset);
@@ -757,7 +779,7 @@ const AssetList = () => {
                     ? "Placing order…"
                     : "Order"}
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

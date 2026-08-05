@@ -3,8 +3,13 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AssetList from "@/pages/AssetList";
 import { AuthContext } from "@/context/authContextImpl";
+import { DeploymentContext } from "@/context/deploymentContextImpl";
 import type { AuthContextType } from "@/context/authContextImpl";
 import type { Asset } from "@/types/Asset";
+import type { Deployment } from "@/types/Deployment";
+import type { UserRole } from "@/types/User";
+import { personalDeployment } from "../fixtures/personalDeployment";
+import { professionalDeployment } from "../fixtures/professionalDeployment";
 
 const { listTeasMock } = vi.hoisted(() => ({
   listTeasMock: vi.fn(),
@@ -50,25 +55,35 @@ const sampleAssets: Asset[] = [
   },
 ];
 
-function renderAssetList(role: "admin" | "user" = "user") {
+function renderAssetList(
+  role: UserRole = "user",
+  deployment: Deployment = personalDeployment,
+) {
   return render(
-    <AuthContext.Provider
+    <DeploymentContext.Provider
       value={{
-        ...baseAuth,
-        user: {
-          id: "user-1",
-          email: "user@example.com",
-          name: "User",
-          role,
-          is_active: true,
-          created_at: "2026-01-01T00:00:00Z",
-        },
+        loading: false,
+        deployment,
       }}
     >
-      <MemoryRouter>
-        <AssetList />
-      </MemoryRouter>
-    </AuthContext.Provider>,
+      <AuthContext.Provider
+        value={{
+          ...baseAuth,
+          user: {
+            id: "user-1",
+            email: "user@example.com",
+            name: "User",
+            role,
+            is_active: true,
+            created_at: "2026-01-01T00:00:00Z",
+          },
+        }}
+      >
+        <MemoryRouter>
+          <AssetList />
+        </MemoryRouter>
+      </AuthContext.Provider>
+    </DeploymentContext.Provider>,
   );
 }
 
@@ -162,5 +177,36 @@ describe("AssetList", () => {
       expect(screen.getByText("Showing 21-32 of 32")).toBeInTheDocument();
       expect(screen.getAllByText("Page Two Tea").length).toBeGreaterThan(0);
     });
+  });
+
+  it("shows inventory actions for owner on personal deployment", async () => {
+    renderAssetList("owner", personalDeployment);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Alishan Oolong").length).toBeGreaterThan(0);
+    });
+
+    expect(screen.getAllByRole("button", { name: "Edit" }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: "Order" })).not.toBeInTheDocument();
+  });
+
+  it("hides order action when orders module is disabled", async () => {
+    renderAssetList("user", personalDeployment);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Alishan Oolong").length).toBeGreaterThan(0);
+    });
+
+    expect(screen.queryByRole("button", { name: "Order" })).not.toBeInTheDocument();
+  });
+
+  it("shows order action when orders module is enabled", async () => {
+    renderAssetList("user", professionalDeployment);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Alishan Oolong").length).toBeGreaterThan(0);
+    });
+
+    expect(screen.getAllByRole("button", { name: "Order" }).length).toBeGreaterThan(0);
   });
 });

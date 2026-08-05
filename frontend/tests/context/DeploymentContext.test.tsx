@@ -1,6 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Edition } from "@/types/Deployment";
+import { AuthContext } from "@/context/authContextImpl";
+import type { AuthContextType } from "@/context/authContextImpl";
 
 const { getDeploymentMock } = vi.hoisted(() => ({
   getDeploymentMock: vi.fn(),
@@ -30,6 +32,13 @@ const personalDeployment = {
   dashboard_layout: ["summary", "origin", "genre", "recent_assets"],
 } as const;
 
+const baseAuth: Omit<AuthContextType, "user"> = {
+  loading: false,
+  refresh: async () => {},
+  login: async () => {},
+  logout: async () => {},
+};
+
 function DeploymentProbe() {
   const { deployment, loading } = useDeployment();
   if (loading) {
@@ -41,19 +50,32 @@ function DeploymentProbe() {
   return <div>edition:{deployment.edition}</div>;
 }
 
+function renderWithAuth(user: AuthContextType["user"], authLoading = false) {
+  return render(
+    <AuthContext.Provider value={{ ...baseAuth, user, loading: authLoading }}>
+      <DeploymentProvider>
+        <DeploymentProbe />
+      </DeploymentProvider>
+    </AuthContext.Provider>,
+  );
+}
+
 describe("DeploymentProvider", () => {
   beforeEach(() => {
     getDeploymentMock.mockReset();
   });
 
-  it("loads deployment once on mount", async () => {
+  it("loads deployment when authenticated user is present", async () => {
     getDeploymentMock.mockResolvedValue(personalDeployment);
 
-    render(
-      <DeploymentProvider>
-        <DeploymentProbe />
-      </DeploymentProvider>,
-    );
+    renderWithAuth({
+      id: "owner-1",
+      name: "Owner",
+      email: "owner@example.com",
+      role: "owner",
+      is_active: true,
+      created_at: "2026-01-01T00:00:00Z",
+    });
 
     expect(screen.getByText("loading")).toBeInTheDocument();
 
@@ -64,14 +86,27 @@ describe("DeploymentProvider", () => {
     expect(getDeploymentMock).toHaveBeenCalledTimes(1);
   });
 
+  it("skips deployment fetch when user is not authenticated", async () => {
+    renderWithAuth(null);
+
+    await waitFor(() => {
+      expect(screen.getByText("no deployment")).toBeInTheDocument();
+    });
+
+    expect(getDeploymentMock).not.toHaveBeenCalled();
+  });
+
   it("sets deployment to null when fetch fails", async () => {
     getDeploymentMock.mockRejectedValue(new Error("network error"));
 
-    render(
-      <DeploymentProvider>
-        <DeploymentProbe />
-      </DeploymentProvider>,
-    );
+    renderWithAuth({
+      id: "owner-1",
+      name: "Owner",
+      email: "owner@example.com",
+      role: "owner",
+      is_active: true,
+      created_at: "2026-01-01T00:00:00Z",
+    });
 
     await waitFor(() => {
       expect(screen.getByText("no deployment")).toBeInTheDocument();
