@@ -2,9 +2,9 @@ import type { Deployment, DeploymentModules } from "../types/Deployment";
 
 export type ModuleKey = keyof DeploymentModules;
 
-export function isModuleEnabled(
+export const isModuleEnabled = (
   deployment: Deployment | null | undefined,
   moduleKey: ModuleKey,
-): boolean {
+): boolean => {
   return deployment?.modules[moduleKey] === true;
-}
+};

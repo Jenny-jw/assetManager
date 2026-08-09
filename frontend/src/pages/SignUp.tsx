@@ -1,6 +1,7 @@
 import type React from "react";
-import { signup } from "../services/authServices";
 import { useState, type SubmitEventHandler } from "react";
+import { useTranslation } from "react-i18next";
+import { signup } from "../services/authServices";
 
 declare module "react-router" {
   interface FetcherFormProps {
@@ -9,6 +10,7 @@ declare module "react-router" {
 }
 
 const SignUp = () => {
+  const { t } = useTranslation();
   const [errMsg, setErrMsg] = useState<string>("");
   const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -25,9 +27,9 @@ const SignUp = () => {
       if (err instanceof Error) {
         const msg = err.message;
         if (msg === "Email already registered") {
-          setErrMsg("This email is already registered. Please log in instead.");
+          setErrMsg(t("auth.signupEmailTaken"));
         } else {
-          setErrMsg("An error occurred during sign up. Please try again.");
+          setErrMsg(t("auth.signupError"));
         }
       } else {
         console.error("Unexpected error during sign up:", err);
@@ -38,14 +40,14 @@ const SignUp = () => {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="bg-lime-600/50 p-8 rounded shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">{t("auth.signup")}</h2>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label
               htmlFor="name"
               className="block text-sm font-medium text-gray-200"
             >
-              Name
+              {t("auth.name")}
             </label>
             <input
               type="text"
@@ -60,7 +62,7 @@ const SignUp = () => {
               htmlFor="email"
               className="block text-sm font-medium text-gray-200"
             >
-              Email
+              {t("auth.email")}
             </label>
             <input
               type="email"
@@ -75,7 +77,7 @@ const SignUp = () => {
               htmlFor="password"
               className="block text-sm font-medium text-gray-200"
             >
-              Password
+              {t("auth.password")}
             </label>
             <input
               type="password"
@@ -92,13 +94,13 @@ const SignUp = () => {
             type="submit"
             className="w-full bg-lime-600 text-white py-2 rounded hover:bg-lime-700 hover:border-lime-500 transition"
           >
-            Sign Up
+            {t("auth.signup")}
           </button>
         </form>
         <p className="mt-4 text-center text-sm">
-          Already have an account?{" "}
+          {t("auth.hasAccount")}{" "}
           <a href="/login" className="text-lime-300 hover:text-lime-500">
-            Log In
+            {t("auth.login")}
           </a>
         </p>
       </div>

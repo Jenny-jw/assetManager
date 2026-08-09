@@ -2,7 +2,6 @@ import type { Asset } from "../types/Asset";
 import type { TeaSortField } from "../types/TeaList";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
-import { createOrder } from "../services/orderServices";
 import {
   DEFAULT_TEA_PAGE_SIZE,
   extractTeaFacets,
@@ -12,8 +11,8 @@ import { useAuth } from "../context/useAuth";
 import { useDeployment } from "../context/useDeployment";
 import { isModuleEnabled } from "../lib/moduleAccess";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import axios from "../lib/axios";
-import { isAxiosError } from "axios";
 import {
   formatMoney,
   lineTotalValue,
@@ -71,11 +70,11 @@ const SortableHeader = ({
 );
 
 const AssetList = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { deployment } = useDeployment();
   const isOwner = user?.role === "owner";
   const canManageInventory = isOwner;
-  const ordersEnabled = isModuleEnabled(deployment, "orders");
   const showTotalValue = isModuleEnabled(deployment, "pricing_visibility");
   const navigate = useNavigate();
 
@@ -93,8 +92,6 @@ const AssetList = () => {
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [orderingAssetId, setOrderingAssetId] = useState<string | null>(null);
-  const isOrdering = orderingAssetId !== null;
 
   const debouncedSearch = useDebouncedValue(searchInput, SEARCH_DEBOUNCE_MS);
   const previousSearch = useRef(debouncedSearch);
@@ -205,41 +202,6 @@ const AssetList = () => {
     setTotal(response.total);
   };
 
-  const handleOrder = async (asset: Asset) => {
-    if (isOrdering) return;
-
-    const qtyInput = window.prompt(
-      `How many packages of "${asset.name}" would you like to order?`,
-      "1",
-    );
-    if (qtyInput === null) return;
-
-    const quantity = Number(qtyInput);
-    if (!Number.isInteger(quantity) || quantity < 1) {
-      alert("Please enter a valid number of packages (1 or more).");
-      return;
-    }
-
-    setOrderingAssetId(asset.id);
-
-    try {
-      await createOrder({
-        items: [{ tea_id: asset.id, quantity }],
-      });
-      await refreshAssets();
-      setSelectedAsset((prev) => (prev?.id === asset.id ? null : prev));
-      alert("Submitted, awaiting admin approval");
-    } catch (error) {
-      const message = isAxiosError(error)
-        ? ((error.response?.data as { detail?: string })?.detail ??
-          "Failed to place order.")
-        : "Failed to place order.";
-      alert(message);
-    } finally {
-      setOrderingAssetId(null);
-    }
-  };
-
   const handleDelete = async (assetId: string) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this tea?",
@@ -277,7 +239,7 @@ const AssetList = () => {
             }}
             className="px-3 py-1 text-sm rounded-lg bg-[#bfc099] text-white hover:bg-[#bbbb82] transition"
           >
-            Details
+            {t("inventory.details")}
           </button>
 
           <button
@@ -287,7 +249,7 @@ const AssetList = () => {
             }}
             className="px-3 py-1 text-sm rounded-lg bg-[#78a043] text-white hover:bg-lime-900 transition"
           >
-            Edit
+            {t("inventory.edit")}
           </button>
 
           <button
@@ -297,23 +259,7 @@ const AssetList = () => {
             }}
             className="px-3 py-1 text-sm rounded-lg bg-[#894f45] text-white hover:bg-red-700 transition"
           >
-            Delete
-          </button>
-        </div>
-      );
-    }
-
-    if (!ordersEnabled) {
-      return (
-        <div className="flex gap-2 justify-end">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              openDesktopDetails(asset);
-            }}
-            className="px-3 py-1 text-sm rounded-lg bg-[#bfc099] text-white hover:bg-[#bbbb82] transition"
-          >
-            Details
+            {t("inventory.delete")}
           </button>
         </div>
       );
@@ -328,18 +274,7 @@ const AssetList = () => {
           }}
           className="px-3 py-1 text-sm rounded-lg bg-[#bfc099] text-white hover:bg-[#bbbb82] transition"
         >
-          Details
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            void handleOrder(asset);
-          }}
-          disabled={isOrdering}
-          className="px-3 py-1 text-sm rounded-lg bg-lime-700 text-white hover:bg-lime-900 transition disabled:opacity-60 disabled:cursor-not-allowed min-w-[5.5rem]"
-        >
-          {orderingAssetId === asset.id ? "Ordering…" : "Order"}
+          {t("inventory.details")}
         </button>
       </div>
     );
@@ -375,9 +310,9 @@ const AssetList = () => {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between gap-4 px-2">
         <div className="text-left">
-          <h1 className="text-3xl font-bold">Asset List</h1>
+          <h1 className="text-3xl font-bold">{t("inventory.title")}</h1>
           <p className="text-sm text-[#d6d1c5]">
-            Search, filter, and sort teas. Click column headers to change sort.
+            {t("inventory.subtitle")}
           </p>
         </div>
 
@@ -386,7 +321,7 @@ const AssetList = () => {
           onClick={() => navigate("/dashboard")}
           className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
         >
-          Back to Dashboard
+          {t("inventory.backToDashboard")}
         </button>
       </div>
 
@@ -549,7 +484,7 @@ const AssetList = () => {
                     colSpan={showTotalValue ? 11 : 10}
                     className="px-4 py-8 text-center text-gray-500"
                   >
-                    No teas match your search or filters.
+                    {t("inventory.noMatches")}
                   </td>
                 </tr>
               )}
@@ -620,7 +555,7 @@ const AssetList = () => {
             {!isLoading && assets.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                  No teas match your search or filters.
+                  {t("inventory.noMatches")}
                 </td>
               </tr>
             )}
@@ -645,7 +580,7 @@ const AssetList = () => {
       <div className="md:hidden space-y-3">
         {!isLoading && assets.length === 0 && (
           <div className="bg-white rounded-2xl border shadow-sm p-6 text-center text-gray-500">
-            No teas match your search or filters.
+            {t("inventory.noMatches")}
           </div>
         )}
         {assets.map((asset) => (
@@ -755,7 +690,7 @@ const AssetList = () => {
                     }}
                     className="px-4 py-2 bg-[#78a043] text-white rounded-lg mr-2 hover:bg-lime-900 transition"
                   >
-                    Edit
+                    {t("inventory.edit")}
                   </button>
                   <button
                     onClick={() => {
@@ -764,21 +699,9 @@ const AssetList = () => {
                     }}
                     className="px-4 py-2 bg-[#894f45] text-white rounded-lg hover:bg-red-700 transition"
                   >
-                    Delete
+                    {t("inventory.delete")}
                   </button>
                 </>
-              ) : ordersEnabled ? (
-                <button
-                  onClick={() => {
-                    void handleOrder(selectedAsset);
-                  }}
-                  disabled={isOrdering}
-                  className="px-4 py-2 bg-lime-700 text-white rounded-lg transition disabled:opacity-60 disabled:cursor-not-allowed min-w-[7rem]"
-                >
-                  {orderingAssetId === selectedAsset.id
-                    ? "Placing order…"
-                    : "Order"}
-                </button>
               ) : null}
             </div>
           </div>

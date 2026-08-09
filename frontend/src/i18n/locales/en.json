@@ -1,0 +1,55 @@
+{
+  "auth": {
+    "login": "Log In",
+    "signup": "Sign Up",
+    "logout": "Log out",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginUnexpectedError": "An unexpected error occurred during login.",
+    "signupEmailTaken": "This email is already registered. Please log in instead.",
+    "signupError": "An error occurred during sign up. Please try again.",
+    "brandTitle": "Tea Keeper 🌿",
+    "brandSubtitle": "Manage and track your yummy tea collection.",
+    "viewGuestDashboard": "View Dashboard as Guest →"
+  },
+  "dashboard": {
+    "title": "Tea Keeper Dashboard",
+    "addAsset": "Add Asset",
+    "manageInventory": "Manage Inventory"
+  },
+  "widgets": {
+    "totalAssets": "Total Assets",
+    "totalPackages": "Total Packages",
+    "totalWeight": "Total Weight (g)",
+    "totalWeightHint": "Σ (g per package × packages)",
+    "totalValue": "Total Value",
+    "totalValueHint": "Σ (price per package × packages)",
+    "recentAssets": "Recent Assets",
+    "assetsByOrigin": "Assets by Origin",
+    "assetsByGenre": "Assets by Genre",
+    "pendingOrders": "Pending Orders",
+    "noPendingOrders": "No pending orders at the moment",
+    "orderTotal": "Total: {{amount}}",
+    "approve": "Approve",
+    "reject": "Reject",
+    "remove": "Remove",
+    "acting": "…",
+    "itemUnavailable": "{{name}} (no longer available)",
+    "approveFailed": "Failed to approve order. Please try again.",
+    "rejectFailed": "Failed to reject order. Please try again.",
+    "removeFailed": "Failed to remove order. Please try again.",
+    "rejectConfirm": "Reject this order?"
+  },
+  "inventory": {
+    "title": "Asset List",
+    "subtitle": "Search, filter, and sort teas. Click column headers to change sort.",
+    "backToDashboard": "Back to Dashboard",
+    "details": "Details",
+    "edit": "Edit",
+    "delete": "Delete",
+    "noMatches": "No teas match your search or filters."
+  }
+}

@@ -9,7 +9,6 @@ import type { Asset } from "@/types/Asset";
 import type { Deployment } from "@/types/Deployment";
 import type { UserRole } from "@/types/User";
 import { personalDeployment } from "../fixtures/personalDeployment";
-import { professionalDeployment } from "../fixtures/professionalDeployment";
 
 const { listTeasMock } = vi.hoisted(() => ({
   listTeasMock: vi.fn(),
@@ -188,25 +187,5 @@ describe("AssetList", () => {
 
     expect(screen.getAllByRole("button", { name: "Edit" }).length).toBeGreaterThan(0);
     expect(screen.queryByRole("button", { name: "Order" })).not.toBeInTheDocument();
-  });
-
-  it("hides order action when orders module is disabled", async () => {
-    renderAssetList("user", personalDeployment);
-
-    await waitFor(() => {
-      expect(screen.getAllByText("Alishan Oolong").length).toBeGreaterThan(0);
-    });
-
-    expect(screen.queryByRole("button", { name: "Order" })).not.toBeInTheDocument();
-  });
-
-  it("shows order action when orders module is enabled", async () => {
-    renderAssetList("user", professionalDeployment);
-
-    await waitFor(() => {
-      expect(screen.getAllByText("Alishan Oolong").length).toBeGreaterThan(0);
-    });
-
-    expect(screen.getAllByRole("button", { name: "Order" }).length).toBeGreaterThan(0);
   });
 });

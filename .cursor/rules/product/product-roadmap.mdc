@@ -41,7 +41,7 @@ alwaysApply: true
 | 10  | Inventory API on PG — see **P1-10 breakdown**; cleanup after → `product-branch-cleanup.mdc`          | [x] |
 | 11  | Dashboard widget registry — see **P1-11 breakdown** below                                            | [x] |
 | 12  | Frontend routes gated by modules — no Orders nav/pages on personal                                   | [x] |
-| 13  | i18n (`react-i18next`) — load **one** locale from tenant/deployment at startup                       | [ ] |
+| 13  | i18n (`react-i18next`) — load **one** locale from tenant/deployment at startup                       | [x] |
 | 14  | Personal edition tests — capabilities, orders off, widgets, stock API (pytest + Vitest)              | [ ] |
 
 ### P1-11 — Dashboard widget registry (incremental)
@@ -108,4 +108,4 @@ alwaysApply: true
 | Multi-DB import (N buyer PGs → one PG) | No independent-deploy buyers to merge (ADR 005) |
 | Fleet / per-buyer Docker + dedicated PG | Optional data-sovereignty tier later; not default delivery |
 
-**Next:** P1 **#13** (i18n — load one locale from tenant/deployment at startup). **This version:** `owner` only on all editions.
+**Next:** P1 **#14** (personal edition tests — capabilities, orders off, widgets, stock API). **This version:** `owner` only on all editions.
