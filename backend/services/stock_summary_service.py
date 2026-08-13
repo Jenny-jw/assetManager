@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 from typing import Any
-from uuid import UUID
-
-from sqlalchemy.orm import Session
 
 from core.tea_pricing import line_total_value
-from services.stock_queries import active_stocks_select
+from repositories.postgres.stock_repository import StockRepository
 
-def build_stock_summary(db: Session, *, tenant_id: UUID) -> dict[str, Any]:
+def build_stock_summary(repo: StockRepository) -> dict[str, Any]:
     total_assets = 0
     total_packages = 0
     total_weight_grams = 0
@@ -16,7 +13,7 @@ def build_stock_summary(db: Session, *, tenant_id: UUID) -> dict[str, Any]:
     by_origin: dict[str, int] = {}
     by_genre: dict[str, int] = {}
 
-    for stock in db.scalars(active_stocks_select(tenant_id=tenant_id)).all():
+    for stock in repo.list_all_active():
         total_assets += 1
         quantity = stock.quantity or 0
         weight_grams = stock.weight_grams or 0
