@@ -13,6 +13,7 @@ import {
 } from "@/lib/dashboardWidgetRegistry";
 import { personalDeployment } from "./fixtures/personalDeployment";
 import {
+  Capability,
   DashboardWidget,
   Edition,
   type DashboardWidgetId,
@@ -147,6 +148,18 @@ describe("Personal edition", () => {
     expect(isModuleEnabled(personalDeployment, "pricing_visibility")).toBe(true);
     expect(isModuleEnabled(personalDeployment, "orders")).toBe(false);
     expect(isModuleEnabled(personalDeployment, "profit_analytics")).toBe(false);
+  });
+
+  it("owner capabilities exclude orders and profit", () => {
+    expect(personalDeployment.capabilities).toEqual([
+      Capability.MANAGE_INVENTORY,
+      Capability.VIEW_CATALOG,
+      Capability.VIEW_PRICING,
+    ]);
+    expect(personalDeployment.capabilities).not.toContain(
+      Capability.APPROVE_ORDERS,
+    );
+    expect(personalDeployment.capabilities).not.toContain(Capability.VIEW_PROFIT);
   });
 
   it("renders each personal dashboard widget and hides pending orders", async () => {

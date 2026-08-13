@@ -69,6 +69,12 @@ def resolve_capabilities(
         cap for cap in base_caps if _capability_enabled(cap, deployment.modules)
     )
 
+def granted_capabilities(
+    user: dict[str, Any],
+    deployment: DeploymentConfig,
+) -> list[str]:
+    return sorted(cap.value for cap in resolve_capabilities(user, deployment))
+
 def has_capability(
     user: dict[str, Any],
     capability: Capability | str,

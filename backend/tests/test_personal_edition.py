@@ -165,6 +165,13 @@ def test_personal_deployment_api_returns_orders_off_and_personal_widgets(
         "recent_assets",
     ]
     assert "pending_orders" not in body["dashboard_layout"]
+    assert body["capabilities"] == [
+        "manage_inventory",
+        "view_catalog",
+        "view_pricing",
+    ]
+    assert "approve_orders" not in body["capabilities"]
+    assert "view_profit" not in body["capabilities"]
 
 def test_personal_effective_dashboard_layout_excludes_order_widgets(
     personal_client: TestClient,

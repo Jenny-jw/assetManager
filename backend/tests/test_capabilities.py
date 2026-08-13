@@ -5,6 +5,7 @@ import pytest
 from core.capabilities import (
     Capability,
     capability_denial_detail,
+    granted_capabilities,
     has_capability,
     resolve_capabilities,
 )
@@ -68,3 +69,21 @@ def test_v1_roles_not_used_in_product_capabilities():
     for legacy_role in ("admin", "user", "guest"):
         caps = resolve_capabilities({"id": "x", "role": legacy_role}, deployment)
         assert caps == frozenset()
+
+def test_granted_capabilities_are_sorted_strings_for_personal_owner():
+    deployment = load_deployment_config(_preset_path("personal.yaml"))
+    assert granted_capabilities(_owner_user(), deployment) == [
+        "manage_inventory",
+        "view_catalog",
+        "view_pricing",
+    ]
+
+def test_granted_capabilities_include_orders_and_profit_for_professional_owner():
+    deployment = load_deployment_config(_preset_path("professional.yaml"))
+    assert granted_capabilities(_owner_user(), deployment) == [
+        "approve_orders",
+        "manage_inventory",
+        "view_catalog",
+        "view_pricing",
+        "view_profit",
+    ]

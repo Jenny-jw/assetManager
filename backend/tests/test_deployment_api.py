@@ -106,6 +106,11 @@ def test_get_deployment_returns_current_tenant_personal_config(
     assert body["locale"] == "zh-TW"
     assert body["modules"]["orders"] is False
     assert "pending_orders" not in body["dashboard_layout"]
+    assert body["capabilities"] == [
+        "manage_inventory",
+        "view_catalog",
+        "view_pricing",
+    ]
 
 def test_get_deployment_returns_current_tenant_professional_config(
     deployment_client: TestClient,
@@ -129,3 +134,10 @@ def test_get_deployment_returns_current_tenant_professional_config(
     assert body["modules"]["orders"] is True
     assert body["modules"]["profit_analytics"] is True
     assert "pending_orders" in body["dashboard_layout"]
+    assert body["capabilities"] == [
+        "approve_orders",
+        "manage_inventory",
+        "view_catalog",
+        "view_pricing",
+        "view_profit",
+    ]

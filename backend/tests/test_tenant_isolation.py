@@ -159,6 +159,7 @@ def test_deployment_config_is_isolated_between_tenants(isolation_app: FastAPI):
     assert personal.status_code == 200
     assert personal.json()["edition"] == "personal"
     assert personal.json()["modules"]["orders"] is False
+    assert "approve_orders" not in personal.json()["capabilities"]
 
     signup_b = client_b.post(
         "/api/auth/signup",
@@ -181,12 +182,15 @@ def test_deployment_config_is_isolated_between_tenants(isolation_app: FastAPI):
     assert professional.status_code == 200
     assert professional.json()["edition"] == "professional"
     assert professional.json()["modules"]["orders"] is True
+    assert "approve_orders" in professional.json()["capabilities"]
+    assert "view_profit" in professional.json()["capabilities"]
 
     # Tenant A remains on personal config.
     personal_again = client_a.get("/api/deployment")
     assert personal_again.status_code == 200
     assert personal_again.json()["edition"] == "personal"
     assert personal_again.json()["modules"]["orders"] is False
+    assert "approve_orders" not in personal_again.json()["capabilities"]
 
 def test_same_username_can_exist_in_different_tenants(isolation_app: FastAPI):
     client_a = _client(isolation_app)

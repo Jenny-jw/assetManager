@@ -58,7 +58,7 @@ alwaysApply: true
 | 11h | Dashboard actions for `owner` (Add Asset / Manage Inventory); defer nav gating to **#12** | [x] |
 | 11i | Vitest — personal layout hides `PendingOrdersInbox` | [x] |
 
-**Deferred:** full `capabilities` in deployment API → **P2 #16**; i18n labels → **#13**; stock API on frontend (`/api/stock`) → align with P1-12 or follow-up.
+**Deferred:** i18n labels → **#13**; stock API on frontend (`/api/stock`) → align with P1-12 or follow-up.
 
 **Deferred from P1-9** (other roadmap items):
 
@@ -74,7 +74,7 @@ alwaysApply: true
 | #   | Item | St  |
 | --- | ---- | --- |
 | 15  | `repositories/postgres/` — tenant-scoped `StockRepository` (no raw SQL in routes) | [x] |
-| 16  | `GET /api/deployment` — edition, modules, capabilities, `locale`, `dashboard_layout` | [ ] |
+| 16  | `GET /api/deployment` — edition, modules, capabilities, `locale`, `dashboard_layout` | [x] |
 | 17  | Structured API error codes (`module_disabled`, `capability_disabled`, `trial_expired`, …) | [ ] |
 | 18  | `modules/{inventory,orders,analytics}/` package layout; routes thin | [ ] |
 
@@ -108,4 +108,4 @@ alwaysApply: true
 | Multi-DB import (N buyer PGs → one PG) | No independent-deploy buyers to merge (ADR 005) |
 | Fleet / per-buyer Docker + dedicated PG | Optional data-sovereignty tier later; not default delivery |
 
-**Next:** P2 **#16** (`GET /api/deployment` includes capabilities). **This version:** `owner` only on all editions.
+**Next:** P2 **#17** (structured API error codes). **This version:** `owner` only on all editions.

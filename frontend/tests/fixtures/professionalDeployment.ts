@@ -1,4 +1,5 @@
 import {
+  Capability,
   DashboardWidget,
   Edition,
   Locale,
@@ -25,5 +26,12 @@ export const professionalDeployment: Deployment = {
     DashboardWidget.GENRE,
     DashboardWidget.PENDING_ORDERS,
     DashboardWidget.RECENT_ASSETS,
+  ],
+  capabilities: [
+    Capability.APPROVE_ORDERS,
+    Capability.MANAGE_INVENTORY,
+    Capability.VIEW_CATALOG,
+    Capability.VIEW_PRICING,
+    Capability.VIEW_PROFIT,
   ],
 };

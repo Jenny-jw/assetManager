@@ -96,7 +96,20 @@ def test_user_response_from_orm():
 
 def test_deployment_response_from_config():
     deployment = load_personal_preset()
-    response = DeploymentResponse.model_validate(deployment)
+    response = DeploymentResponse.model_validate(
+        {
+            "edition": deployment.edition,
+            "locale": deployment.locale,
+            "modules": deployment.modules,
+            "dashboard_layout": deployment.dashboard_layout,
+            "capabilities": ["manage_inventory", "view_catalog", "view_pricing"],
+        }
+    )
     assert response.edition is Edition.personal
     assert response.modules.orders is False
     assert "summary" in response.dashboard_layout
+    assert [cap.value for cap in response.capabilities] == [
+        "manage_inventory",
+        "view_catalog",
+        "view_pricing",
+    ]

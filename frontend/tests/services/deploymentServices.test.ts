@@ -28,6 +28,7 @@ const personalDeployment = {
     profit_analytics: false,
   },
   dashboard_layout: ["summary", "origin", "genre", "recent_assets"],
+  capabilities: ["manage_inventory", "view_catalog", "view_pricing"],
 } as const;
 
 describe("deploymentServices", () => {
@@ -44,5 +45,10 @@ describe("deploymentServices", () => {
     expect(deployment.edition).toBe(Edition.PERSONAL);
     expect(deployment.modules.orders).toBe(false);
     expect(deployment.dashboard_layout).not.toContain("pending_orders");
+    expect(deployment.capabilities).toEqual([
+      "manage_inventory",
+      "view_catalog",
+      "view_pricing",
+    ]);
   });
 });
