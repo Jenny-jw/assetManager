@@ -75,7 +75,7 @@ alwaysApply: true
 | --- | ---- | --- |
 | 15  | `repositories/postgres/` — tenant-scoped `StockRepository` (no raw SQL in routes) | [x] |
 | 16  | `GET /api/deployment` — edition, modules, capabilities, `locale`, `dashboard_layout` | [x] |
-| 17  | Structured API error codes (`module_disabled`, `capability_disabled`, `trial_expired`, …) | [ ] |
+| 17  | Structured API error codes (`module_disabled`, `capability_disabled`, `trial_expired`, …) | [x] |
 | 18  | `modules/{inventory,orders,analytics}/` package layout; routes thin | [ ] |
 
 ## P3 — Professional edition (owner-only)
@@ -108,4 +108,4 @@ alwaysApply: true
 | Multi-DB import (N buyer PGs → one PG) | No independent-deploy buyers to merge (ADR 005) |
 | Fleet / per-buyer Docker + dedicated PG | Optional data-sovereignty tier later; not default delivery |
 
-**Next:** P2 **#17** (structured API error codes). **This version:** `owner` only on all editions.
+**Next:** P2 **#18** (`modules/{inventory,orders,analytics}/` package layout). **This version:** `owner` only on all editions.

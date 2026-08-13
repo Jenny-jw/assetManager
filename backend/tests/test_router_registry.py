@@ -33,7 +33,9 @@ def test_orders_endpoint_returns_module_disabled_on_personal_app():
     client = TestClient(app)
     response = client.get("/api/orders/")
     assert response.status_code == 403
-    assert response.json()["detail"] == "module_disabled"
+    body = response.json()
+    assert body["detail"] == "module_disabled"
+    assert body["error"]["code"] == "module_disabled"
 
 def test_orders_endpoint_reachable_when_orders_module_enabled():
     app = create_app(load_deployment_config(_REPO_ROOT / "deploy" / "presets" / "professional.yaml"))
@@ -41,7 +43,9 @@ def test_orders_endpoint_reachable_when_orders_module_enabled():
     response = client.get("/api/orders/")
     # Module check passes; Mongo auth then rejects unauthenticated request.
     assert response.status_code == 401
-    assert response.json()["detail"] == "Not authenticated"
+    body = response.json()
+    assert body["detail"] == "not_authenticated"
+    assert body["error"]["code"] == "not_authenticated"
 
 def test_default_module_app_matches_personal_preset():
     default_app = create_app()

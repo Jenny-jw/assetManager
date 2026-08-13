@@ -125,20 +125,20 @@ def test_get_current_user_returns_owner_after_login(auth_probe_client: TestClien
 def test_get_current_user_without_cookie_returns_401(auth_probe_client: TestClient):
     response = auth_probe_client.get("/api/auth/probe")
     assert response.status_code == 401
-    assert response.json()["detail"] == "Not authenticated"
+    assert response.json()["detail"] == "not_authenticated"
 
 def test_get_current_user_rejects_invalid_token(auth_probe_client: TestClient):
     auth_probe_client.cookies.set("token", "not-a-valid-jwt")
     response = auth_probe_client.get("/api/auth/probe")
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid or expired token"
+    assert response.json()["detail"] == "invalid_token"
 
 def test_get_current_user_rejects_non_uuid_sub(auth_probe_client: TestClient):
     token = create_token({"sub": "507f1f77bcf86cd799439011", "role": "owner"})
     auth_probe_client.cookies.set("token", token)
     response = auth_probe_client.get("/api/auth/probe")
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid token payload"
+    assert response.json()["detail"] == "invalid_token_payload"
 
 def test_get_current_user_returns_404_when_user_missing(auth_probe_client: TestClient):
     token = create_token(
@@ -151,7 +151,7 @@ def test_get_current_user_returns_404_when_user_missing(auth_probe_client: TestC
     auth_probe_client.cookies.set("token", token)
     response = auth_probe_client.get("/api/auth/probe")
     assert response.status_code == 404
-    assert response.json()["detail"] == "User not found"
+    assert response.json()["detail"] == "user_not_found"
 
 def test_get_current_user_rejects_inactive_owner(auth_session: Session, auth_probe_client: TestClient):
     tenant = _make_tenant()
@@ -180,7 +180,7 @@ def test_get_current_user_rejects_inactive_owner(auth_session: Session, auth_pro
     auth_probe_client.cookies.set("token", token)
     response = auth_probe_client.get("/api/auth/probe")
     assert response.status_code == 401
-    assert response.json()["detail"] == "Not authenticated"
+    assert response.json()["detail"] == "not_authenticated"
 
 def test_login_includes_tenant_id_claim_for_tenant_bound_owner(
     auth_probe_client: TestClient,
@@ -237,14 +237,14 @@ def test_get_current_user_scopes_by_jwt_tenant_id(
     auth_probe_client.cookies.set("token", mismatched)
     response = auth_probe_client.get("/api/auth/probe")
     assert response.status_code == 404
-    assert response.json()["detail"] == "User not found"
+    assert response.json()["detail"] == "user_not_found"
 
 def test_get_current_user_requires_tenant_claim(auth_probe_client: TestClient):
     token = create_token({"sub": str(uuid4()), "role": "owner"})
     auth_probe_client.cookies.set("token", token)
     response = auth_probe_client.get("/api/auth/probe")
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid token payload"
+    assert response.json()["detail"] == "invalid_token_payload"
 
 def test_get_current_user_rejects_tenant_bound_user_without_tenant_claim(
     auth_session: Session,
@@ -270,7 +270,7 @@ def test_get_current_user_rejects_tenant_bound_user_without_tenant_claim(
     auth_probe_client.cookies.set("token", token)
     response = auth_probe_client.get("/api/auth/probe")
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid token payload"
+    assert response.json()["detail"] == "invalid_token_payload"
 
 def test_get_current_user_rejects_non_uuid_tenant_claim(
     auth_session: Session,
@@ -302,4 +302,4 @@ def test_get_current_user_rejects_non_uuid_tenant_claim(
     auth_probe_client.cookies.set("token", token)
     response = auth_probe_client.get("/api/auth/probe")
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid token payload"
+    assert response.json()["detail"] == "invalid_token_payload"

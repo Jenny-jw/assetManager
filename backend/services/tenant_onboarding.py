@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from fastapi import HTTPException, status
+from fastapi import status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from core.config import TRIAL_DAYS
 from core.deployment import DeploymentConfig, Edition, load_preset_for_edition
+from core.errors import ErrorCode, api_error
 from models.tenant import Tenant
 
 TENANT_STATUS_TRIAL = "trial"
@@ -38,15 +39,9 @@ def get_tenant_by_slug(db: Session, slug: str) -> Tenant | None:
 
 def assert_tenant_access(tenant: Tenant) -> None:
     if tenant.status == TENANT_STATUS_SUSPENDED:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="tenant_suspended",
-        )
+        raise api_error(status.HTTP_403_FORBIDDEN, ErrorCode.tenant_suspended)
     if tenant.status == TENANT_STATUS_TRIAL:
         if tenant.trial_ends_at is None or _as_utc(tenant.trial_ends_at) <= datetime.now(
             timezone.utc
         ):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="trial_expired",
-            )
+            raise api_error(status.HTTP_403_FORBIDDEN, ErrorCode.trial_expired)

@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from core.capabilities import require_module
 from core.deployment import DeploymentConfig
+from core.errors import ErrorCode, api_error
 from dependencies.auth import require_owner
 from dependencies.deployment import get_request_deployment
 from dependencies.repositories import get_stock_repository
@@ -30,10 +31,7 @@ def _parse_stock_id(stock_id: str) -> UUID:
     try:
         return UUID(stock_id)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid stock id",
-        ) from exc
+        raise api_error(status.HTTP_400_BAD_REQUEST, ErrorCode.invalid_stock_id) from exc
 
 @router.post("/", response_model=StockResponse, status_code=status.HTTP_201_CREATED)
 def create_stock(
@@ -48,7 +46,11 @@ def create_stock(
             deployment.edition,
         )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        raise api_error(
+            status.HTTP_400_BAD_REQUEST,
+            ErrorCode.invalid_weight,
+            message=str(exc),
+        ) from exc
 
     return repo.create(**payload)
 
@@ -90,7 +92,7 @@ def get_stock(
 ):
     stock = repo.get_active(_parse_stock_id(stock_id))
     if stock is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock not found")
+        raise api_error(status.HTTP_404_NOT_FOUND, ErrorCode.stock_not_found)
     return stock
 
 @router.patch("/{stock_id}", response_model=StockResponse)
@@ -102,7 +104,7 @@ def update_stock(
 ):
     stock = repo.get_active(_parse_stock_id(stock_id))
     if stock is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock not found")
+        raise api_error(status.HTTP_404_NOT_FOUND, ErrorCode.stock_not_found)
 
     update_data = body.model_dump(exclude_unset=True)
 
@@ -111,7 +113,7 @@ def update_stock(
             update_data[key] = None
 
     if not update_data:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
+        raise api_error(status.HTTP_400_BAD_REQUEST, ErrorCode.no_fields_to_update)
 
     if "weight_grams" in update_data:
         try:
@@ -120,7 +122,11 @@ def update_stock(
                 deployment.edition,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+            raise api_error(
+            status.HTTP_400_BAD_REQUEST,
+            ErrorCode.invalid_weight,
+            message=str(exc),
+        ) from exc
 
     return repo.update(stock, update_data)
 
@@ -131,7 +137,7 @@ def delete_stock(
 ):
     stock = repo.get_active(_parse_stock_id(stock_id))
     if stock is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock not found")
+        raise api_error(status.HTTP_404_NOT_FOUND, ErrorCode.stock_not_found)
 
     repo.soft_delete(stock)
     return {"message": "Stock deleted"}

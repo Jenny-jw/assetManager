@@ -121,7 +121,7 @@ def test_create_stock_rejects_invalid_weight_for_personal(stock_client: TestClie
     )
 
     assert response.status_code == 400
-    assert "75 or 150" in response.json()["detail"]
+    assert response.json()["detail"] == "invalid_weight"
 
 def test_create_stock_requires_owner(stock_session: Session, personal_deployment: DeploymentConfig):
     app = FastAPI()
@@ -150,7 +150,7 @@ def test_get_stock_returns_active_row(stock_client: TestClient):
 def test_get_stock_returns_404_when_missing(stock_client: TestClient):
     response = stock_client.get(f"/api/stock/{uuid4()}")
     assert response.status_code == 404
-    assert response.json()["detail"] == "Stock not found"
+    assert response.json()["detail"] == "stock_not_found"
 
 def test_get_stock_returns_404_when_soft_deleted(stock_client: TestClient, stock_session: Session):
     created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
@@ -165,7 +165,7 @@ def test_get_stock_returns_404_when_soft_deleted(stock_client: TestClient, stock
 def test_get_stock_returns_400_for_invalid_id(stock_client: TestClient):
     response = stock_client.get("/api/stock/not-a-uuid")
     assert response.status_code == 400
-    assert response.json()["detail"] == "Invalid stock id"
+    assert response.json()["detail"] == "invalid_stock_id"
 
 def test_list_stocks_returns_empty_page(stock_client: TestClient):
     response = stock_client.get("/api/stock/")
@@ -307,7 +307,7 @@ def test_patch_stock_returns_400_when_empty(stock_client: TestClient):
     response = stock_client.patch(f"/api/stock/{created['id']}", json={})
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "No fields to update"
+    assert response.json()["detail"] == "no_fields_to_update"
 
 def test_patch_stock_returns_404_when_missing(stock_client: TestClient):
     response = stock_client.patch(f"/api/stock/{uuid4()}", json={"name": "Nope"})
@@ -322,7 +322,7 @@ def test_patch_stock_rejects_invalid_weight_for_personal(stock_client: TestClien
     )
 
     assert response.status_code == 400
-    assert "75 or 150" in response.json()["detail"]
+    assert response.json()["detail"] == "invalid_weight"
 
 def test_delete_stock_soft_deletes_row(stock_client: TestClient):
     created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()

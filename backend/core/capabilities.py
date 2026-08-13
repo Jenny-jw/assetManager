@@ -3,9 +3,10 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, status
 
 from core.deployment import DeploymentConfig, DeploymentModules
+from core.errors import ErrorCode, api_error
 from dependencies.auth import get_current_user
 from dependencies.deployment import get_request_deployment
 
@@ -87,29 +88,26 @@ def capability_denial_detail(
     user: dict[str, Any],
     capability: Capability,
     deployment: DeploymentConfig,
-) -> str:
+) -> ErrorCode:
     role = _role_value(user.get("role"))
     effective_role = _effective_role(role, deployment)
     if effective_role is None:
-        return "role_not_enabled"
+        return ErrorCode.role_not_enabled
 
     if capability not in ROLE_CAPABILITIES[effective_role]:
-        return "capability_disabled"
+        return ErrorCode.capability_disabled
 
     if not _capability_enabled(capability, deployment.modules):
-        return "module_disabled"
+        return ErrorCode.module_disabled
 
-    return "capability_disabled"
+    return ErrorCode.capability_disabled
 
 def require_module(module_key: str):
     def _checker(
         deployment: DeploymentConfig = Depends(get_request_deployment),
     ) -> DeploymentConfig:
         if not _module_flag(deployment.modules, module_key):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="module_disabled",
-            )
+            raise api_error(status.HTTP_403_FORBIDDEN, ErrorCode.module_disabled)
         return deployment
 
     return _checker
@@ -123,7 +121,9 @@ def require_capability(capability: Capability | str):
     ) -> dict[str, Any]:
         if has_capability(current_user, cap, deployment):
             return current_user
-        detail = capability_denial_detail(current_user, cap, deployment)
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
+        raise api_error(
+            status.HTTP_403_FORBIDDEN,
+            capability_denial_detail(current_user, cap, deployment),
+        )
 
     return _checker

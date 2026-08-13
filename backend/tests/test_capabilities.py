@@ -10,6 +10,7 @@ from core.capabilities import (
     resolve_capabilities,
 )
 from core.deployment import load_deployment_config, reset_deployment_cache
+from core.errors import ErrorCode
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -48,7 +49,7 @@ def test_role_not_enabled_returns_no_capabilities():
         Capability.manage_inventory,
         deployment,
     )
-    assert detail == "role_not_enabled"
+    assert detail == ErrorCode.role_not_enabled
 
 def test_module_disabled_detail_for_personal_orders():
     deployment = load_deployment_config(_preset_path("personal.yaml"))
@@ -57,7 +58,7 @@ def test_module_disabled_detail_for_personal_orders():
         Capability.approve_orders,
         deployment,
     )
-    assert detail == "module_disabled"
+    assert detail == ErrorCode.module_disabled
 
 def test_has_capability_helper():
     deployment = load_deployment_config(_preset_path("professional.yaml"))

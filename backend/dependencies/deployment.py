@@ -3,12 +3,13 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request, status
 import jwt
 
 from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
 from core.db import get_session_factory
 from core.deployment import DeploymentConfig, deployment_from_tenant, get_deployment
+from core.errors import ErrorCode, api_error
 from core.tenant import get_request_tenant_id
 from dependencies.auth import get_current_user
 from dependencies.db import DbSession
@@ -22,16 +23,10 @@ def get_current_tenant_deployment(
     """Strict tenant-backed config for authenticated PG users (e.g. GET /deployment)."""
     tenant_id = get_request_tenant_id(request)
     if tenant_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found",
-        )
+        raise api_error(status.HTTP_404_NOT_FOUND, ErrorCode.tenant_not_found)
     tenant = db.get(Tenant, tenant_id)
     if tenant is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found",
-        )
+        raise api_error(status.HTTP_404_NOT_FOUND, ErrorCode.tenant_not_found)
     return deployment_from_tenant(tenant)
 
 def _tenant_id_from_token(request: Request) -> UUID | None:

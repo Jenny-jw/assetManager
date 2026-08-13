@@ -3,11 +3,12 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request, status
 import jwt
 from sqlalchemy import select
 
 from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
+from core.errors import ApiError, ErrorCode, api_error
 from core.tenant import (
     bind_request_tenant,
     clear_current_tenant_id,
@@ -20,8 +21,8 @@ from services.tenant_onboarding import assert_tenant_access
 
 OWNER_ROLE = "owner"
 
-def _auth_error(detail: str) -> HTTPException:
-    return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+def _auth_error(code: ErrorCode) -> ApiError:
+    return api_error(status.HTTP_401_UNAUTHORIZED, code)
 
 def user_to_dict(user: User) -> dict[str, Any]:
     return {
@@ -38,24 +39,24 @@ def user_to_dict(user: User) -> dict[str, Any]:
 def _decode_token_payload(request: Request) -> dict[str, Any]:
     token = request.cookies.get("token")
     if not token:
-        raise _auth_error("Not authenticated")
+        raise _auth_error(ErrorCode.not_authenticated)
 
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
     except jwt.PyJWTError as exc:
-        raise _auth_error("Invalid or expired token") from exc
+        raise _auth_error(ErrorCode.invalid_token) from exc
 
     if not isinstance(payload, dict):
-        raise _auth_error("Invalid token payload")
+        raise _auth_error(ErrorCode.invalid_token_payload)
     return payload
 
 def _parse_uuid_claim(value: object) -> UUID:
     if value is None:
-        raise _auth_error("Invalid token payload")
+        raise _auth_error(ErrorCode.invalid_token_payload)
     try:
         return UUID(str(value))
     except ValueError as exc:
-        raise _auth_error("Invalid token payload") from exc
+        raise _auth_error(ErrorCode.invalid_token_payload) from exc
 
 def get_current_user(request: Request, db: DbSession) -> dict[str, Any]:
     clear_current_tenant_id()
@@ -71,24 +72,24 @@ def get_current_user(request: Request, db: DbSession) -> dict[str, Any]:
         )
     )
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise api_error(status.HTTP_404_NOT_FOUND, ErrorCode.user_not_found)
 
     tenant = db.get(Tenant, tenant_id)
     if tenant is None:
-        raise _auth_error("Invalid token payload")
+        raise _auth_error(ErrorCode.invalid_token_payload)
     assert_tenant_access(tenant)
     bind_request_tenant(request, tenant_id)
 
     if not user.is_active:
         clear_current_tenant_id()
         bind_request_tenant(request, None)
-        raise _auth_error("Not authenticated")
+        raise _auth_error(ErrorCode.not_authenticated)
     return user_to_dict(user)
 
 def require_owner():
     def _checker(current_user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
         if current_user.get("role") != OWNER_ROLE:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+            raise api_error(status.HTTP_403_FORBIDDEN, ErrorCode.forbidden)
         return current_user
 
     return _checker
@@ -102,14 +103,8 @@ def require_tenant_id(
         return tenant_id
     raw = current_user.get("tenant_id")
     if raw is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="tenant_required",
-        )
+        raise api_error(status.HTTP_403_FORBIDDEN, ErrorCode.tenant_required)
     try:
         return UUID(str(raw))
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="tenant_required",
-        ) from exc
+        raise api_error(status.HTTP_403_FORBIDDEN, ErrorCode.tenant_required) from exc

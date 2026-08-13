@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { isAxiosError } from "axios";
 import type { CreateAssetType } from "../types/Asset";
 import axios from "../lib/axios";
+import { getApiErrorMessage } from "../lib/apiError";
 import { PACKAGE_WEIGHT_OPTIONS } from "../lib/teaPricing";
 
 const INITIAL_FORM: CreateAssetType = {
@@ -20,11 +20,6 @@ const INITIAL_FORM: CreateAssetType = {
 };
 
 type FieldErrors = Partial<Record<keyof CreateAssetType, string>>;
-
-type ValidationDetail = {
-  loc: (string | number)[];
-  msg: string;
-};
 
 function validateForm(form: CreateAssetType): FieldErrors {
   const errors: FieldErrors = {};
@@ -58,33 +53,7 @@ function validateForm(form: CreateAssetType): FieldErrors {
 }
 
 function formatApiError(error: unknown): string {
-  if (!isAxiosError(error)) {
-    return "Failed to create asset. Please try again.";
-  }
-
-  const data = error.response?.data as {
-    detail?: string | ValidationDetail[];
-    error?: { message?: string };
-  };
-
-  if (Array.isArray(data?.detail)) {
-    return data.detail
-      .map((item) => {
-        const field = String(item.loc[item.loc.length - 1] ?? "field");
-        return `${field}: ${item.msg}`;
-      })
-      .join(" · ");
-  }
-
-  if (typeof data?.detail === "string") {
-    return data.detail;
-  }
-
-  if (data?.error?.message) {
-    return data.error.message;
-  }
-
-  return "Failed to create asset. Please try again.";
+  return getApiErrorMessage(error, "Failed to create asset. Please try again.");
 }
 
 const CreateAsset = () => {

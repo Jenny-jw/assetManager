@@ -33,4 +33,15 @@ Capabilities resolve from **current tenant's modules** + user role (ADR 005). Al
 
 **Presets:** personal → `[owner]`, orders off; professional → `[owner]`, orders/profit per module flags (copied to tenant at signup).
 
-**403:** `module_disabled` | `capability_disabled` | `role_not_enabled` | `forbidden` | `tenant_suspended` | `trial_expired`
+**403 / product errors:** `module_disabled` | `capability_disabled` | `role_not_enabled` | `forbidden` | `tenant_suspended` | `trial_expired`
+
+Raised via `api_error()` (`core/errors.py`). Envelope when exception handlers are registered:
+
+```json
+{
+  "detail": "module_disabled",
+  "error": { "code": "module_disabled", "message": "...", "request_id": "..." }
+}
+```
+
+Clients switch on `error.code` (or `detail`). Do not parse English `message` for control flow. Legacy Mongo routes may still return `http_error` plus a free-text `detail`.

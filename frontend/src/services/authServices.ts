@@ -1,5 +1,6 @@
 import api from "../lib/axios";
 import axios from "axios";
+import { getApiErrorMessage } from "../lib/apiError";
 
 export const signup = async (name: string, email: string, password: string) => {
   const response = await api.post("/auth/signup", {
@@ -22,11 +23,9 @@ export const login = async (email: string, password: string) => {
     return response.data;
   } catch (err) {
     if (axios.isAxiosError(err)) {
-      const detail = err.response?.data?.detail;
-
-      if (typeof detail === "string") {
-        throw new Error(detail);
-      }
+      throw new Error(
+        getApiErrorMessage(err, "An unexpected error occurred during login."),
+      );
     }
 
     throw new Error("An unexpected error occurred during login.");

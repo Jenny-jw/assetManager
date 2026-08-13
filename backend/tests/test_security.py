@@ -101,4 +101,4 @@ def test_me_returns_owner_profile_after_login(auth_me_client: TestClient):
 def test_me_without_cookie_returns_401(auth_me_client: TestClient):
     response = auth_me_client.get("/api/security/me")
     assert response.status_code == 401
-    assert response.json()["detail"] == "Not authenticated"
+    assert response.json()["detail"] == "not_authenticated"

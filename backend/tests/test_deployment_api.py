@@ -89,7 +89,7 @@ def test_get_deployment_requires_authenticated_tenant_user(
 ):
     response = deployment_client.get("/api/deployment")
     assert response.status_code == 401
-    assert response.json()["detail"] == "Not authenticated"
+    assert response.json()["detail"] == "not_authenticated"
 
 def test_get_deployment_returns_current_tenant_personal_config(
     deployment_client: TestClient,

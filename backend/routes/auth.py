@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, Response, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
@@ -9,6 +9,7 @@ from core.config import (
     JWT_COOKIE_SAMESITE,
     JWT_COOKIE_SECURE,
 )
+from core.errors import ErrorCode, api_error
 from core.security import create_token, hash_password, verify_password
 from dependencies.db import DbSession
 from models.user import User
@@ -26,10 +27,7 @@ OWNER_ROLE = "owner"
 @router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def signup(body: UserCreate, db: DbSession):
     if get_tenant_by_slug(db, body.slug) is not None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Tenant slug already registered",
-        )
+        raise api_error(status.HTTP_400_BAD_REQUEST, ErrorCode.slug_taken)
 
     tenant = build_trial_tenant(slug=body.slug, edition=body.edition)
     db.add(tenant)
@@ -48,9 +46,9 @@ def signup(body: UserCreate, db: DbSession):
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username, email, or tenant slug already registered",
+        raise api_error(
+            status.HTTP_400_BAD_REQUEST,
+            ErrorCode.duplicate_registration,
         ) from None
     db.refresh(owner)
     return owner
@@ -59,10 +57,7 @@ def signup(body: UserCreate, db: DbSession):
 def login(body: UserLogin, response: Response, db: DbSession):
     tenant = get_tenant_by_slug(db, body.slug)
     if tenant is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password",
-        )
+        raise api_error(status.HTTP_401_UNAUTHORIZED, ErrorCode.invalid_credentials)
 
     assert_tenant_access(tenant)
 
@@ -77,10 +72,7 @@ def login(body: UserLogin, response: Response, db: DbSession):
         or not db_user.is_active
         or not verify_password(body.password, db_user.hashed_password)
     ):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password",
-        )
+        raise api_error(status.HTTP_401_UNAUTHORIZED, ErrorCode.invalid_credentials)
 
     token = create_token(
         {

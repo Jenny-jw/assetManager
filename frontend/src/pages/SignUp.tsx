@@ -2,6 +2,7 @@ import type React from "react";
 import { useState, type SubmitEventHandler } from "react";
 import { useTranslation } from "react-i18next";
 import { signup } from "../services/authServices";
+import { getApiErrorCode } from "../lib/apiError";
 
 declare module "react-router" {
   interface FetcherFormProps {
@@ -24,13 +25,11 @@ const SignUp = () => {
       await signup(name, email, password);
       console.log("User signed up! 🎉");
     } catch (err) {
-      if (err instanceof Error) {
-        const msg = err.message;
-        if (msg === "Email already registered") {
-          setErrMsg(t("auth.signupEmailTaken"));
-        } else {
-          setErrMsg(t("auth.signupError"));
-        }
+      const code = getApiErrorCode(err);
+      if (code === "duplicate_registration" || code === "slug_taken") {
+        setErrMsg(t("auth.signupEmailTaken"));
+      } else if (err instanceof Error) {
+        setErrMsg(t("auth.signupError"));
       } else {
         console.error("Unexpected error during sign up:", err);
       }

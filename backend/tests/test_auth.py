@@ -121,7 +121,7 @@ def test_signup_rejects_duplicate_slug(auth_client: TestClient):
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "Tenant slug already registered"
+    assert response.json()["detail"] == "slug_taken"
 
 def test_signup_professional_copies_professional_preset(
     auth_client: TestClient,
@@ -170,7 +170,7 @@ def test_login_rejects_wrong_tenant_slug(auth_client: TestClient):
     )
 
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid username or password"
+    assert response.json()["detail"] == "invalid_credentials"
 
 def test_login_rejects_invalid_credentials(auth_client: TestClient):
     auth_client.post("/api/auth/signup", json=_SIGNUP_PAYLOAD)
@@ -184,7 +184,7 @@ def test_login_rejects_invalid_credentials(auth_client: TestClient):
     )
 
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid username or password"
+    assert response.json()["detail"] == "invalid_credentials"
 
 def test_login_rejects_suspended_tenant(
     auth_client: TestClient,
