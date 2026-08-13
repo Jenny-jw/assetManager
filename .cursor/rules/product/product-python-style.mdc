@@ -75,6 +75,28 @@ Applies to `Sequence`, `Mapping`, `Iterable`, `Callable`, etc.
 
 [Ruff](https://docs.astral.sh/ruff/) is the project linter (import order, deprecated typing, simple bugs). Warnings are style/consistency—not runtime failures—but **fix them in new/edited files** rather than ignoring. Do not disable rules without a short comment and reason.
 
+### B008 (`Depends()` / `Query()` in argument defaults)
+
+Ruff **B008** forbids function calls in default arguments (`def f(x=now())`) because Python evaluates defaults **once** at import. FastAPI **intentionally** uses that: `Depends()` / `Query()` are markers FastAPI reads from the signature, not per-request factories.
+
+**Do not** “fix” B008 by moving `Depends(...)` into the function body — FastAPI will not inject.
+
+**Do:**
+
+1. Keep the FastAPI idiom: `user: dict = Depends(get_current_user)`.
+2. Leave B008 **on**. In `backend/ruff.toml`, list FastAPI constructors under `[lint.flake8-bugbear] extend-immutable-calls` (already includes `Depends`, `Query`, `Path`, …).
+3. For a dependency reused on many endpoints, prefer a module-level `Annotated` alias (same idea as `DbSession`):
+
+```python
+# ✅ Reused alias — Depends is not a default arg, so B008 does not apply
+DbSession = Annotated[Session, Depends(get_db)]
+
+def list_stocks(db: DbSession):
+    ...
+```
+
+Do **not** add `# noqa: B008` on every route, and do **not** turn off B008 globally (it still catches real bugs like `def f(items=[])`).
+
 ## Related rules
 
 - Import spacing / blank lines: `code-formatting.mdc`
