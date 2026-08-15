@@ -1,58 +1,75 @@
-from fastapi import APIRouter, Depends, Query
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, Query, status
 
 from core.capabilities import require_module
-from dependencies.mongo_auth import UserRole, get_current_user, require_role
+from core.errors import ErrorCode, api_error
+from dependencies.auth import get_current_user, require_owner
+from dependencies.repositories import get_order_repository, get_stock_repository
 from models.order import OrderStatus
+from repositories.postgres.order_repository import OrderRepository
+from repositories.postgres.stock_repository import StockRepository
 from schemas.order import OrderCreate, OrderListResponse, OrderResponse
-from services.order_service import (
-    approve_order,
-    get_order_for_user,
-    list_orders_for_user,
-    place_order,
-    reject_order,
+from services.pg_order_service import (
+    create_owner_order,
+    get_owner_order,
+    list_owner_orders,
 )
 
 router = APIRouter(
     prefix="/orders",
     tags=["Orders"],
-    dependencies=[Depends(require_module("orders"))],
+    dependencies=[Depends(require_module("orders")), Depends(require_owner())],
 )
 
-@router.post("/", response_model=OrderResponse, status_code=201)
+def _parse_order_id(order_id: str) -> UUID:
+    try:
+        return UUID(order_id)
+    except ValueError as exc:
+        raise api_error(status.HTTP_400_BAD_REQUEST, ErrorCode.invalid_order_id) from exc
+
+@router.post("/", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
 def create_order(
     payload: OrderCreate,
-    current_user: dict = Depends(require_role(UserRole.user, UserRole.admin)),
+    current_user: dict = Depends(get_current_user),
+    orders: OrderRepository = Depends(get_order_repository),
+    stocks: StockRepository = Depends(get_stock_repository),
 ):
-    return place_order(payload, current_user)
+    return create_owner_order(
+        payload,
+        created_by=UUID(str(current_user["id"])),
+        orders=orders,
+        stocks=stocks,
+    )
 
 @router.get("/", response_model=OrderListResponse)
 def list_orders(
+    orders: OrderRepository = Depends(get_order_repository),
+    stocks: StockRepository = Depends(get_stock_repository),
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
-    status: OrderStatus | None = Query(None, description="Filter by order status"),
-    current_user: dict = Depends(get_current_user),
+    status_filter: OrderStatus | None = Query(
+        None,
+        alias="status",
+        description="Filter by order status",
+    ),
 ):
-    return list_orders_for_user(
-        current_user,
+    return list_owner_orders(
         page=page,
         limit=limit,
-        status_filter=status.value if status else None,
+        status_filter=status_filter,
+        orders=orders,
+        stocks=stocks,
     )
 
 @router.get("/{order_id}", response_model=OrderResponse)
-def get_order(order_id: str, current_user: dict = Depends(get_current_user)):
-    return get_order_for_user(order_id, current_user)
-
-@router.patch("/{order_id}/approve", response_model=OrderResponse)
-def approve_order_route(
+def get_order(
     order_id: str,
-    current_user: dict = Depends(require_role(UserRole.admin)),
+    orders: OrderRepository = Depends(get_order_repository),
+    stocks: StockRepository = Depends(get_stock_repository),
 ):
-    return approve_order(order_id, current_user)
-
-@router.patch("/{order_id}/reject", response_model=OrderResponse)
-def reject_order_route(
-    order_id: str,
-    current_user: dict = Depends(require_role(UserRole.admin)),
-):
-    return reject_order(order_id, current_user)
+    return get_owner_order(
+        _parse_order_id(order_id),
+        orders=orders,
+        stocks=stocks,
+    )

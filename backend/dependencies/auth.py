@@ -6,15 +6,16 @@ from uuid import UUID
 from fastapi import Depends, Request, status
 import jwt
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from core.config import JWT_ALGORITHM, JWT_SECRET_KEY
+from core.db import get_db
 from core.errors import ApiError, ErrorCode, api_error
 from core.tenant import (
     bind_request_tenant,
     clear_current_tenant_id,
     get_request_tenant_id,
 )
-from dependencies.db import DbSession
 from models.tenant import Tenant
 from models.user import User
 from services.tenant_onboarding import assert_tenant_access
@@ -58,10 +59,16 @@ def _parse_uuid_claim(value: object) -> UUID:
     except ValueError as exc:
         raise _auth_error(ErrorCode.invalid_token_payload) from exc
 
-def get_current_user(request: Request, db: DbSession) -> dict[str, Any]:
+def require_token_payload(request: Request) -> dict[str, Any]:
+    return _decode_token_payload(request)
+
+def get_current_user(
+    request: Request,
+    payload: dict[str, Any] = Depends(require_token_payload),
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     clear_current_tenant_id()
     bind_request_tenant(request, None)
-    payload = _decode_token_payload(request)
     user_id = _parse_uuid_claim(payload.get("sub"))
     tenant_id = _parse_uuid_claim(payload.get("tenant_id"))
 

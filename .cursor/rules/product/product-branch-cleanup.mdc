@@ -7,7 +7,7 @@ alwaysApply: false
 
 **Transitional checklist** for leftover files still on `product` (Mongo orders path, old names). Branch split policy: **ADR 003** / `product-git-workflow.mdc` — do not merge whole `product` ↔ `main`.
 
-**Current layout (Phase 3 done):** flattened `models/`, `schemas/`, `routes/` (platform), `modules/` (domain HTTP), `dependencies/`, `services/`, `tests/test_*.py`. Legacy orders remain in `modules/orders/`, `tests/mongo/` until Phase 2.
+**Current layout (Phase 3 done):** flattened `models/`, `schemas/`, `routes/` (platform), `modules/` (domain HTTP), `dependencies/`, `services/`, `tests/test_*.py`. PG owner orders are in `modules/orders/routes.py`. Legacy Mongo HTTP remains in `modules/orders/mongo_routes.py` and `tests/mongo/` until Phase 2.
 
 **Target after Phase 2:** no tea/auth/mongo leftovers; optional `core/stock_pricing.py` rename.
 
@@ -52,7 +52,7 @@ Phase 3  Flatten product/ subfolders, tests, infra, rules, frontend
 | `backend/services/tea_summary_service.py` | after PG summary exists (P1-10h) |
 | `backend/core/indexes.py` | Mongo indexes (unused on product) |
 
-**Keep until Phase 2:** `backend/core/mongo_legacy.py` — still used by `modules/orders/`, `order_service.py`.
+**Keep until Phase 2:** `backend/core/mongo_legacy.py` — still used by `modules/orders/mongo_routes.py`, `order_service.py`.
 
 ### Tests — delete
 
@@ -77,14 +77,12 @@ Keep: PG fixtures, `owner` client, `skip_startup_postgres_ping`.
 | File |
 |------|
 | `backend/core/mongo_legacy.py` |
-| `backend/modules/orders/` (Mongo orders HTTP) |
+| `backend/modules/orders/mongo_routes.py` |
 | `backend/services/order_service.py` |
 | `backend/services/stock_transactions.py` |
-| `backend/models/order.py` |
-| `backend/schemas/order.py` |
-| `backend/tests/test_orders_api.py` |
-| `backend/tests/test_order_stock_transactions.py` |
-| `backend/tests/test_orders_routes.py` (rewrite for PG or replace) |
+| `backend/schemas/mongo_order.py` |
+| `backend/tests/mongo/` |
+| `backend/tests/test_orders_routes.py` (rewrite leftover Mongo fixtures or delete) |
 | `pymongo` in `backend/requirements.txt` |
 
 ---

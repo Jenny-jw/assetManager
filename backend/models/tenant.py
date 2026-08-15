@@ -12,6 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.db import Base
 
 if TYPE_CHECKING:
+    from models.order import Order
     from models.stock import Stock
     from models.user import User
 
@@ -78,3 +79,4 @@ class Tenant(Base):
 
     users: Mapped[list[User]] = relationship(back_populates="tenant")
     stocks: Mapped[list[Stock]] = relationship(back_populates="tenant")
+    orders: Mapped[list[Order]] = relationship(back_populates="tenant")

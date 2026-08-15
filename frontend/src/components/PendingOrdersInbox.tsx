@@ -9,8 +9,8 @@ type Props = {
   onInventoryChange?: () => void;
 };
 
-function orderHasUnavailableTea(order: Order): boolean {
-  return order.items.some((item) => item.tea_available === false);
+function orderHasUnavailableStock(order: Order): boolean {
+  return order.items.some((item) => item.stock_available === false);
 }
 
 const PendingOrdersInbox = ({
@@ -23,13 +23,13 @@ const PendingOrdersInbox = ({
   const [actingId, setActingId] = useState<string | null>(null);
 
   const formatItemLabel = (
-    teaName: string,
+    stockName: string,
     quantity: number,
-    teaAvailable: boolean,
+    stockAvailable: boolean,
   ): string => {
-    const label = teaAvailable
-      ? teaName
-      : t("widgets.itemUnavailable", { name: teaName });
+    const label = stockAvailable
+      ? stockName
+      : t("widgets.itemUnavailable", { name: stockName });
     return `${label} ×${quantity}`;
   };
 
@@ -111,14 +111,14 @@ const PendingOrdersInbox = ({
             const summary = order.items
               .map((item) =>
                 formatItemLabel(
-                  item.tea_name,
+                  item.stock_name,
                   item.quantity,
-                  item.tea_available !== false,
+                  item.stock_available !== false,
                 ),
               )
               .join(", ");
             const isActing = actingId === order.id;
-            const hasUnavailableTea = orderHasUnavailableTea(order);
+            const hasUnavailableTea = orderHasUnavailableStock(order);
 
             return (
               <li

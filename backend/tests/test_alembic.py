@@ -52,3 +52,19 @@ def test_contract_tenant_id_migration_follows_expand_phase():
     assert 'op.alter_column(\n        "stocks"' in source
     assert "nullable=False" in source
     assert "legacy-bootstrap" in source
+
+def test_orders_migration_follows_tenant_id_contract():
+    migration = (
+        _BACKEND_ROOT
+        / "alembic"
+        / "versions"
+        / "c9e2f4a81b07_add_orders_tables.py"
+    )
+    source = migration.read_text(encoding="utf-8")
+
+    assert 'revision: str = "c9e2f4a81b07"' in source
+    assert 'down_revision: str | None = "d2064bf95049"' in source
+    assert '"orders"' in source
+    assert '"order_items"' in source
+    assert '"stock_movements"' in source
+    assert "tenant_id" in source

@@ -199,7 +199,7 @@ def test_personal_tenant_orders_endpoints_return_module_disabled(
 
     create_response = personal_client.post(
         "/api/orders/",
-        json={"items": [{"tea_id": "00000000-0000-0000-0000-000000000001", "quantity": 1}]},
+        json={"items": [{"stock_id": "00000000-0000-0000-0000-000000000001", "quantity": 1}]},
     )
     assert create_response.status_code == 403
     assert create_response.json()["detail"] == "module_disabled"

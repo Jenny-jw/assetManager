@@ -41,7 +41,7 @@ def test_orders_endpoint_reachable_when_orders_module_enabled():
     app = create_app(load_deployment_config(_REPO_ROOT / "deploy" / "presets" / "professional.yaml"))
     client = TestClient(app)
     response = client.get("/api/orders/")
-    # Module check passes; Mongo auth then rejects unauthenticated request.
+    # Module check passes; owner auth then rejects unauthenticated request.
     assert response.status_code == 401
     body = response.json()
     assert body["detail"] == "not_authenticated"

@@ -4,7 +4,7 @@ def test_personal_app_returns_module_disabled_for_orders(client_owner, fake_db):
     tea_id = seed_orderable_tea(fake_db)
     response = client_owner.post(
         "/api/orders/",
-        json={"items": [{"tea_id": tea_id, "quantity": 1}]},
+        json={"items": [{"stock_id": tea_id, "quantity": 1}]},
     )
     assert response.status_code == 403
     assert response.json()["detail"] == "module_disabled"

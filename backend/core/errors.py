@@ -28,6 +28,9 @@ class ErrorCode(str, Enum):
     signup_disabled = "signup_disabled"
     invalid_stock_id = "invalid_stock_id"
     stock_not_found = "stock_not_found"
+    stock_not_orderable = "stock_not_orderable"
+    invalid_order_id = "invalid_order_id"
+    order_not_found = "order_not_found"
     no_fields_to_update = "no_fields_to_update"
     invalid_weight = "invalid_weight"
     validation_error = "validation_error"
@@ -53,6 +56,9 @@ ERROR_MESSAGES: dict[ErrorCode, str] = {
     ErrorCode.signup_disabled: "Signup is disabled.",
     ErrorCode.invalid_stock_id: "Invalid stock id",
     ErrorCode.stock_not_found: "Stock not found",
+    ErrorCode.stock_not_orderable: "Stock is missing price or package weight and cannot be ordered",
+    ErrorCode.invalid_order_id: "Invalid order id",
+    ErrorCode.order_not_found: "Order not found",
     ErrorCode.no_fields_to_update: "No fields to update",
     ErrorCode.invalid_weight: "Package weight is invalid for this edition.",
     ErrorCode.validation_error: "Request validation failed",

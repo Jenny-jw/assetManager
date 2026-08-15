@@ -13,7 +13,7 @@ from pymongo.client_session import ClientSession
 from core.mongo_legacy import client, db
 from core.tea_pricing import price_per_package
 from models.order import OrderStatus, StockMovementReason
-from schemas.order import OrderCreate
+from schemas.mongo_order import OrderCreate
 from services.stock_transactions import run_optional_transaction
 
 logger = logging.getLogger(__name__)

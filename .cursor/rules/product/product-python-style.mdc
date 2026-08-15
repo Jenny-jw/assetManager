@@ -84,7 +84,7 @@ Ruff **B008** forbids function calls in default arguments (`def f(x=now())`) bec
 **Do:**
 
 1. Keep the FastAPI idiom: `user: dict = Depends(get_current_user)`.
-2. Leave B008 **on**. In `backend/ruff.toml`, list FastAPI constructors under `[lint.flake8-bugbear] extend-immutable-calls` (already includes `Depends`, `Query`, `Path`, …).
+2. Leave B008 **on**. In `backend/ruff.toml`, list FastAPI constructors under `[lint.flake8-bugbear] extend-immutable-calls` (already includes `Depends`, `Query`, `Path`, and factories such as `require_owner`).
 3. For a dependency reused on many endpoints, prefer a module-level `Annotated` alias (same idea as `DbSession`):
 
 ```python

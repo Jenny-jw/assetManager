@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from core.db import Base
 import models  # noqa: F401
+from models.order import Order, OrderItem, StockMovement
 from models.stock import Stock
 from models.tenant import Tenant
 from models.user import User
@@ -12,6 +13,9 @@ def test_product_tables_registered():
     assert "tenants" in table_names
     assert "users" in table_names
     assert "stocks" in table_names
+    assert "orders" in table_names
+    assert "order_items" in table_names
+    assert "stock_movements" in table_names
 
 def test_tenants_table_has_saas_configuration_columns():
     columns = set(Tenant.__table__.c.keys())
@@ -78,6 +82,9 @@ def test_user_and_stock_reference_tenants():
 def test_tenant_ids_are_required_after_contract_migration():
     assert User.__table__.c.tenant_id.nullable is False
     assert Stock.__table__.c.tenant_id.nullable is False
+    assert Order.__table__.c.tenant_id.nullable is False
+    assert OrderItem.__table__.c.tenant_id.nullable is False
+    assert StockMovement.__table__.c.tenant_id.nullable is False
 
 def test_stocks_table_allows_null_genre_and_origin():
     assert Stock.__table__.c.genre.nullable is True
