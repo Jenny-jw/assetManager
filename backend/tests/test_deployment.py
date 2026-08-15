@@ -9,6 +9,8 @@ from core.deployment import (
     get_deployment,
     load_deployment_config,
     load_personal_preset,
+    load_preset_for_edition,
+    load_professional_preset,
     personal_preset_path,
     reset_deployment_cache,
     resolve_config_path,
@@ -64,6 +66,16 @@ def test_load_professional_preset():
     assert config.edition is Edition.professional
     assert config.modules.orders is True
     assert config.modules.profit_analytics is True
+
+def test_load_preset_for_edition_selects_professional_yaml():
+    professional = load_preset_for_edition(Edition.professional)
+    assert professional.model_dump() == load_professional_preset().model_dump()
+    assert professional.modules.orders is True
+    assert professional.modules.profit_analytics is True
+
+    personal = load_preset_for_edition(Edition.personal)
+    assert personal.model_dump() == load_personal_preset().model_dump()
+    assert personal.modules.orders is False
 
 def test_personal_edition_rejects_orders_enabled(tmp_path):
     config_file = tmp_path / "bad.yaml"

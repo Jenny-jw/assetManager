@@ -82,7 +82,7 @@ alwaysApply: true
 
 | #   | Item | St  |
 | --- | ---- | --- |
-| 19  | Professional preset wiring (`orders`, `profit_analytics` on) at tenant signup | [ ] |
+| 19  | Professional preset wiring (`orders`, `profit_analytics` on) at tenant signup | [x] |
 | 20  | Owner-managed orders on PG (`orders` / `order_items` / `stock_movements` migration) | [ ] |
 | 21  | Cost models + `view_profit` / pricing analytics | [ ] |
 | 22  | Order states (pending → approve/reject); stock decrement on approve | [ ] |
@@ -108,4 +108,4 @@ alwaysApply: true
 | Multi-DB import (N buyer PGs → one PG) | No independent-deploy buyers to merge (ADR 005) |
 | Fleet / per-buyer Docker + dedicated PG | Optional data-sovereignty tier later; not default delivery |
 
-**Next:** P3 **#19** (professional preset wiring at tenant signup). **This version:** `owner` only on all editions.
+**Next:** P3 **#20** (owner-managed orders on PG). **This version:** `owner` only on all editions.

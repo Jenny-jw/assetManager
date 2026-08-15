@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.db import get_db
+from core.deployment import load_personal_preset, load_professional_preset
 from models.tenant import Tenant
 from models.user import User
 from routes.auth import router as product_auth_router
@@ -86,9 +87,15 @@ def test_signup_creates_trial_tenant_and_owner(
 
     tenant = auth_session.scalar(select(Tenant).where(Tenant.slug == "sample-shop"))
     assert tenant is not None
+    preset = load_personal_preset()
     assert tenant.status == "trial"
-    assert tenant.edition == "personal"
+    assert tenant.edition == preset.edition.value
+    assert tenant.locale == preset.locale.value
+    assert tenant.roles_enabled == list(preset.roles_enabled)
+    assert tenant.modules == preset.modules.model_dump()
+    assert tenant.dashboard_layout == preset.dashboard_layout
     assert tenant.modules["orders"] is False
+    assert tenant.modules["profit_analytics"] is False
     assert tenant.trial_ends_at is not None
     assert body["tenant_id"] == str(tenant.id)
 
@@ -139,8 +146,15 @@ def test_signup_professional_copies_professional_preset(
     assert response.status_code == 201
     tenant = auth_session.scalar(select(Tenant).where(Tenant.slug == "pro-shop"))
     assert tenant is not None
-    assert tenant.edition == "professional"
+    preset = load_professional_preset()
+    assert tenant.edition == preset.edition.value
+    assert tenant.locale == preset.locale.value
+    assert tenant.roles_enabled == list(preset.roles_enabled)
+    assert tenant.modules == preset.modules.model_dump()
+    assert tenant.dashboard_layout == preset.dashboard_layout
     assert tenant.modules["orders"] is True
+    assert tenant.modules["profit_analytics"] is True
+    assert tenant.modules["order_notifications"] is True
     assert "pending_orders" in tenant.dashboard_layout
 
 def test_login_sets_cookie_with_slug(auth_client: TestClient):
