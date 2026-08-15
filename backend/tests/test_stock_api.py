@@ -18,7 +18,7 @@ from dependencies.auth import get_current_user
 from models.stock import Stock
 from models.tenant import Tenant
 from models.user import User
-from routes.stock import router as product_stock_router
+from modules.inventory import router as product_stock_router
 
 # Avoid all-digit UUID hex: SQLite can coerce it to float on round-trip.
 _TENANT_ID = "a1111111-b222-c333-d444-e55555555555"

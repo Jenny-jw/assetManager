@@ -16,10 +16,10 @@ from core.deployment import deployment_from_tenant, load_personal_preset
 from models.stock import Stock
 from models.tenant import Tenant
 from models.user import User
+from modules.inventory import router as stock_router
+from modules.orders import router as orders_router
 from routes.auth import router as product_auth_router
 from routes.deployment import router as deployment_router
-from routes.orders import router as orders_router
-from routes.stock import router as stock_router
 
 _PERSONAL_SIGNUP = {
     "slug": "personal-tea",

@@ -23,7 +23,7 @@ Re-check with `python --version` and `pip show <pkg>` when upgrading deps; updat
 
 ## Import groups
 
-Order: **stdlib → third-party → local** (`core`, `dependencies`, `models`, `repositories`, `routes`, `schemas`, `services`). One blank line between groups—not two.
+Order: **stdlib → third-party → local** (`core`, `dependencies`, `models`, `modules`, `repositories`, `routes`, `schemas`, `services`). One blank line between groups—not two.
 
 ```python
 # ✅ Good

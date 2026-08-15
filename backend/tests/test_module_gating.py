@@ -12,9 +12,9 @@ from sqlalchemy.pool import StaticPool
 from core.db import get_db
 from models.tenant import Tenant
 from models.user import User
+from modules.inventory import router as stock_router
+from modules.orders import router as orders_router
 from routes.auth import router as product_auth_router
-from routes.orders import router as orders_router
-from routes.stock import router as stock_router
 
 _PERSONAL_SIGNUP = {
     "slug": "sample-shop",

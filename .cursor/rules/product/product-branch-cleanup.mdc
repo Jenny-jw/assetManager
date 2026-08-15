@@ -7,7 +7,7 @@ alwaysApply: false
 
 **Transitional checklist** for leftover files still on `product` (Mongo orders path, old names). Branch split policy: **ADR 003** / `product-git-workflow.mdc` — do not merge whole `product` ↔ `main`.
 
-**Current layout (Phase 3 done):** flattened `models/`, `schemas/`, `routes/`, `dependencies/`, `services/`, `tests/test_*.py`. Legacy orders remain in `routes/orders.py`, `tests/mongo/` until Phase 2.
+**Current layout (Phase 3 done):** flattened `models/`, `schemas/`, `routes/` (platform), `modules/` (domain HTTP), `dependencies/`, `services/`, `tests/test_*.py`. Legacy orders remain in `modules/orders/`, `tests/mongo/` until Phase 2.
 
 **Target after Phase 2:** no tea/auth/mongo leftovers; optional `core/stock_pricing.py` rename.
 
@@ -52,7 +52,7 @@ Phase 3  Flatten product/ subfolders, tests, infra, rules, frontend
 | `backend/services/tea_summary_service.py` | after PG summary exists (P1-10h) |
 | `backend/core/indexes.py` | Mongo indexes (unused on product) |
 
-**Keep until Phase 2:** `backend/core/mongo_legacy.py` — still used by `routes/orders.py`, `order_service.py`.
+**Keep until Phase 2:** `backend/core/mongo_legacy.py` — still used by `modules/orders/`, `order_service.py`.
 
 ### Tests — delete
 
@@ -77,7 +77,7 @@ Keep: PG fixtures, `owner` client, `skip_startup_postgres_ping`.
 | File |
 |------|
 | `backend/core/mongo_legacy.py` |
-| `backend/routes/orders.py` |
+| `backend/modules/orders/` (Mongo orders HTTP) |
 | `backend/services/order_service.py` |
 | `backend/services/stock_transactions.py` |
 | `backend/models/order.py` |
@@ -121,7 +121,7 @@ Update imports project-wide; `alembic/env.py` model imports; delete empty `*/pro
 
 **Optional in 3c:** `core/tea_pricing.py` → `core/stock_pricing.py`.
 
-**Phase 3 does not require Phase 2** — Mongo orders (`mongo_legacy`, `routes/orders.py`) stay until P3 PG orders + Phase 2 delete.
+**Phase 3 does not require Phase 2** — Mongo orders (`mongo_legacy`, `modules/orders/`) stay until P3 PG orders + Phase 2 delete.
 
 ### Keep and adjust
 

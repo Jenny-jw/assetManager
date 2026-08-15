@@ -123,10 +123,10 @@ def update_stock(
             )
         except ValueError as exc:
             raise api_error(
-            status.HTTP_400_BAD_REQUEST,
-            ErrorCode.invalid_weight,
-            message=str(exc),
-        ) from exc
+                status.HTTP_400_BAD_REQUEST,
+                ErrorCode.invalid_weight,
+                message=str(exc),
+            ) from exc
 
     return repo.update(stock, update_data)
 
