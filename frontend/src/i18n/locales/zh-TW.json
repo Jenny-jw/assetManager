@@ -41,7 +41,12 @@
     "approveFailed": "核准訂單失敗，請再試一次。",
     "rejectFailed": "拒絕訂單失敗，請再試一次。",
     "removeFailed": "移除訂單失敗，請再試一次。",
-    "rejectConfirm": "確定要拒絕這筆訂單嗎？"
+    "rejectConfirm": "確定要拒絕這筆訂單嗎？",
+    "profit": "毛利",
+    "retailValue": "零售價值",
+    "costValue": "成本價值",
+    "unrealizedProfit": "未實現毛利",
+    "uncostedHint": "有 {{missing}} 筆資產尚未填成本"
   },
   "inventory": {
     "title": "資產列表",

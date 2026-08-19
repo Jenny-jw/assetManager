@@ -18,6 +18,7 @@ export const DashboardWidget = {
   GENRE: "genre",
   RECENT_ASSETS: "recent_assets",
   PENDING_ORDERS: "pending_orders",
+  PROFIT: "profit",
 } as const;
 
 export type DashboardWidgetId =

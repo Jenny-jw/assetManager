@@ -156,6 +156,7 @@ def test_signup_professional_copies_professional_preset(
     assert tenant.modules["profit_analytics"] is True
     assert tenant.modules["order_notifications"] is True
     assert "pending_orders" in tenant.dashboard_layout
+    assert "profit" in tenant.dashboard_layout
 
 def test_login_sets_cookie_with_slug(auth_client: TestClient):
     auth_client.post("/api/auth/signup", json=_SIGNUP_PAYLOAD)

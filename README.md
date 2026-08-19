@@ -6,6 +6,26 @@
 
 Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) (WSL2) or Docker Engine.
 
+## When do you need Postgres?
+
+| You are doing | Start Postgres? |
+| ------------- | --------------- |
+| `pytest` / `npm run test` | **No** — tests use in-memory SQLite / no DB |
+| Edit code only | **No** |
+| `alembic upgrade head` | **Yes** |
+| `uvicorn` on the host, or frontend hitting that API | **Yes** |
+| pgAdmin / `psql` | **Yes** |
+| Full stack via `docker-compose.product.yml` | Compose **starts** it for you |
+
+Two start paths (both need repo-root `.env` from `.env.example`):
+
+| Path | When | How the API finds the DB | Command |
+| ---- | ---- | ------------------------ | ------- |
+| **Local** (host `uvicorn` / Alembic / pgAdmin) | Daily product coding | `POSTGRES_URL` host = **`localhost`** | `docker compose -f docker-compose.product.yml up -d postgres` |
+| **Compose / CI-style** (API container + DB) | Want the API in Docker too | Compose sets host = **`postgres`** | `docker compose -f docker-compose.product.yml up --build -d` |
+
+There is no cloud Postgres in this repo yet. GitHub Actions pytest does **not** start Postgres; `compose-smoke` is the Mongo stack on `main`.
+
 ## 1. Environment
 
 **Product branch:** copy `.env.example` → **`.env`** at the **repository root**. Used by Docker Compose, pgAdmin, and local `uvicorn` on this branch (`core/env.py` loads this file only).

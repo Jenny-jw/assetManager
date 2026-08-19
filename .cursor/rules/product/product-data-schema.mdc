@@ -8,7 +8,7 @@ alwaysApply: false
 
 **PostgreSQL only:** `POSTGRES_URL` — no `MONGO_URI`, no fallback (ADR 004). Alembic owns schema.
 
-**Domain:** `stock` in `schemas/`, `models/`; tables `tenants`, `stocks`, `users`, `orders`, `order_items`, `stock_movements`. Owner create writes a `pending` order; stock decrement on approve is P3-22.
+**Domain:** `stock` in `schemas/`, `models/`; tables `tenants`, `stocks`, `users`, `orders`, `order_items`, `stock_movements`. `stocks.cost_per_jin` is optional acquisition cost per 斤; profit analytics uses retail `price_per_jin` minus cost. Owner create writes a `pending` order; stock decrement on approve is P3-22.
 
 **Isolation (ADR 005):** one shared PostgreSQL; **`tenant_id`** FK on all domain tables. Uniqueness is per tenant (e.g. `(tenant_id, username)`). Every repository query filters by current tenant.
 

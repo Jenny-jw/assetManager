@@ -134,6 +134,7 @@ def test_get_deployment_returns_current_tenant_professional_config(
     assert body["modules"]["orders"] is True
     assert body["modules"]["profit_analytics"] is True
     assert "pending_orders" in body["dashboard_layout"]
+    assert "profit" in body["dashboard_layout"]
     assert body["capabilities"] == [
         "approve_orders",
         "manage_inventory",

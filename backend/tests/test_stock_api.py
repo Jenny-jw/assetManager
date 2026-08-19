@@ -113,6 +113,16 @@ def test_create_stock_returns_201(stock_client: TestClient):
     assert body["quantity"] == 2
     assert "id" in body
     assert "created_at" in body
+    assert body["cost_per_jin"] is None
+
+def test_create_stock_stores_cost_per_jin(stock_client: TestClient):
+    response = stock_client.post(
+        "/api/stock/",
+        json={**_STOCK_PAYLOAD, "cost_per_jin": 800},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["cost_per_jin"] == 800
 
 def test_create_stock_rejects_invalid_weight_for_personal(stock_client: TestClient):
     response = stock_client.post(
@@ -287,6 +297,17 @@ def test_patch_stock_updates_fields(stock_client: TestClient):
     assert body["name"] == "Renamed Oolong"
     assert body["quantity"] == 0
     assert body["updated_at"] is not None
+
+def test_patch_stock_updates_cost_per_jin(stock_client: TestClient):
+    created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
+
+    response = stock_client.patch(
+        f"/api/stock/{created['id']}",
+        json={"cost_per_jin": 600},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["cost_per_jin"] == 600
 
 def test_patch_stock_clears_optional_strings(stock_client: TestClient):
     created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()

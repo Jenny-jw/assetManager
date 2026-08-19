@@ -92,3 +92,6 @@ def test_stocks_table_allows_null_genre_and_origin():
 
 def test_stocks_table_has_soft_delete_column():
     assert Stock.__table__.c.deleted_at.nullable is True
+
+def test_stocks_table_has_optional_cost_per_jin():
+    assert Stock.__table__.c.cost_per_jin.nullable is True

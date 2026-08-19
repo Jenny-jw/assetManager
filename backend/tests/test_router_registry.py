@@ -27,6 +27,16 @@ def test_professional_deployment_registers_orders():
     app = create_app(load_deployment_config(_REPO_ROOT / "deploy" / "presets" / "professional.yaml"))
     paths = route_paths(app)
     assert any(path.startswith("/api/orders") for path in paths)
+    assert "/api/analytics/profit" in paths
+
+def test_profit_endpoint_returns_module_disabled_on_personal_app():
+    app = create_app(load_personal_preset())
+    client = TestClient(app)
+    response = client.get("/api/analytics/profit")
+    assert response.status_code == 403
+    body = response.json()
+    assert body["detail"] == "module_disabled"
+    assert body["error"]["code"] == "module_disabled"
 
 def test_orders_endpoint_returns_module_disabled_on_personal_app():
     app = create_app(load_personal_preset())

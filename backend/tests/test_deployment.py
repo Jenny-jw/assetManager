@@ -66,6 +66,7 @@ def test_load_professional_preset():
     assert config.edition is Edition.professional
     assert config.modules.orders is True
     assert config.modules.profit_analytics is True
+    assert "profit" in config.dashboard_layout
 
 def test_load_preset_for_edition_selects_professional_yaml():
     professional = load_preset_for_edition(Edition.professional)
@@ -124,6 +125,60 @@ modules:
 dashboard_layout:
   - summary
   - pending_orders
+""".strip(),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValidationError):
+        load_deployment_config(config_file)
+
+def test_personal_edition_rejects_profit_widget(tmp_path):
+    config_file = tmp_path / "bad.yaml"
+    config_file.write_text(
+        """
+edition: personal
+locale: zh-TW
+roles_enabled:
+  - owner
+modules:
+  inventory: true
+  dashboard_summary: true
+  dashboard_origin_chart: true
+  dashboard_genre_chart: true
+  dashboard_recent_assets: true
+  orders: false
+  order_notifications: false
+  pricing_visibility: true
+  profit_analytics: false
+dashboard_layout:
+  - summary
+  - profit
+""".strip(),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValidationError):
+        load_deployment_config(config_file)
+
+def test_rejects_profit_widget_when_module_off(tmp_path):
+    config_file = tmp_path / "bad.yaml"
+    config_file.write_text(
+        """
+edition: professional
+locale: zh-TW
+roles_enabled:
+  - owner
+modules:
+  inventory: true
+  dashboard_summary: true
+  dashboard_origin_chart: true
+  dashboard_genre_chart: true
+  dashboard_recent_assets: true
+  orders: true
+  order_notifications: true
+  pricing_visibility: true
+  profit_analytics: false
+dashboard_layout:
+  - summary
+  - profit
 """.strip(),
         encoding="utf-8",
     )

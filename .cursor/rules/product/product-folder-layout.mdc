@@ -17,7 +17,7 @@ Backend uses a **single top-level layout** — no `models/product/`, `routes/pro
 | Modules | `backend/modules/{inventory,orders,analytics}/` (domain HTTP; thin routes) |
 | Dependencies | `backend/dependencies/` (`auth.py` PG owner; `repositories.py`; `mongo_auth.py` until Phase 2 cleanup) |
 | Repositories | `backend/repositories/postgres/` (`StockRepository`, `OrderRepository`; tenant-scoped) |
-| Services | `backend/services/` (`stock_queries.py`, `stock_summary_service.py`, …) |
+| Services | `backend/services/` (`stock_queries.py`, `stock_summary_service.py`, `profit_analytics_service.py`, …) |
 | Tests | `backend/tests/test_*.py`; legacy orders under `backend/tests/mongo/` until Phase 2 |
 
 ```text

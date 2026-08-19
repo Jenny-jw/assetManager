@@ -24,12 +24,16 @@ def test_widget_module_key_maps_summary_to_dashboard_summary():
 def test_widget_module_key_maps_pending_orders_to_orders_module():
     assert widget_module_key("pending_orders") == "orders"
 
+def test_widget_module_key_maps_profit_to_profit_analytics_module():
+    assert widget_module_key("profit") == "profit_analytics"
+
 def test_widget_module_key_returns_none_for_unknown():
     assert widget_module_key("unknown_widget") is None
 
 def test_personal_preset_widgets_exclude_order_widgets():
     assert "pending_orders" not in PERSONAL_DASHBOARD_WIDGETS
     assert "pending_orders" in ORDER_DASHBOARD_WIDGETS
+    assert "profit" not in PERSONAL_DASHBOARD_WIDGETS
 
 def test_personal_effective_layout_excludes_pending_orders():
     config = load_personal_preset()
@@ -41,6 +45,7 @@ def test_professional_effective_layout_includes_pending_orders():
     config = load_deployment_config(_preset_path("professional.yaml"))
     layout = effective_dashboard_layout(config)
     assert "pending_orders" in layout
+    assert "profit" in layout
 
 def test_widget_enabled_respects_modules_orders_flag():
     modules = DeploymentModules(
@@ -56,3 +61,4 @@ def test_widget_enabled_respects_modules_orders_flag():
     )
     assert widget_enabled("summary", modules) is True
     assert widget_enabled("pending_orders", modules) is False
+    assert widget_enabled("profit", modules) is False

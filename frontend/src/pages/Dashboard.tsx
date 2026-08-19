@@ -99,7 +99,8 @@ const Dashboard = () => {
     (widgetId) =>
       widgetId === DashboardWidget.ORIGIN ||
       widgetId === DashboardWidget.GENRE ||
-      widgetId === DashboardWidget.PENDING_ORDERS,
+      widgetId === DashboardWidget.PENDING_ORDERS ||
+      widgetId === DashboardWidget.PROFIT,
   );
   const footerWidgets = enabledWidgetIds.filter(
     (widgetId) => widgetId === DashboardWidget.RECENT_ASSETS,

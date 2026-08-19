@@ -25,6 +25,7 @@ PERSONAL_DASHBOARD_WIDGETS = frozenset(
     {"summary", "origin", "genre", "recent_assets"}
 )
 ORDER_DASHBOARD_WIDGETS = frozenset({"pending_orders"})
+PROFIT_DASHBOARD_WIDGETS = frozenset({"profit"})
 
 class DeploymentModules(BaseModel):
     inventory: bool = True
@@ -78,6 +79,10 @@ class DeploymentConfig(BaseModel):
         if not self.modules.orders and layout & ORDER_DASHBOARD_WIDGETS:
             raise ValueError(
                 "dashboard_layout cannot include pending_orders when modules.orders is false"
+            )
+        if not self.modules.profit_analytics and layout & PROFIT_DASHBOARD_WIDGETS:
+            raise ValueError(
+                "dashboard_layout cannot include profit when modules.profit_analytics is false"
             )
         return self
 

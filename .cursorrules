@@ -24,6 +24,7 @@ Project guidance is split into `.cursor/rules/*.mdc` for focused context. Cursor
 | `product/product-data-schema.mdc` | stock schemas, PostgreSQL SaaS |
 | `product/product-python-style.mdc` | Python style, types, imports (Ruff, 3.10+) |
 | `product/product-deployment-tenancy.mdc` | SaaS tenancy (ADR 005) |
+| `product/product-postgres.mdc` | When to start Postgres (local vs Compose) |
 | `product/product-roadmap.mdc` | P0–P4 checklist |
 | `product/product-git-workflow.mdc` | Branch split + `feature/*` → `product` |
 | `product/product-branch-cleanup.mdc` | Remove legacy leftovers on product |

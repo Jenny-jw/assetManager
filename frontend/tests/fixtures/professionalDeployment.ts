@@ -25,6 +25,7 @@ export const professionalDeployment: Deployment = {
     DashboardWidget.ORIGIN,
     DashboardWidget.GENRE,
     DashboardWidget.PENDING_ORDERS,
+    DashboardWidget.PROFIT,
     DashboardWidget.RECENT_ASSETS,
   ],
   capabilities: [

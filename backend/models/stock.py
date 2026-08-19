@@ -48,6 +48,10 @@ class Stock(Base):
             "price_per_jin IS NULL OR price_per_jin >= 0",
             name="ck_stocks_price_per_jin",
         ),
+        CheckConstraint(
+            "cost_per_jin IS NULL OR cost_per_jin >= 0",
+            name="ck_stocks_cost_per_jin",
+        ),
         Index("ix_stocks_tenant_id", "tenant_id"),
         Index("ix_stocks_genre", "genre"),
         Index("ix_stocks_origin", "origin"),
@@ -83,6 +87,7 @@ class Stock(Base):
     )
     score: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     price_per_jin: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    cost_per_jin: Mapped[int | None] = mapped_column(Integer, nullable=True)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

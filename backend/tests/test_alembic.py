@@ -53,6 +53,19 @@ def test_contract_tenant_id_migration_follows_expand_phase():
     assert "nullable=False" in source
     assert "legacy-bootstrap" in source
 
+def test_stock_cost_migration_follows_orders_tables():
+    migration = (
+        _BACKEND_ROOT
+        / "alembic"
+        / "versions"
+        / "e1a7b9c04d18_add_stock_cost_per_jin.py"
+    )
+    source = migration.read_text(encoding="utf-8")
+
+    assert 'revision: str = "e1a7b9c04d18"' in source
+    assert 'down_revision: str | None = "c9e2f4a81b07"' in source
+    assert "cost_per_jin" in source
+
 def test_orders_migration_follows_tenant_id_contract():
     migration = (
         _BACKEND_ROOT

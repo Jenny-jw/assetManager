@@ -41,7 +41,12 @@
     "approveFailed": "Failed to approve order. Please try again.",
     "rejectFailed": "Failed to reject order. Please try again.",
     "removeFailed": "Failed to remove order. Please try again.",
-    "rejectConfirm": "Reject this order?"
+    "rejectConfirm": "Reject this order?",
+    "profit": "Profit",
+    "retailValue": "Retail value",
+    "costValue": "Cost value",
+    "unrealizedProfit": "Unrealized profit",
+    "uncostedHint": "{{missing}} assets are missing cost"
   },
   "inventory": {
     "title": "Asset List",
