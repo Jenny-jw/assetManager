@@ -31,6 +31,9 @@ class ErrorCode(str, Enum):
     stock_not_orderable = "stock_not_orderable"
     invalid_order_id = "invalid_order_id"
     order_not_found = "order_not_found"
+    order_not_pending = "order_not_pending"
+    order_has_no_items = "order_has_no_items"
+    insufficient_stock = "insufficient_stock"
     no_fields_to_update = "no_fields_to_update"
     invalid_weight = "invalid_weight"
     validation_error = "validation_error"
@@ -59,6 +62,9 @@ ERROR_MESSAGES: dict[ErrorCode, str] = {
     ErrorCode.stock_not_orderable: "Stock is missing price or package weight and cannot be ordered",
     ErrorCode.invalid_order_id: "Invalid order id",
     ErrorCode.order_not_found: "Order not found",
+    ErrorCode.order_not_pending: "Order is not pending approval",
+    ErrorCode.order_has_no_items: "Order has no items",
+    ErrorCode.insufficient_stock: "Insufficient stock for one or more items",
     ErrorCode.no_fields_to_update: "No fields to update",
     ErrorCode.invalid_weight: "Package weight is invalid for this edition.",
     ErrorCode.validation_error: "Request validation failed",

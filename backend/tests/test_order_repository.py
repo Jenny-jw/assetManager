@@ -137,3 +137,21 @@ def test_add_movement_is_tenant_scoped(order_session: Session):
         )
         == []
     )
+
+def test_claim_pending_moves_status_once_for_tenant(order_session: Session):
+    order = _create_order(order_session)
+    repo = _repo(order_session)
+
+    claimed = repo.claim_pending(order.id, new_status=OrderStatus.confirmed)
+    repo.commit()
+
+    assert claimed is not None
+    assert claimed.status == OrderStatus.confirmed.value
+    assert repo.claim_pending(order.id, new_status=OrderStatus.cancelled) is None
+    assert (
+        _repo(order_session, _TENANT_B).claim_pending(
+            order.id,
+            new_status=OrderStatus.cancelled,
+        )
+        is None
+    )

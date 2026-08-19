@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import UUID
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, func, select, update
 from sqlalchemy.orm import Session
 
 from models.stock import Stock
@@ -50,6 +50,38 @@ class StockRepository:
 
     def get_active(self, stock_id: UUID) -> Stock | None:
         return self._db.scalar(self._active_select().where(Stock.id == stock_id))
+
+    def try_decrement_active(
+        self,
+        stock_id: UUID,
+        quantity: int,
+    ) -> tuple[int, int] | None:
+        """Decrement active stock when quantity is sufficient. Flush only; caller commits.
+
+        Returns ``(quantity_before, quantity_after)``, or ``None`` if the row is
+        missing, soft-deleted, owned by another tenant, or has too little stock.
+        """
+        stock = self.get_active(stock_id)
+        if stock is None:
+            return None
+        before = stock.quantity
+        result = self._db.execute(
+            update(Stock)
+            .where(
+                Stock.id == stock_id,
+                Stock.tenant_id == self._tenant_id,
+                Stock.deleted_at.is_(None),
+                Stock.quantity >= quantity,
+            )
+            .values(
+                quantity=Stock.quantity - quantity,
+                updated_at=datetime.now(timezone.utc),
+            )
+        )
+        if result.rowcount != 1:
+            return None
+        self._db.refresh(stock)
+        return (before, stock.quantity)
 
     def list_all_active(self) -> list[Stock]:
         return list(self._db.scalars(self._active_select()).all())

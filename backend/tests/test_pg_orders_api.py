@@ -282,3 +282,176 @@ def test_unauthenticated_orders_return_not_authenticated(
 
     assert response.status_code == 401
     assert response.json()["detail"] == "not_authenticated"
+
+def test_approve_confirms_order_and_decrements_stock(
+    order_client: TestClient,
+    order_session: Session,
+):
+    stock = _insert_stock(order_session)
+    created = order_client.post(
+        "/api/orders/",
+        json={"items": [{"stock_id": str(stock.id), "quantity": 2}]},
+    )
+    order_id = created.json()["id"]
+
+    response = order_client.patch(f"/api/orders/{order_id}/approve")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "confirmed"
+    order_session.refresh(stock)
+    assert stock.quantity == 2
+    movements = list(order_session.scalars(select(StockMovement)).all())
+    assert len(movements) == 1
+    assert movements[0].delta == -2
+    assert movements[0].quantity_before == 4
+    assert movements[0].quantity_after == 2
+    assert movements[0].reason == "order"
+    assert movements[0].ref_type == "order"
+    assert str(movements[0].ref_id) == order_id
+
+def test_reject_cancels_without_changing_stock(
+    order_client: TestClient,
+    order_session: Session,
+):
+    stock = _insert_stock(order_session)
+    created = order_client.post(
+        "/api/orders/",
+        json={"items": [{"stock_id": str(stock.id), "quantity": 2}]},
+    )
+    order_id = created.json()["id"]
+
+    response = order_client.patch(f"/api/orders/{order_id}/reject")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "cancelled"
+    order_session.refresh(stock)
+    assert stock.quantity == 4
+    assert order_session.scalar(select(StockMovement)) is None
+
+def test_second_approve_returns_conflict_and_does_not_deduct_again(
+    order_client: TestClient,
+    order_session: Session,
+):
+    stock = _insert_stock(order_session)
+    created = order_client.post(
+        "/api/orders/",
+        json={"items": [{"stock_id": str(stock.id), "quantity": 2}]},
+    )
+    order_id = created.json()["id"]
+
+    first = order_client.patch(f"/api/orders/{order_id}/approve")
+    second = order_client.patch(f"/api/orders/{order_id}/approve")
+
+    assert first.status_code == 200
+    assert second.status_code == 409
+    assert second.json()["detail"] == "order_not_pending"
+    order_session.refresh(stock)
+    assert stock.quantity == 2
+    assert len(list(order_session.scalars(select(StockMovement)).all())) == 1
+
+def test_approve_insufficient_stock_leaves_order_pending(
+    order_client: TestClient,
+    order_session: Session,
+):
+    stock = _insert_stock(order_session)
+    created = order_client.post(
+        "/api/orders/",
+        json={"items": [{"stock_id": str(stock.id), "quantity": 2}]},
+    )
+    order_id = created.json()["id"]
+    StockRepository(order_session, tenant_id=UUID(_TENANT_A)).update(
+        stock, {"quantity": 1}
+    )
+
+    response = order_client.patch(f"/api/orders/{order_id}/approve")
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "insufficient_stock"
+    fetched = order_client.get(f"/api/orders/{order_id}")
+    assert fetched.json()["status"] == "pending"
+    order_session.refresh(stock)
+    assert stock.quantity == 1
+    assert order_session.scalar(select(StockMovement)) is None
+
+def test_approve_soft_deleted_stock_does_not_partially_deduct(
+    order_client: TestClient,
+    order_session: Session,
+):
+    keep = _insert_stock(order_session, name="Keep Tea", quantity=5)
+    gone = _insert_stock(order_session, name="Gone Tea", quantity=5)
+    created = order_client.post(
+        "/api/orders/",
+        json={
+            "items": [
+                {"stock_id": str(keep.id), "quantity": 1},
+                {"stock_id": str(gone.id), "quantity": 1},
+            ]
+        },
+    )
+    order_id = created.json()["id"]
+    StockRepository(order_session, tenant_id=UUID(_TENANT_A)).soft_delete(gone)
+
+    response = order_client.patch(f"/api/orders/{order_id}/approve")
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "stock_not_found"
+    fetched = order_client.get(f"/api/orders/{order_id}")
+    assert fetched.json()["status"] == "pending"
+    order_session.refresh(keep)
+    assert keep.quantity == 5
+    assert order_session.scalar(select(StockMovement)) is None
+
+def test_approve_rejects_when_combined_lines_exceed_stock(
+    order_client: TestClient,
+    order_session: Session,
+):
+    stock = _insert_stock(order_session)
+    created = order_client.post(
+        "/api/orders/",
+        json={
+            "items": [
+                {"stock_id": str(stock.id), "quantity": 2},
+                {"stock_id": str(stock.id), "quantity": 3},
+            ]
+        },
+    )
+    order_id = created.json()["id"]
+
+    response = order_client.patch(f"/api/orders/{order_id}/approve")
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "insufficient_stock"
+    fetched = order_client.get(f"/api/orders/{order_id}")
+    assert fetched.json()["status"] == "pending"
+    order_session.refresh(stock)
+    assert stock.quantity == 4
+
+def test_tenant_cannot_approve_or_reject_other_tenant_order(
+    order_client: TestClient,
+    order_session: Session,
+):
+    stock = _insert_stock(order_session)
+    created = order_client.post(
+        "/api/orders/",
+        json={"items": [{"stock_id": str(stock.id), "quantity": 1}]},
+    )
+    order_id = created.json()["id"]
+    order_client.app.dependency_overrides[get_current_user] = lambda: _OWNER_B
+
+    approved = order_client.patch(f"/api/orders/{order_id}/approve")
+    rejected = order_client.patch(f"/api/orders/{order_id}/reject")
+
+    assert approved.status_code == 404
+    assert approved.json()["detail"] == "order_not_found"
+    assert rejected.status_code == 404
+    assert rejected.json()["detail"] == "order_not_found"
+
+def test_approve_rejects_invalid_and_unknown_order_id(order_client: TestClient):
+    invalid = order_client.patch("/api/orders/not-a-uuid/approve")
+    assert invalid.status_code == 400
+    assert invalid.json()["detail"] == "invalid_order_id"
+
+    missing = order_client.patch(f"/api/orders/{uuid4()}/approve")
+    assert missing.status_code == 404
+    assert missing.json()["detail"] == "order_not_found"

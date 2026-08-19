@@ -2,7 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 
-from core.capabilities import require_module
+from core.capabilities import Capability, require_capability, require_module
 from core.errors import ErrorCode, api_error
 from dependencies.auth import get_current_user, require_owner
 from dependencies.repositories import get_order_repository, get_stock_repository
@@ -11,9 +11,11 @@ from repositories.postgres.order_repository import OrderRepository
 from repositories.postgres.stock_repository import StockRepository
 from schemas.order import OrderCreate, OrderListResponse, OrderResponse
 from services.pg_order_service import (
+    approve_owner_order,
     create_owner_order,
     get_owner_order,
     list_owner_orders,
+    reject_owner_order,
 )
 
 router = APIRouter(
@@ -70,6 +72,42 @@ def get_order(
 ):
     return get_owner_order(
         _parse_order_id(order_id),
+        orders=orders,
+        stocks=stocks,
+    )
+
+@router.patch(
+    "/{order_id}/approve",
+    response_model=OrderResponse,
+    dependencies=[Depends(require_capability(Capability.approve_orders))],
+)
+def approve_order(
+    order_id: str,
+    current_user: dict = Depends(get_current_user),
+    orders: OrderRepository = Depends(get_order_repository),
+    stocks: StockRepository = Depends(get_stock_repository),
+):
+    return approve_owner_order(
+        _parse_order_id(order_id),
+        created_by=UUID(str(current_user["id"])),
+        orders=orders,
+        stocks=stocks,
+    )
+
+@router.patch(
+    "/{order_id}/reject",
+    response_model=OrderResponse,
+    dependencies=[Depends(require_capability(Capability.approve_orders))],
+)
+def reject_order(
+    order_id: str,
+    current_user: dict = Depends(get_current_user),
+    orders: OrderRepository = Depends(get_order_repository),
+    stocks: StockRepository = Depends(get_stock_repository),
+):
+    return reject_owner_order(
+        _parse_order_id(order_id),
+        created_by=UUID(str(current_user["id"])),
         orders=orders,
         stocks=stocks,
     )

@@ -133,3 +133,23 @@ def test_list_active_paginates_and_filters(stock_session: Session):
     assert total == 1
     assert len(rows) == 1
     assert rows[0].name == "Alishan Oolong"
+
+def test_try_decrement_active_reduces_quantity_when_sufficient(stock_session: Session):
+    stock = _repo(stock_session).create(name="Tea", genre="Oolong", quantity=5)
+
+    result = _repo(stock_session).try_decrement_active(stock.id, 2)
+
+    assert result == (5, 3)
+    assert _repo(stock_session).get_active(stock.id).quantity == 3
+
+def test_try_decrement_active_returns_none_when_insufficient_or_foreign(
+    stock_session: Session,
+):
+    stock = _repo(stock_session).create(name="Tea", genre="Oolong", quantity=2)
+    other = _insert_stock(stock_session, name="Other", tenant_id=_TENANT_B)
+    deleted = _insert_stock(stock_session, name="Gone", deleted=True)
+
+    assert _repo(stock_session).try_decrement_active(stock.id, 3) is None
+    assert _repo(stock_session).get_active(stock.id).quantity == 2
+    assert _repo(stock_session).try_decrement_active(other.id, 1) is None
+    assert _repo(stock_session).try_decrement_active(deleted.id, 1) is None

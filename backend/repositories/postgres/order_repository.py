@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from datetime import datetime, timezone
 from uuid import UUID
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, func, select, update
 from sqlalchemy.orm import Session, selectinload
 
 from models.order import Order, OrderItem, OrderStatus, StockMovement
@@ -86,6 +87,7 @@ class OrderRepository:
         ref_type: str,
         ref_id: UUID,
         created_by: UUID,
+        commit: bool = True,
     ) -> StockMovement:
         movement = StockMovement(
             tenant_id=self._tenant_id,
@@ -99,9 +101,44 @@ class OrderRepository:
             created_by=created_by,
         )
         self._db.add(movement)
-        self._db.commit()
-        self._db.refresh(movement)
+        if commit:
+            self._db.commit()
+            self._db.refresh(movement)
+        else:
+            self._db.flush()
         return movement
+
+    def claim_pending(
+        self,
+        order_id: UUID,
+        *,
+        new_status: OrderStatus,
+    ) -> Order | None:
+        """Move pending → ``new_status`` for this tenant. Flush only; caller commits."""
+        result = self._db.execute(
+            update(Order)
+            .where(
+                Order.id == order_id,
+                Order.tenant_id == self._tenant_id,
+                Order.status == OrderStatus.pending.value,
+            )
+            .values(
+                status=new_status.value,
+                updated_at=datetime.now(timezone.utc),
+            )
+        )
+        if result.rowcount != 1:
+            return None
+        order = self.get(order_id)
+        if order is not None:
+            self._db.refresh(order)
+        return order
+
+    def commit(self) -> None:
+        self._db.commit()
+
+    def rollback(self) -> None:
+        self._db.rollback()
 
     def list_movements_for_ref(
         self,
