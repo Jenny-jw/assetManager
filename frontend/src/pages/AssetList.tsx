@@ -3,16 +3,16 @@ import type { TeaSortField } from "../types/TeaList";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
-  DEFAULT_TEA_PAGE_SIZE,
-  extractTeaFacets,
-  listTeas,
-} from "../services/teaServices";
+  DEFAULT_STOCK_PAGE_SIZE,
+  deleteStock,
+  extractStockFacets,
+  listStocks,
+} from "../services/stockServices";
 import { useAuth } from "../context/useAuth";
 import { useDeployment } from "../context/useDeployment";
 import { isModuleEnabled } from "../lib/moduleAccess";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import axios from "../lib/axios";
 import {
   formatMoney,
   lineTotalValue,
@@ -97,9 +97,9 @@ const AssetList = () => {
   const previousSearch = useRef(debouncedSearch);
 
   useEffect(() => {
-    listTeas({ limit: 100, sort_by: "name", sort_direction: "asc" })
+    listStocks({ limit: 100, sort_by: "name", sort_direction: "asc" })
       .then((response) => {
-        const facets = extractTeaFacets(response.data);
+        const facets = extractStockFacets(response.data);
         setGenreOptions(facets.genres);
         setOriginOptions(facets.origins);
       })
@@ -124,9 +124,9 @@ const AssetList = () => {
       setLoadError("");
 
       try {
-        const response = await listTeas({
+        const response = await listStocks({
           page,
-          limit: DEFAULT_TEA_PAGE_SIZE,
+          limit: DEFAULT_STOCK_PAGE_SIZE,
           search: debouncedSearch.trim() || undefined,
           genre: genreFilter || undefined,
           origin: originFilter || undefined,
@@ -168,9 +168,9 @@ const AssetList = () => {
     };
   }, [page, debouncedSearch, genreFilter, originFilter, sortKey, sortDirection]);
 
-  const totalPages = Math.max(1, Math.ceil(total / DEFAULT_TEA_PAGE_SIZE));
-  const rangeStart = total === 0 ? 0 : (page - 1) * DEFAULT_TEA_PAGE_SIZE + 1;
-  const rangeEnd = Math.min(page * DEFAULT_TEA_PAGE_SIZE, total);
+  const totalPages = Math.max(1, Math.ceil(total / DEFAULT_STOCK_PAGE_SIZE));
+  const rangeStart = total === 0 ? 0 : (page - 1) * DEFAULT_STOCK_PAGE_SIZE + 1;
+  const rangeEnd = Math.min(page * DEFAULT_STOCK_PAGE_SIZE, total);
   const hasActiveFilters =
     searchInput.trim() !== "" || genreFilter !== "" || originFilter !== "";
 
@@ -189,9 +189,9 @@ const AssetList = () => {
   };
 
   const refreshAssets = async () => {
-    const response = await listTeas({
+    const response = await listStocks({
       page,
-      limit: DEFAULT_TEA_PAGE_SIZE,
+      limit: DEFAULT_STOCK_PAGE_SIZE,
       search: debouncedSearch.trim() || undefined,
       genre: genreFilter || undefined,
       origin: originFilter || undefined,
@@ -210,7 +210,7 @@ const AssetList = () => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`/tea/${assetId}`);
+      await deleteStock(assetId);
 
       setSelectedAsset((prevAsset) =>
         prevAsset?.id === assetId ? null : prevAsset,

@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { login } from "../services/authServices";
+import { login, loginErrorMessage } from "../services/authServices";
+import { getApiErrorCode } from "../lib/apiError";
 import { useAuth } from "../context/useAuth";
 
 const Login = () => {
@@ -15,19 +16,24 @@ const Login = () => {
 
     setErrMsg("");
     const formData = new FormData(event.currentTarget);
-    const email = formData.get("email") as string;
+    const slug = formData.get("slug") as string;
+    const username = formData.get("username") as string;
     const password = formData.get("password") as string;
 
     try {
-      await login(email, password);
+      await login({ slug, username, password });
       await refresh();
       navigate("/dashboard");
     } catch (err) {
-      if (err instanceof Error && err.message) {
-        setErrMsg(err.message);
+      const code = getApiErrorCode(err);
+      if (code === "invalid_credentials") {
+        setErrMsg(t("auth.invalidCredentials"));
+      } else if (code === "trial_expired") {
+        setErrMsg(t("auth.trialExpired"));
+      } else if (code === "tenant_suspended") {
+        setErrMsg(t("auth.tenantSuspended"));
       } else {
-        console.error("Unexpected error during login:", err);
-        setErrMsg(t("auth.loginUnexpectedError"));
+        setErrMsg(loginErrorMessage(err, t("auth.loginUnexpectedError")));
       }
     }
   };
@@ -36,12 +42,6 @@ const Login = () => {
       <div className="hidden md:flex flex-col justify-center p-12">
         <h1 className="text-4xl font-bold mb-4 text-left">{t("auth.brandTitle")}</h1>
         <p className="text-[#d6d1c5] mb-8 text-left">{t("auth.brandSubtitle")}</p>
-        <Link
-          to="/dashboard"
-          className="text-[#ccd989] hover:text-[#b8cb75] font-semibold text-left"
-        >
-          {t("auth.viewGuestDashboard")}
-        </Link>
       </div>
 
       <div className="flex items-center justify-center p-6">
@@ -49,15 +49,28 @@ const Login = () => {
           <h2 className="text-2xl font-bold text-center">{t("auth.login")}</h2>
 
           <input
-            type="email"
-            name="email"
-            placeholder={t("auth.email")}
+            type="text"
+            name="slug"
+            autoComplete="organization"
+            placeholder={t("auth.slug")}
+            required
+            minLength={2}
+            className="w-full border p-3 rounded bg-[#d3d4be80] text-[#ffffffE6]"
+          />
+          <input
+            type="text"
+            name="username"
+            autoComplete="username"
+            placeholder={t("auth.username")}
+            required
             className="w-full border p-3 rounded bg-[#d3d4be80] text-[#ffffffE6]"
           />
           <input
             type="password"
             name="password"
+            autoComplete="current-password"
             placeholder={t("auth.password")}
+            required
             className="w-full border p-3 rounded bg-[#d3d4be80] text-[#ffffffE6]"
           />
           {errMsg && (

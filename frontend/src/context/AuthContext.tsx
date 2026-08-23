@@ -33,8 +33,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
-    await authServices.login(email, password);
+  const login = async (payload: authServices.LoginPayload) => {
+    await authServices.login(payload);
     await refresh();
   };
 

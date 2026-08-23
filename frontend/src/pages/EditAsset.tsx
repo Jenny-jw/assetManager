@@ -1,10 +1,9 @@
-import type { Asset } from "../types/Asset";
 import type { ChangeEvent, SubmitEvent } from "react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { isAxiosError } from "axios";
-import axios from "../lib/axios";
 import { getApiErrorMessage } from "../lib/apiError";
+import { getStock, updateStock } from "../services/stockServices";
 import {
   dateInputToHarvestInt,
   harvestIntToDateInput,
@@ -158,8 +157,7 @@ const EditAsset = () => {
       }
 
       try {
-        const res = await axios.get<Asset>(`/tea/${id}`);
-        const asset = res.data;
+        const asset = await getStock(id);
 
         setForm({
           name: asset.name ?? "",
@@ -224,7 +222,7 @@ const EditAsset = () => {
     setFieldErrors({});
 
     try {
-      await axios.patch(`/tea/${id}`, buildPayload(form));
+      await updateStock(id, buildPayload(form));
       navigate("/assets");
     } catch (error) {
       console.error("Failed to update tea:", error);

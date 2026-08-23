@@ -146,13 +146,12 @@ Update imports project-wide; `alembic/env.py` model imports; delete empty `*/pro
 
 ## Frontend (P1-12–14 or cleanup follow-up)
 
-| Now | After |
+| Now (feature/tenancy) | Remaining |
 |-----|-------|
-| `teaServices.ts`, `/tea/*` | `stockServices.ts`, `/stock/*` |
-| email login/signup | username |
-| `types/TeaList.ts`, `teaPricing.ts` | stock naming |
+| `stockServices.ts`, `/stock/*` | optional rename `TeaList` / `teaPricing` |
+| slug + username + edition signup/login | — |
 
-Backend cleanup PR may ship before frontend; document mismatch in README until P1-12.
+`types/TeaList.ts` and `teaPricing.ts` still use tea-era names internally; API path and payload mapping are aligned.
 
 ---
 

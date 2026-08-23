@@ -44,6 +44,8 @@ describe("ProtectedRoute", () => {
   it("redirects non-admin users to dashboard", () => {
     renderProtectedRoute({
       id: "1",
+      tenant_id: "a1111111-b222-c333-d444-e55555555555",
+      username: "user1",
       name: "Regular User",
       email: "user@example.com",
       role: "user",
@@ -57,6 +59,8 @@ describe("ProtectedRoute", () => {
   it("renders children for admin users", () => {
     renderProtectedRoute({
       id: "2",
+      tenant_id: "a1111111-b222-c333-d444-e55555555555",
+      username: "admin1",
       name: "Admin User",
       email: "admin@example.com",
       role: "admin",

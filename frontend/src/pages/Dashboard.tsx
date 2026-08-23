@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   DASHBOARD_RECENT_LIMIT,
-  getTeaSummary,
-  listTeas,
-} from "../services/teaServices";
+  getStockSummary,
+  listStocks,
+} from "../services/stockServices";
 import type { Asset } from "../types/Asset";
 import type { TeaSummary } from "../types/TeaList";
 import { useNavigate } from "react-router-dom";
@@ -42,8 +42,8 @@ const Dashboard = () => {
 
   const refreshDashboard = useCallback(() => {
     Promise.all([
-      getTeaSummary(),
-      listTeas({
+      getStockSummary(),
+      listStocks({
         limit: DASHBOARD_RECENT_LIMIT,
         sort_by: "created_at",
         sort_direction: "desc",

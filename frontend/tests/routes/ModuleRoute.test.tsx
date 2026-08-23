@@ -18,6 +18,8 @@ const baseAuth: Omit<AuthContextType, "user"> = {
 
 const ownerUser: User = {
   id: "owner-1",
+  tenant_id: "a1111111-b222-c333-d444-e55555555555",
+  username: "owner1",
   name: "Owner",
   email: "owner@example.com",
   role: "owner",

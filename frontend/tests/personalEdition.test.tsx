@@ -20,19 +20,19 @@ import {
 } from "@/types/Deployment";
 import type { User } from "@/types/User";
 
-const { getTeaSummaryMock, listTeasMock } = vi.hoisted(() => ({
-  getTeaSummaryMock: vi.fn(),
-  listTeasMock: vi.fn(),
+const { getStockSummaryMock, listStocksMock } = vi.hoisted(() => ({
+  getStockSummaryMock: vi.fn(),
+  listStocksMock: vi.fn(),
 }));
 
-vi.mock("@/services/teaServices", async () => {
-  const actual = await vi.importActual<typeof import("@/services/teaServices")>(
-    "@/services/teaServices",
+vi.mock("@/services/stockServices", async () => {
+  const actual = await vi.importActual<typeof import("@/services/stockServices")>(
+    "@/services/stockServices",
   );
   return {
     ...actual,
-    getTeaSummary: getTeaSummaryMock,
-    listTeas: listTeasMock,
+    getStockSummary: getStockSummaryMock,
+    listStocks: listStocksMock,
   };
 });
 
@@ -49,6 +49,8 @@ const baseAuth: Omit<AuthContextType, "user"> = {
 
 const ownerUser: User = {
   id: "owner-1",
+  tenant_id: "a1111111-b222-c333-d444-e55555555555",
+  username: "owner1",
   name: "Owner",
   email: "owner@example.com",
   role: "owner",
@@ -119,10 +121,10 @@ function renderPersonalModuleRoute(requireModule?: "inventory" | "orders") {
 
 describe("Personal edition", () => {
   beforeEach(() => {
-    getTeaSummaryMock.mockReset();
-    listTeasMock.mockReset();
-    getTeaSummaryMock.mockResolvedValue(widgetContext.summary);
-    listTeasMock.mockResolvedValue({ data: widgetContext.recentAssets });
+    getStockSummaryMock.mockReset();
+    listStocksMock.mockReset();
+    getStockSummaryMock.mockResolvedValue(widgetContext.summary);
+    listStocksMock.mockResolvedValue({ data: widgetContext.recentAssets });
   });
 
   it("fixture matches personal preset modules and dashboard layout", () => {

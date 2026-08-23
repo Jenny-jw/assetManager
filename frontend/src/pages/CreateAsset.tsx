@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { CreateAssetType } from "../types/Asset";
-import axios from "../lib/axios";
 import { getApiErrorMessage } from "../lib/apiError";
 import { PACKAGE_WEIGHT_OPTIONS } from "../lib/teaPricing";
+import { createStock } from "../services/stockServices";
 
 const INITIAL_FORM: CreateAssetType = {
   name: "",
@@ -128,7 +128,7 @@ const CreateAsset = () => {
     setSuccessMessage("");
 
     try {
-      await axios.post("/tea", form);
+      await createStock(form);
       setSuccessMessage("Added successfully! You can now add the next asset.");
       resetForm();
     } catch (error) {

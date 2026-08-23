@@ -58,7 +58,7 @@ alwaysApply: true
 | 11h | Dashboard actions for `owner` (Add Asset / Manage Inventory); defer nav gating to **#12** | [x] |
 | 11i | Vitest — personal layout hides `PendingOrdersInbox` | [x] |
 
-**Deferred:** i18n labels → **#13**; stock API on frontend (`/api/stock`) → align with P1-12 or follow-up.
+**Deferred:** i18n labels → **#13** (done). Frontend inventory client now uses `/api/stock`.
 
 **Deferred from P1-9** (other roadmap items):
 

@@ -8,24 +8,24 @@ import type { AuthContextType } from "@/context/authContextImpl";
 import { DeploymentProvider } from "@/context/DeploymentContext";
 import Dashboard from "@/pages/Dashboard";
 
-const { getDeploymentMock, getTeaSummaryMock, listTeasMock } = vi.hoisted(() => ({
+const { getDeploymentMock, getStockSummaryMock, listStocksMock } = vi.hoisted(() => ({
   getDeploymentMock: vi.fn(),
-  getTeaSummaryMock: vi.fn(),
-  listTeasMock: vi.fn(),
+  getStockSummaryMock: vi.fn(),
+  listStocksMock: vi.fn(),
 }));
 
 vi.mock("@/services/deploymentServices", () => ({
   getDeployment: getDeploymentMock,
 }));
 
-vi.mock("@/services/teaServices", async () => {
-  const actual = await vi.importActual<typeof import("@/services/teaServices")>(
-    "@/services/teaServices",
+vi.mock("@/services/stockServices", async () => {
+  const actual = await vi.importActual<typeof import("@/services/stockServices")>(
+    "@/services/stockServices",
   );
   return {
     ...actual,
-    getTeaSummary: getTeaSummaryMock,
-    listTeas: listTeasMock,
+    getStockSummary: getStockSummaryMock,
+    listStocks: listStocksMock,
   };
 });
 
@@ -56,10 +56,10 @@ const zhTWDeployment = {
 describe("tenant locale i18n", () => {
   beforeEach(async () => {
     getDeploymentMock.mockReset();
-    getTeaSummaryMock.mockReset();
-    listTeasMock.mockReset();
+    getStockSummaryMock.mockReset();
+    listStocksMock.mockReset();
     await i18n.changeLanguage(Locale.EN);
-    getTeaSummaryMock.mockResolvedValue({
+    getStockSummaryMock.mockResolvedValue({
       total_assets: 0,
       total_packages: 0,
       total_weight_grams: 0,
@@ -67,7 +67,7 @@ describe("tenant locale i18n", () => {
       by_origin: {},
       by_genre: {},
     });
-    listTeasMock.mockResolvedValue({ data: [] });
+    listStocksMock.mockResolvedValue({ data: [] });
   });
 
   it("renders dashboard labels in zh-TW after deployment loads", async () => {
@@ -79,6 +79,8 @@ describe("tenant locale i18n", () => {
           ...baseAuth,
           user: {
             id: "owner-1",
+            tenant_id: "a1111111-b222-c333-d444-e55555555555",
+            username: "owner1",
             name: "Owner",
             email: "owner@example.com",
             role: "owner",
