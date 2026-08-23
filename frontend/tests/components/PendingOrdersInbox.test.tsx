@@ -25,9 +25,9 @@ const availableOrder: Order = {
     {
       id: "item-1",
       order_id: "order-1",
-      tea_id: "tea-1",
-      tea_name: "Fresh Oolong",
-      tea_available: true,
+      stock_id: "stock-1",
+      stock_name: "Fresh Oolong",
+      stock_available: true,
       quantity: 1,
       unit_price: 300,
       line_total: 300,
@@ -43,8 +43,8 @@ const unavailableOrder: Order = {
       ...availableOrder.items[0],
       id: "item-2",
       order_id: "order-2",
-      tea_name: "Deleted Tea",
-      tea_available: false,
+      stock_name: "Deleted Tea",
+      stock_available: false,
     },
   ],
 };

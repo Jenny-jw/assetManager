@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import os
 from collections.abc import Generator
+import os
 
-import core.env  # noqa: F401
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
+
+import core.env  # noqa: F401
 
 Base = declarative_base()
 _session_factory: sessionmaker[Session] | None = None

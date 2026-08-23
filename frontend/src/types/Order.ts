@@ -1,9 +1,9 @@
 export type OrderItem = {
   id: string;
   order_id: string;
-  tea_id: string;
-  tea_name: string;
-  tea_available?: boolean;
+  stock_id: string;
+  stock_name: string;
+  stock_available?: boolean;
   /** Number of packages ordered */
   quantity: number;
   /** Price per package at time of order */
@@ -23,7 +23,7 @@ export type Order = {
 };
 
 export type CreateOrderItem = {
-  tea_id: string;
+  stock_id: string;
   quantity: number;
 };
 

@@ -1,8 +1,8 @@
-import uuid
 from datetime import datetime, timezone
+import uuid
 
-import pytest
 from pydantic import ValidationError
+import pytest
 
 from core.deployment import Edition, load_personal_preset
 from models.stock import Stock
@@ -17,15 +17,32 @@ from schemas.user import UserCreate, UserLogin, UserResponse
 
 def test_user_create_allows_null_email():
     user = UserCreate(
+        slug="sample-shop",
         username="farmer01",
         name="陳伯伯",
         email=None,
         password="secretpass",
     )
     assert user.email is None
+    assert user.slug == "sample-shop"
+    assert user.edition.value == "personal"
 
-def test_user_login_uses_username():
-    login = UserLogin(username="farmer01", password="secretpass")
+def test_user_create_normalizes_slug():
+    user = UserCreate(
+        slug=" Sample-Shop ",
+        username="farmer01",
+        name="Owner",
+        password="secretpass",
+    )
+    assert user.slug == "sample-shop"
+
+def test_user_login_requires_slug_and_username():
+    login = UserLogin(
+        slug="sample-shop",
+        username="farmer01",
+        password="secretpass",
+    )
+    assert login.slug == "sample-shop"
     assert login.username == "farmer01"
 
 def test_stock_create_allows_null_genre_and_origin():
@@ -50,6 +67,7 @@ def test_stock_response_from_orm():
     now = datetime.now(timezone.utc)
     row = Stock(
         id=uuid.uuid4(),
+        tenant_id=uuid.uuid4(),
         name="Test",
         quantity=2,
         created_at=now,
@@ -60,8 +78,10 @@ def test_stock_response_from_orm():
 
 def test_user_response_from_orm():
     now = datetime.now(timezone.utc)
+    tenant_id = uuid.uuid4()
     row = User(
         id=uuid.uuid4(),
+        tenant_id=tenant_id,
         username="owner1",
         name="Owner",
         hashed_password="hashed",
@@ -72,10 +92,24 @@ def test_user_response_from_orm():
     response = UserResponse.model_validate(row)
     assert response.username == "owner1"
     assert response.role == "owner"
+    assert response.tenant_id == str(tenant_id)
 
 def test_deployment_response_from_config():
     deployment = load_personal_preset()
-    response = DeploymentResponse.model_validate(deployment)
+    response = DeploymentResponse.model_validate(
+        {
+            "edition": deployment.edition,
+            "locale": deployment.locale,
+            "modules": deployment.modules,
+            "dashboard_layout": deployment.dashboard_layout,
+            "capabilities": ["manage_inventory", "view_catalog", "view_pricing"],
+        }
+    )
     assert response.edition is Edition.personal
     assert response.modules.orders is False
     assert "summary" in response.dashboard_layout
+    assert [cap.value for cap in response.capabilities] == [
+        "manage_inventory",
+        "view_catalog",
+        "view_pricing",
+    ]

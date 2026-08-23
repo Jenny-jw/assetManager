@@ -3,17 +3,18 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { DeploymentProvider } from "./context/DeploymentContext";
+import "./i18n";
 import "./index.css";
 import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <DeploymentProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <DeploymentProvider>
         <BrowserRouter>
           <App />
         </BrowserRouter>
-      </AuthProvider>
-    </DeploymentProvider>
+      </DeploymentProvider>
+    </AuthProvider>
   </StrictMode>,
 );

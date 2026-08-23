@@ -5,9 +5,9 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID, uuid4
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -16,11 +16,16 @@ from core.db import get_db
 from core.deployment import DeploymentConfig, get_deployment, load_personal_preset
 from dependencies.auth import get_current_user
 from models.stock import Stock
+from models.tenant import Tenant
 from models.user import User
-from routes.stock import router as product_stock_router
+from modules.inventory import router as product_stock_router
+
+# Avoid all-digit UUID hex: SQLite can coerce it to float on round-trip.
+_TENANT_ID = "a1111111-b222-c333-d444-e55555555555"
 
 _OWNER: dict[str, Any] = {
     "id": "00000000-0000-0000-0000-000000000001",
+    "tenant_id": _TENANT_ID,
     "username": "owner1",
     "role": "owner",
     "name": "Owner",
@@ -44,6 +49,7 @@ def stock_session() -> Generator[Session, None, None]:
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+    Tenant.__table__.create(bind=engine)
     User.__table__.create(bind=engine)
     Stock.__table__.create(bind=engine)
     session_factory = sessionmaker(
@@ -53,12 +59,26 @@ def stock_session() -> Generator[Session, None, None]:
         expire_on_commit=False,
     )
     session = session_factory()
+    session.add(
+        Tenant(
+            id=UUID(_TENANT_ID),
+            slug="stock-test-shop",
+            edition="personal",
+            locale="zh-TW",
+            roles_enabled=["owner"],
+            modules={"inventory": True, "orders": False},
+            dashboard_layout=["summary"],
+            status="active",
+        )
+    )
+    session.commit()
     try:
         yield session
     finally:
         session.close()
-        User.__table__.drop(bind=engine)
         Stock.__table__.drop(bind=engine)
+        User.__table__.drop(bind=engine)
+        Tenant.__table__.drop(bind=engine)
         engine.dispose()
 
 @pytest.fixture
@@ -93,6 +113,16 @@ def test_create_stock_returns_201(stock_client: TestClient):
     assert body["quantity"] == 2
     assert "id" in body
     assert "created_at" in body
+    assert body["cost_per_jin"] is None
+
+def test_create_stock_stores_cost_per_jin(stock_client: TestClient):
+    response = stock_client.post(
+        "/api/stock/",
+        json={**_STOCK_PAYLOAD, "cost_per_jin": 800},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["cost_per_jin"] == 800
 
 def test_create_stock_rejects_invalid_weight_for_personal(stock_client: TestClient):
     response = stock_client.post(
@@ -101,7 +131,7 @@ def test_create_stock_rejects_invalid_weight_for_personal(stock_client: TestClie
     )
 
     assert response.status_code == 400
-    assert "75 or 150" in response.json()["detail"]
+    assert response.json()["detail"] == "invalid_weight"
 
 def test_create_stock_requires_owner(stock_session: Session, personal_deployment: DeploymentConfig):
     app = FastAPI()
@@ -130,7 +160,7 @@ def test_get_stock_returns_active_row(stock_client: TestClient):
 def test_get_stock_returns_404_when_missing(stock_client: TestClient):
     response = stock_client.get(f"/api/stock/{uuid4()}")
     assert response.status_code == 404
-    assert response.json()["detail"] == "Stock not found"
+    assert response.json()["detail"] == "stock_not_found"
 
 def test_get_stock_returns_404_when_soft_deleted(stock_client: TestClient, stock_session: Session):
     created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
@@ -145,7 +175,7 @@ def test_get_stock_returns_404_when_soft_deleted(stock_client: TestClient, stock
 def test_get_stock_returns_400_for_invalid_id(stock_client: TestClient):
     response = stock_client.get("/api/stock/not-a-uuid")
     assert response.status_code == 400
-    assert response.json()["detail"] == "Invalid stock id"
+    assert response.json()["detail"] == "invalid_stock_id"
 
 def test_list_stocks_returns_empty_page(stock_client: TestClient):
     response = stock_client.get("/api/stock/")
@@ -268,6 +298,17 @@ def test_patch_stock_updates_fields(stock_client: TestClient):
     assert body["quantity"] == 0
     assert body["updated_at"] is not None
 
+def test_patch_stock_updates_cost_per_jin(stock_client: TestClient):
+    created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
+
+    response = stock_client.patch(
+        f"/api/stock/{created['id']}",
+        json={"cost_per_jin": 600},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["cost_per_jin"] == 600
+
 def test_patch_stock_clears_optional_strings(stock_client: TestClient):
     created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()
 
@@ -287,7 +328,7 @@ def test_patch_stock_returns_400_when_empty(stock_client: TestClient):
     response = stock_client.patch(f"/api/stock/{created['id']}", json={})
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "No fields to update"
+    assert response.json()["detail"] == "no_fields_to_update"
 
 def test_patch_stock_returns_404_when_missing(stock_client: TestClient):
     response = stock_client.patch(f"/api/stock/{uuid4()}", json={"name": "Nope"})
@@ -302,7 +343,7 @@ def test_patch_stock_rejects_invalid_weight_for_personal(stock_client: TestClien
     )
 
     assert response.status_code == 400
-    assert "75 or 150" in response.json()["detail"]
+    assert response.json()["detail"] == "invalid_weight"
 
 def test_delete_stock_soft_deletes_row(stock_client: TestClient):
     created = stock_client.post("/api/stock/", json=_STOCK_PAYLOAD).json()

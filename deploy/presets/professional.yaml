@@ -17,4 +17,5 @@ dashboard_layout:
   - origin
   - genre
   - pending_orders
+  - profit
   - recent_assets

@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-import os
 from enum import Enum
 from functools import lru_cache
+import os
 from pathlib import Path
 from typing import Any
 
-import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
+import yaml
+
+from models.tenant import Tenant
 
 class Edition(str, Enum):
     personal = "personal"
@@ -23,6 +25,7 @@ PERSONAL_DASHBOARD_WIDGETS = frozenset(
     {"summary", "origin", "genre", "recent_assets"}
 )
 ORDER_DASHBOARD_WIDGETS = frozenset({"pending_orders"})
+PROFIT_DASHBOARD_WIDGETS = frozenset({"profit"})
 
 class DeploymentModules(BaseModel):
     inventory: bool = True
@@ -77,6 +80,10 @@ class DeploymentConfig(BaseModel):
             raise ValueError(
                 "dashboard_layout cannot include pending_orders when modules.orders is false"
             )
+        if not self.modules.profit_analytics and layout & PROFIT_DASHBOARD_WIDGETS:
+            raise ValueError(
+                "dashboard_layout cannot include profit when modules.profit_analytics is false"
+            )
         return self
 
 def _repo_root() -> Path:
@@ -88,8 +95,19 @@ def default_config_path() -> Path:
 def personal_preset_path() -> Path:
     return _repo_root() / "deploy" / "presets" / "personal.yaml"
 
+def professional_preset_path() -> Path:
+    return _repo_root() / "deploy" / "presets" / "professional.yaml"
+
 def load_personal_preset() -> DeploymentConfig:
     return load_deployment_config(personal_preset_path())
+
+def load_professional_preset() -> DeploymentConfig:
+    return load_deployment_config(professional_preset_path())
+
+def load_preset_for_edition(edition: Edition) -> DeploymentConfig:
+    if edition is Edition.professional:
+        return load_professional_preset()
+    return load_personal_preset()
 
 def resolve_config_path() -> Path:
     override = os.getenv("DEPLOY_CONFIG_PATH")
@@ -112,6 +130,17 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 def load_deployment_config(path: Path | None = None) -> DeploymentConfig:
     config_path = path if path is not None else resolve_config_path()
     return DeploymentConfig.model_validate(_load_yaml(config_path))
+
+def deployment_from_tenant(tenant: Tenant) -> DeploymentConfig:
+    return DeploymentConfig.model_validate(
+        {
+            "edition": tenant.edition,
+            "locale": tenant.locale,
+            "roles_enabled": tenant.roles_enabled,
+            "modules": tenant.modules,
+            "dashboard_layout": tenant.dashboard_layout,
+        }
+    )
 
 @lru_cache
 def get_deployment() -> DeploymentConfig:

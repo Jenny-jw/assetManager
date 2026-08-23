@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Order } from "../types/Order";
 import { approveOrder, listOrders, rejectOrder } from "../services/orderServices";
 
@@ -8,17 +9,8 @@ type Props = {
   onInventoryChange?: () => void;
 };
 
-function formatItemLabel(
-  teaName: string,
-  quantity: number,
-  teaAvailable: boolean,
-): string {
-  const label = teaAvailable ? teaName : `${teaName} (no longer available)`;
-  return `${label} ×${quantity}`;
-}
-
-function orderHasUnavailableTea(order: Order): boolean {
-  return order.items.some((item) => item.tea_available === false);
+function orderHasUnavailableStock(order: Order): boolean {
+  return order.items.some((item) => item.stock_available === false);
 }
 
 const PendingOrdersInbox = ({
@@ -26,8 +18,20 @@ const PendingOrdersInbox = ({
   onPendingCountChange,
   onInventoryChange,
 }: Props) => {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [actingId, setActingId] = useState<string | null>(null);
+
+  const formatItemLabel = (
+    stockName: string,
+    quantity: number,
+    stockAvailable: boolean,
+  ): string => {
+    const label = stockAvailable
+      ? stockName
+      : t("widgets.itemUnavailable", { name: stockName });
+    return `${label} ×${quantity}`;
+  };
 
   const refreshPendingOrders = async () => {
     const data = await listOrders("pending");
@@ -60,14 +64,14 @@ const PendingOrdersInbox = ({
       onInventoryChange?.();
       await refreshPendingOrders();
     } catch {
-      alert("Failed to approve order. Please try again.");
+      alert(t("widgets.approveFailed"));
     } finally {
       setActingId(null);
     }
   };
 
   const handleReject = async (orderId: string) => {
-    const confirmed = window.confirm("Reject this order?");
+    const confirmed = window.confirm(t("widgets.rejectConfirm"));
     if (!confirmed) return;
 
     setActingId(orderId);
@@ -75,7 +79,7 @@ const PendingOrdersInbox = ({
       await rejectOrder(orderId);
       await refreshPendingOrders();
     } catch {
-      alert("Failed to reject order. Please try again.");
+      alert(t("widgets.rejectFailed"));
     } finally {
       setActingId(null);
     }
@@ -87,7 +91,7 @@ const PendingOrdersInbox = ({
       await rejectOrder(orderId);
       await refreshPendingOrders();
     } catch {
-      alert("Failed to remove order. Please try again.");
+      alert(t("widgets.removeFailed"));
     } finally {
       setActingId(null);
     }
@@ -95,11 +99,11 @@ const PendingOrdersInbox = ({
 
   return (
     <div className="bg-[#ffffffE6] p-4 shadow rounded-xl text-gray-500 h-full">
-      <h2 className="font-semibold mb-3">Pending Orders</h2>
+      <h2 className="font-semibold mb-3">{t("widgets.pendingOrders")}</h2>
 
       {orders.length === 0 ? (
         <p className="text-sm text-gray-400 py-4 text-center">
-          No pending orders at the moment
+          {t("widgets.noPendingOrders")}
         </p>
       ) : (
         <ul className="space-y-3 max-h-64 overflow-y-auto">
@@ -107,14 +111,14 @@ const PendingOrdersInbox = ({
             const summary = order.items
               .map((item) =>
                 formatItemLabel(
-                  item.tea_name,
+                  item.stock_name,
                   item.quantity,
-                  item.tea_available !== false,
+                  item.stock_available !== false,
                 ),
               )
               .join(", ");
             const isActing = actingId === order.id;
-            const hasUnavailableTea = orderHasUnavailableTea(order);
+            const hasUnavailableTea = orderHasUnavailableStock(order);
 
             return (
               <li
@@ -125,7 +129,9 @@ const PendingOrdersInbox = ({
                   {summary}
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Total: {order.total_amount.toLocaleString()}
+                  {t("widgets.orderTotal", {
+                    amount: order.total_amount.toLocaleString(),
+                  })}
                 </p>
                 {hasUnavailableTea ? (
                   <div className="flex justify-end mt-2">
@@ -135,7 +141,7 @@ const PendingOrdersInbox = ({
                       disabled={isActing}
                       className="w-1/2 px-2 py-1 text-xs rounded-lg bg-[#894f45] text-white hover:bg-red-700 transition disabled:opacity-60"
                     >
-                      {isActing ? "…" : "Remove"}
+                      {isActing ? t("widgets.acting") : t("widgets.remove")}
                     </button>
                   </div>
                 ) : (
@@ -146,7 +152,7 @@ const PendingOrdersInbox = ({
                       disabled={isActing}
                       className="flex-1 px-2 py-1 text-xs rounded-lg bg-[#78a043] text-white hover:bg-lime-900 transition disabled:opacity-60"
                     >
-                      {isActing ? "…" : "Approve"}
+                      {isActing ? t("widgets.acting") : t("widgets.approve")}
                     </button>
                     <button
                       type="button"
@@ -154,7 +160,7 @@ const PendingOrdersInbox = ({
                       disabled={isActing}
                       className="flex-1 px-2 py-1 text-xs rounded-lg bg-[#894f45] text-white hover:bg-red-700 transition disabled:opacity-60"
                     >
-                      Reject
+                      {t("widgets.reject")}
                     </button>
                   </div>
                 )}

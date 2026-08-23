@@ -1,0 +1,103 @@
+---
+description: Python style and type annotations (Ruff-aligned, 3.10+)
+globs: backend/**/*.py
+alwaysApply: false
+---
+
+# Product Python — Style & Types
+
+Target **Python 3.10+** (CI `3.10`; Docker `3.11`). Write code and new migrations so **Ruff** stays clean.
+
+## Stack snapshot (backend)
+
+| Package | Version / constraint |
+|---------|----------------------|
+| Python | 3.10+ (CI); 3.11 (Docker) |
+| FastAPI | 0.136.x (local) |
+| Pydantic | 2.13.x |
+| SQLAlchemy | ≥2.0 (local 2.0.51) |
+| Alembic | ≥1.13 |
+| pytest | 9.x |
+
+Re-check with `python --version` and `pip show <pkg>` when upgrading deps; update this table if versions drift.
+
+## Import groups
+
+Order: **stdlib → third-party → local** (`core`, `dependencies`, `models`, `modules`, `repositories`, `routes`, `schemas`, `services`). One blank line between groups—not two.
+
+```python
+# ✅ Good
+from uuid import UUID
+
+from fastapi import Depends
+from sqlalchemy import select
+
+from core.config import JWT_SECRET_KEY
+from models.user import User
+```
+
+Do not mix local modules into the third-party block (common after IDE “Organize Imports”).
+
+## Type annotations (PEP 604 / 585)
+
+Use modern unions and builtins—**not** legacy `typing` aliases:
+
+```python
+# ❌ Avoid
+from typing import Optional, Union
+def f(x: Union[str, None]) -> Optional[int]: ...
+
+# ✅ Prefer
+def f(x: str | None) -> int | None: ...
+```
+
+Same in Alembic revisions and tests:
+
+```python
+# ❌ down_revision: Union[str, None] = "..."
+# ✅ down_revision: str | None = "..."
+```
+
+## `collections.abc` for generics
+
+Import abstract collections from **`collections.abc`**, not `typing`:
+
+```python
+# ❌ from typing import Sequence
+# ✅ from collections.abc import Sequence
+
+branch_labels: str | Sequence[str] | None = None
+```
+
+Applies to `Sequence`, `Mapping`, `Iterable`, `Callable`, etc.
+
+## Ruff
+
+[Ruff](https://docs.astral.sh/ruff/) is the project linter (import order, deprecated typing, simple bugs). Warnings are style/consistency—not runtime failures—but **fix them in new/edited files** rather than ignoring. Do not disable rules without a short comment and reason.
+
+### B008 (`Depends()` / `Query()` in argument defaults)
+
+Ruff **B008** forbids function calls in default arguments (`def f(x=now())`) because Python evaluates defaults **once** at import. FastAPI **intentionally** uses that: `Depends()` / `Query()` are markers FastAPI reads from the signature, not per-request factories.
+
+**Do not** “fix” B008 by moving `Depends(...)` into the function body — FastAPI will not inject.
+
+**Do:**
+
+1. Keep the FastAPI idiom: `user: dict = Depends(get_current_user)`.
+2. Leave B008 **on**. In `backend/ruff.toml`, list FastAPI constructors under `[lint.flake8-bugbear] extend-immutable-calls` (already includes `Depends`, `Query`, `Path`, and factories such as `require_owner`).
+3. For a dependency reused on many endpoints, prefer a module-level `Annotated` alias (same idea as `DbSession`):
+
+```python
+# ✅ Reused alias — Depends is not a default arg, so B008 does not apply
+DbSession = Annotated[Session, Depends(get_db)]
+
+def list_stocks(db: DbSession):
+    ...
+```
+
+Do **not** add `# noqa: B008` on every route, and do **not** turn off B008 globally (it still catches real bugs like `def f(items=[])`).
+
+## Related rules
+
+- Import spacing / blank lines: `code-formatting.mdc`
+- EOF (no trailing newline): `code-formatting.mdc`

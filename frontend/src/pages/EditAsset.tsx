@@ -1,9 +1,9 @@
-import type { Asset } from "../types/Asset";
 import type { ChangeEvent, SubmitEvent } from "react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { isAxiosError } from "axios";
-import axios from "../lib/axios";
+import { getApiErrorMessage } from "../lib/apiError";
+import { getStock, updateStock } from "../services/stockServices";
 import {
   dateInputToHarvestInt,
   harvestIntToDateInput,
@@ -86,11 +86,16 @@ function formatApiError(error: unknown): string {
 
   const data = error.response?.data as {
     detail?: string | ValidationDetail[];
-    error?: { message?: string };
+    error?: { message?: string; details?: ValidationDetail[] };
   };
+  const details = Array.isArray(data?.error?.details)
+    ? data.error.details
+    : Array.isArray(data?.detail)
+      ? data.detail
+      : null;
 
-  if (Array.isArray(data?.detail)) {
-    return data.detail
+  if (details) {
+    return details
       .map((item) => {
         const fieldKey = String(item.loc[item.loc.length - 1] ?? "field");
         const label =
@@ -101,15 +106,7 @@ function formatApiError(error: unknown): string {
       .join(" · ");
   }
 
-  if (typeof data?.detail === "string") {
-    return data.detail;
-  }
-
-  if (data?.error?.message) {
-    return data.error.message;
-  }
-
-  return "Failed to update tea. Please try again.";
+  return getApiErrorMessage(error, "Failed to update tea. Please try again.");
 }
 
 function buildPayload(form: EditForm) {
@@ -160,8 +157,7 @@ const EditAsset = () => {
       }
 
       try {
-        const res = await axios.get<Asset>(`/tea/${id}`);
-        const asset = res.data;
+        const asset = await getStock(id);
 
         setForm({
           name: asset.name ?? "",
@@ -226,7 +222,7 @@ const EditAsset = () => {
     setFieldErrors({});
 
     try {
-      await axios.patch(`/tea/${id}`, buildPayload(form));
+      await updateStock(id, buildPayload(form));
       navigate("/assets");
     } catch (error) {
       console.error("Failed to update tea:", error);

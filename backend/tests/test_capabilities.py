@@ -5,10 +5,12 @@ import pytest
 from core.capabilities import (
     Capability,
     capability_denial_detail,
+    granted_capabilities,
     has_capability,
     resolve_capabilities,
 )
 from core.deployment import load_deployment_config, reset_deployment_cache
+from core.errors import ErrorCode
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -47,7 +49,7 @@ def test_role_not_enabled_returns_no_capabilities():
         Capability.manage_inventory,
         deployment,
     )
-    assert detail == "role_not_enabled"
+    assert detail == ErrorCode.role_not_enabled
 
 def test_module_disabled_detail_for_personal_orders():
     deployment = load_deployment_config(_preset_path("personal.yaml"))
@@ -56,7 +58,7 @@ def test_module_disabled_detail_for_personal_orders():
         Capability.approve_orders,
         deployment,
     )
-    assert detail == "module_disabled"
+    assert detail == ErrorCode.module_disabled
 
 def test_has_capability_helper():
     deployment = load_deployment_config(_preset_path("professional.yaml"))
@@ -68,3 +70,21 @@ def test_v1_roles_not_used_in_product_capabilities():
     for legacy_role in ("admin", "user", "guest"):
         caps = resolve_capabilities({"id": "x", "role": legacy_role}, deployment)
         assert caps == frozenset()
+
+def test_granted_capabilities_are_sorted_strings_for_personal_owner():
+    deployment = load_deployment_config(_preset_path("personal.yaml"))
+    assert granted_capabilities(_owner_user(), deployment) == [
+        "manage_inventory",
+        "view_catalog",
+        "view_pricing",
+    ]
+
+def test_granted_capabilities_include_orders_and_profit_for_professional_owner():
+    deployment = load_deployment_config(_preset_path("professional.yaml"))
+    assert granted_capabilities(_owner_user(), deployment) == [
+        "approve_orders",
+        "manage_inventory",
+        "view_catalog",
+        "view_pricing",
+        "view_profit",
+    ]

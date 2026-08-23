@@ -1,0 +1,27 @@
+# Ruff — import order aligned with product-python-style.mdc
+# Run from backend/: ruff check . --select I [--fix]
+
+[lint.isort]
+known-first-party = ["core", "dependencies", "models", "modules", "repositories", "routes", "schemas", "services"]
+lines-after-imports = 1
+combine-as-imports = true
+force-sort-within-sections = true
+
+# FastAPI Depends/Query/Path are designed as default-arg markers (evaluated once
+# at import). B008 would otherwise flag every route. Do not disable B008 globally.
+[lint.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Header",
+    "fastapi.Cookie",
+    "fastapi.Body",
+    "fastapi.Form",
+    "fastapi.File",
+    "fastapi.Security",
+    "dependencies.auth.require_owner",
+    "dependencies.mongo_auth.require_role",
+    "core.capabilities.require_module",
+    "core.capabilities.require_capability",
+]

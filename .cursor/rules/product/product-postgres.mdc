@@ -1,0 +1,77 @@
+---
+description: When to start PostgreSQL (local vs Compose) and the commands
+alwaysApply: true
+---
+
+# PostgreSQL — when to start it
+
+Product uses **`POSTGRES_URL` only**. Do **not** tell the user to start Postgres for pytest or Vitest.
+
+## Do you need a running Postgres?
+
+| Task | Need Postgres? | Why |
+| ---- | -------------- | --- |
+| `pytest -v` from `backend/` | **No** | Tests use in-memory SQLite; `conftest` stubs `ping_postgres` |
+| `npm run test` from `frontend/` | **No** | No database |
+| Edit code / read schema | **No** | |
+| `alembic upgrade head` | **Yes** | Writes real tables |
+| `uvicorn main:app --reload` on the host | **Yes** | Startup `ping_postgres()`; all PG routes |
+| Frontend against a real API (`npm run dev`) | **Yes** | API process needs PG |
+| pgAdmin / `psql` | **Yes** | |
+| `docker compose -f docker-compose.product.yml up` (API + DB) | Compose **starts** Postgres for you | |
+
+There is **no hosted / production Postgres** in this repo yet (P4 ops). “線上” here means **inside Docker / CI**, not a cloud DB.
+
+## Two ways to start Postgres
+
+Both need repo-root **`.env`** (copy from `.env.example`). Never commit `.env`.
+
+### Local (host talks to DB) — most common for `uvicorn` + Alembic
+
+Host must use **`localhost`**, not hostname `postgres`.
+
+```bash
+cd ~/assetManager
+docker compose -f docker-compose.product.yml up -d postgres
+docker compose -f docker-compose.product.yml ps    # must be healthy
+```
+
+`.env` must include:
+
+```text
+POSTGRES_URL=postgresql+psycopg://<user>:<password>@localhost:<port>/<database>
+```
+
+Port is `POSTGRES_PORT` (default `5432`). If WSL already has a system Postgres on 5432, use `5433` (see README §3.D).
+
+Then migrate and run the API on the host:
+
+```bash
+cd ~/assetManager/backend
+alembic upgrade head
+source venv/bin/activate
+uvicorn main:app --reload
+```
+
+### Compose / “線上” (API and DB in Docker)
+
+Inside the compose network the API uses hostname **`postgres`** (set in `docker-compose.product.yml`). You do **not** set host `POSTGRES_URL` for this path.
+
+```bash
+cd ~/assetManager
+docker compose -f docker-compose.product.yml up --build -d
+docker compose -f docker-compose.product.yml ps
+curl http://localhost:8000/ready
+```
+
+**GitHub Actions today** (`backend-ci.yml`) runs pytest without Postgres, and `compose-smoke` is the **Mongo** stack on `main`. Product CI + compose postgres is not wired yet.
+
+## Stop
+
+```bash
+cd ~/assetManager
+docker compose -f docker-compose.product.yml down      # keep data
+docker compose -f docker-compose.product.yml down -v  # wipe volume
+```
+
+Human runbook with port-conflict and pgAdmin: repo-root `README.md` (Product branch — PostgreSQL).

@@ -12,19 +12,19 @@ import {
 } from "@/types/Deployment";
 import type { UserRole } from "@/types/User";
 
-const { getTeaSummaryMock, listTeasMock } = vi.hoisted(() => ({
-  getTeaSummaryMock: vi.fn(),
-  listTeasMock: vi.fn(),
+const { getStockSummaryMock, listStocksMock } = vi.hoisted(() => ({
+  getStockSummaryMock: vi.fn(),
+  listStocksMock: vi.fn(),
 }));
 
-vi.mock("@/services/teaServices", async () => {
-  const actual = await vi.importActual<typeof import("@/services/teaServices")>(
-    "@/services/teaServices",
+vi.mock("@/services/stockServices", async () => {
+  const actual = await vi.importActual<typeof import("@/services/stockServices")>(
+    "@/services/stockServices",
   );
   return {
     ...actual,
-    getTeaSummary: getTeaSummaryMock,
-    listTeas: listTeasMock,
+    getStockSummary: getStockSummaryMock,
+    listStocks: listStocksMock,
   };
 });
 
@@ -55,6 +55,8 @@ function renderDashboard(
           ...baseAuth,
           user: {
             id: "owner-1",
+            tenant_id: "a1111111-b222-c333-d444-e55555555555",
+            username: "owner1",
             name: "Owner",
             email: "owner@example.com",
             role,
@@ -77,9 +79,9 @@ function renderDashboard(
 
 describe("Dashboard", () => {
   beforeEach(() => {
-    getTeaSummaryMock.mockReset();
-    listTeasMock.mockReset();
-    getTeaSummaryMock.mockResolvedValue({
+    getStockSummaryMock.mockReset();
+    listStocksMock.mockReset();
+    getStockSummaryMock.mockResolvedValue({
       total_assets: 3,
       total_packages: 5,
       total_weight_grams: 600,
@@ -87,7 +89,7 @@ describe("Dashboard", () => {
       by_origin: { Taiwan: 3 },
       by_genre: { Oolong: 3 },
     });
-    listTeasMock.mockResolvedValue({
+    listStocksMock.mockResolvedValue({
       data: [{ id: "tea-1", name: "Alishan", origin: "Taiwan", genre: "Oolong" }],
     });
   });

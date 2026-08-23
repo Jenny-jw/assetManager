@@ -1,0 +1,36 @@
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+
+import en from "./locales/en.json";
+import zhTW from "./locales/zh-TW.json";
+import { Locale, type Locale as TenantLocale } from "../types/Deployment";
+
+export const DEFAULT_LOCALE: TenantLocale = Locale.EN;
+export const FALLBACK_LOCALE: TenantLocale = Locale.EN;
+
+const resources = {
+  [Locale.EN]: { common: en },
+  [Locale.ZH_TW]: { common: zhTW },
+} as const;
+
+void i18n.use(initReactI18next).init({
+  resources,
+  lng: DEFAULT_LOCALE,
+  fallbackLng: FALLBACK_LOCALE,
+  defaultNS: "common",
+  interpolation: {
+    escapeValue: false,
+  },
+});
+
+export const applyDeploymentLocale = (
+  locale: TenantLocale | null | undefined,
+): void => {
+  if (locale === Locale.EN || locale === Locale.ZH_TW) {
+    void i18n.changeLanguage(locale);
+    return;
+  }
+  void i18n.changeLanguage(FALLBACK_LOCALE);
+};
+
+export default i18n;

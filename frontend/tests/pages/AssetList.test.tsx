@@ -3,20 +3,24 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AssetList from "@/pages/AssetList";
 import { AuthContext } from "@/context/authContextImpl";
+import { DeploymentContext } from "@/context/deploymentContextImpl";
 import type { AuthContextType } from "@/context/authContextImpl";
 import type { Asset } from "@/types/Asset";
+import type { Deployment } from "@/types/Deployment";
+import type { UserRole } from "@/types/User";
+import { personalDeployment } from "../fixtures/personalDeployment";
 
-const { listTeasMock } = vi.hoisted(() => ({
-  listTeasMock: vi.fn(),
+const { listStocksMock } = vi.hoisted(() => ({
+  listStocksMock: vi.fn(),
 }));
 
-vi.mock("@/services/teaServices", async () => {
-  const actual = await vi.importActual<typeof import("@/services/teaServices")>(
-    "@/services/teaServices",
+vi.mock("@/services/stockServices", async () => {
+  const actual = await vi.importActual<typeof import("@/services/stockServices")>(
+    "@/services/stockServices",
   );
   return {
     ...actual,
-    listTeas: listTeasMock,
+    listStocks: listStocksMock,
   };
 });
 
@@ -50,32 +54,44 @@ const sampleAssets: Asset[] = [
   },
 ];
 
-function renderAssetList(role: "admin" | "user" = "user") {
+function renderAssetList(
+  role: UserRole = "user",
+  deployment: Deployment = personalDeployment,
+) {
   return render(
-    <AuthContext.Provider
+    <DeploymentContext.Provider
       value={{
-        ...baseAuth,
-        user: {
-          id: "user-1",
-          email: "user@example.com",
-          name: "User",
-          role,
-          is_active: true,
-          created_at: "2026-01-01T00:00:00Z",
-        },
+        loading: false,
+        deployment,
       }}
     >
-      <MemoryRouter>
-        <AssetList />
-      </MemoryRouter>
-    </AuthContext.Provider>,
+      <AuthContext.Provider
+        value={{
+          ...baseAuth,
+          user: {
+            id: "user-1",
+            tenant_id: "a1111111-b222-c333-d444-e55555555555",
+            username: "user1",
+            email: "user@example.com",
+            name: "User",
+            role,
+            is_active: true,
+            created_at: "2026-01-01T00:00:00Z",
+          },
+        }}
+      >
+        <MemoryRouter>
+          <AssetList />
+        </MemoryRouter>
+      </AuthContext.Provider>
+    </DeploymentContext.Provider>,
   );
 }
 
 describe("AssetList", () => {
   beforeEach(() => {
-    listTeasMock.mockReset();
-    listTeasMock.mockResolvedValue({
+    listStocksMock.mockReset();
+    listStocksMock.mockResolvedValue({
       data: sampleAssets,
       page: 1,
       limit: 20,
@@ -95,7 +111,7 @@ describe("AssetList", () => {
     });
 
     expect(screen.getByText("Showing 1-2 of 2")).toBeInTheDocument();
-    expect(listTeasMock).toHaveBeenCalled();
+    expect(listStocksMock).toHaveBeenCalled();
   });
 
   it("requests filtered results when genre changes", async () => {
@@ -109,7 +125,7 @@ describe("AssetList", () => {
     fireEvent.change(genreSelect, { target: { value: "Oolong" } });
 
     await waitFor(() => {
-      expect(listTeasMock).toHaveBeenCalledWith(
+      expect(listStocksMock).toHaveBeenCalledWith(
         expect.objectContaining({
           genre: "Oolong",
           page: 1,
@@ -119,7 +135,7 @@ describe("AssetList", () => {
   });
 
   it("loads page two when Next is clicked", async () => {
-    listTeasMock.mockImplementation(async (params) => {
+    listStocksMock.mockImplementation(async (params) => {
       if (params.page === 2) {
         return {
           data: [
@@ -156,11 +172,22 @@ describe("AssetList", () => {
     fireEvent.click(screen.getByRole("button", { name: "Next" }));
 
     await waitFor(() => {
-      expect(listTeasMock).toHaveBeenCalledWith(
+      expect(listStocksMock).toHaveBeenCalledWith(
         expect.objectContaining({ page: 2 }),
       );
       expect(screen.getByText("Showing 21-32 of 32")).toBeInTheDocument();
       expect(screen.getAllByText("Page Two Tea").length).toBeGreaterThan(0);
     });
+  });
+
+  it("shows inventory actions for owner on personal deployment", async () => {
+    renderAssetList("owner", personalDeployment);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Alishan Oolong").length).toBeGreaterThan(0);
+    });
+
+    expect(screen.getAllByRole("button", { name: "Edit" }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: "Order" })).not.toBeInTheDocument();
   });
 });

@@ -2,6 +2,7 @@ import { createElement, type ReactNode } from "react";
 import GenreDistribution from "../components/GenreDistribution";
 import OriginDistribution from "../components/OriginDistribution";
 import PendingOrdersInbox from "../components/PendingOrdersInbox";
+import ProfitSummary from "../components/ProfitSummary";
 import RecentAssets from "../components/RecentAssets";
 import Summary from "../components/Summary";
 import type { Asset } from "../types/Asset";
@@ -51,6 +52,7 @@ export const dashboardWidgetRegistry: Record<
       assets: context.recentAssets,
       className: "md:col-span-4",
     }),
+  [DashboardWidget.PROFIT]: () => createElement(ProfitSummary),
 };
 
 export function isDashboardWidgetId(value: string): value is DashboardWidgetId {

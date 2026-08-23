@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from core.capabilities import Capability
 from core.deployment import Edition, Locale
 
 class DeploymentModulesResponse(BaseModel):
@@ -24,3 +25,4 @@ class DeploymentResponse(BaseModel):
     locale: Locale
     modules: DeploymentModulesResponse
     dashboard_layout: list[str] = Field(min_length=1)
+    capabilities: list[Capability]

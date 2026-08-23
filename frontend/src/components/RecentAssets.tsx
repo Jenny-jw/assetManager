@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { Asset } from "../types/Asset";
 
 type Props = {
@@ -6,13 +7,14 @@ type Props = {
 };
 
 const RecentAssets = ({ assets, className }: Props) => {
+  const { t } = useTranslation();
   const recent = assets.slice(0, 3);
 
   return (
     <div
       className={`col-start-1 col-end-4 bg-[#ffffffE6] p-4 shadow rounded-xl text-gray-500 ${className ?? ""}`}
     >
-      <h2 className="font-semibold mb-3">Recent Assets</h2>
+      <h2 className="font-semibold mb-3">{t("widgets.recentAssets")}</h2>
 
       <ul>
         {recent.map((a) => (

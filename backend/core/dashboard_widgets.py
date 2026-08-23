@@ -10,10 +10,14 @@ class DashboardWidget(str, Enum):
     genre = "genre"
     recent_assets = "recent_assets"
     pending_orders = "pending_orders"
+    profit = "profit"
 
 ALL_DASHBOARD_WIDGETS = frozenset(widget.value for widget in DashboardWidget)
 ORDER_DASHBOARD_WIDGETS = frozenset({DashboardWidget.pending_orders.value})
-PERSONAL_DASHBOARD_WIDGETS = ALL_DASHBOARD_WIDGETS - ORDER_DASHBOARD_WIDGETS
+PROFIT_DASHBOARD_WIDGETS = frozenset({DashboardWidget.profit.value})
+PERSONAL_DASHBOARD_WIDGETS = (
+    ALL_DASHBOARD_WIDGETS - ORDER_DASHBOARD_WIDGETS - PROFIT_DASHBOARD_WIDGETS
+)
 
 _WIDGET_MODULE_KEYS: dict[str, str] = {
     DashboardWidget.summary.value: "dashboard_summary",
@@ -21,6 +25,7 @@ _WIDGET_MODULE_KEYS: dict[str, str] = {
     DashboardWidget.genre.value: "dashboard_genre_chart",
     DashboardWidget.recent_assets.value: "dashboard_recent_assets",
     DashboardWidget.pending_orders.value: "orders",
+    DashboardWidget.profit.value: "profit_analytics",
 }
 
 def widget_module_key(widget_id: str) -> str | None:

@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   DASHBOARD_RECENT_LIMIT,
-  getTeaSummary,
-  listTeas,
-} from "../services/teaServices";
+  getStockSummary,
+  listStocks,
+} from "../services/stockServices";
 import type { Asset } from "../types/Asset";
 import type { TeaSummary } from "../types/TeaList";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/useAuth";
 import { useDeployment } from "../context/useDeployment";
 import {
   DashboardWidget,
   type DashboardWidgetId,
 } from "../types/Deployment";
+import { isModuleEnabled } from "../lib/moduleAccess";
 import {
   isDashboardWidgetId,
   renderDashboardWidget,
@@ -28,6 +30,7 @@ const EMPTY_SUMMARY: TeaSummary = {
 };
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { deployment } = useDeployment();
   const isOwner = user?.role === "owner";
@@ -39,8 +42,8 @@ const Dashboard = () => {
 
   const refreshDashboard = useCallback(() => {
     Promise.all([
-      getTeaSummary(),
-      listTeas({
+      getStockSummary(),
+      listStocks({
         limit: DASHBOARD_RECENT_LIMIT,
         sort_by: "created_at",
         sort_direction: "desc",
@@ -80,6 +83,7 @@ const Dashboard = () => {
     DashboardWidget.PENDING_ORDERS,
   );
   const showTotalValue = deployment?.modules.pricing_visibility ?? false;
+  const inventoryEnabled = isModuleEnabled(deployment, "inventory");
   const dashboardContext = {
     summary,
     recentAssets,
@@ -95,7 +99,8 @@ const Dashboard = () => {
     (widgetId) =>
       widgetId === DashboardWidget.ORIGIN ||
       widgetId === DashboardWidget.GENRE ||
-      widgetId === DashboardWidget.PENDING_ORDERS,
+      widgetId === DashboardWidget.PENDING_ORDERS ||
+      widgetId === DashboardWidget.PROFIT,
   );
   const footerWidgets = enabledWidgetIds.filter(
     (widgetId) => widgetId === DashboardWidget.RECENT_ASSETS,
@@ -105,7 +110,7 @@ const Dashboard = () => {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between gap-4 px-2">
         <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold">Tea Keeper Dashboard</h1>
+          <h1 className="text-3xl font-bold">{t("dashboard.title")}</h1>
           {includesPendingOrders && pendingCount > 0 && (
             <span className="inline-flex items-center justify-center min-w-6 h-6 px-2 text-xs font-semibold rounded-full bg-[#894f45] text-white">
               {pendingCount}
@@ -118,7 +123,7 @@ const Dashboard = () => {
           onClick={handleLogout}
           className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
         >
-          Log out
+          {t("auth.logout")}
         </button>
       </div>
       {summaryWidget.map((widgetId, index) => (
@@ -142,19 +147,19 @@ const Dashboard = () => {
           </div>
         ))}
         <div className="md:col-span-2 flex flex-col gap-4">
-          {isOwner && (
+          {isOwner && inventoryEnabled && (
             <>
               <button
                 className="flex-1 rounded-xl bg-[#78a043] hover:border-lime-200 text-white"
                 onClick={() => navigate("/assets/new")}
               >
-                Add Asset
+                {t("dashboard.addAsset")}
               </button>
               <button
                 className="flex-1 rounded-xl bg-[#b8cb75] hover:border-lime-100 text-white"
                 onClick={() => navigate("/assets")}
               >
-                Manage Inventory
+                {t("dashboard.manageInventory")}
               </button>
             </>
           )}

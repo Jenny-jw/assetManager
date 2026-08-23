@@ -1,9 +1,9 @@
 ---
-description: Edition-based roles and capabilities (v2)
+description: Roles and capabilities (tenant-scoped)
 alwaysApply: true
 ---
 
-# Product Capabilities (v2)
+# Product Capabilities
 
 **This version — one role:** `owner` on **both** personal and professional. Owner uses the system alone.
 
@@ -15,7 +15,7 @@ alwaysApply: true
 |------|:--------:|:------------:|
 | `owner` | ✅ | ✅ |
 
-`roles_enabled: [owner]` for all presets until customer release.
+`roles_enabled: [owner]` per tenant until customer release.
 
 ## Capabilities (owner only, now)
 
@@ -27,8 +27,21 @@ alwaysApply: true
 | `approve_orders` | `orders` (owner-managed; no customer checkout yet) |
 | `place_orders` | — **defer** with `customer` role |
 
-**Product branch:** only `owner` in code and tests — no v1 `admin`/`user`/`guest` aliases.
+Capabilities resolve from **current tenant's modules** + user role (ADR 005). All module routers registered; disabled modules return `module_disabled`.
 
-**Presets:** personal → `[owner]`, orders off; professional → `[owner]`, orders/profit per module flags.
+**Code and tests:** only `owner` — not `admin` / `user` / `guest`.
 
-**403:** `module_disabled` | `capability_disabled` | `role_not_enabled` | `forbidden`
+**Presets:** personal → `[owner]`, orders off; professional → `[owner]`, orders/profit per module flags (copied to tenant at signup).
+
+**403 / product errors:** `module_disabled` | `capability_disabled` | `role_not_enabled` | `forbidden` | `tenant_suspended` | `trial_expired`
+
+Raised via `api_error()` (`core/errors.py`). Envelope when exception handlers are registered:
+
+```json
+{
+  "detail": "module_disabled",
+  "error": { "code": "module_disabled", "message": "...", "request_id": "..." }
+}
+```
+
+Clients switch on `error.code` (or `detail`). Do not parse English `message` for control flow. Legacy Mongo routes may still return `http_error` plus a free-text `detail`.

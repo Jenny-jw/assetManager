@@ -1,28 +1,31 @@
 ---
-description: Config, modules, widgets, PG repositories, locale
+description: Tenant config, modules, widgets, PG repositories, locale (ADR 005)
 alwaysApply: true
 ---
 
 # Product Modularization
 
-**Config** (`deploy/config.yaml`): `edition`, `modules`, `roles_enabled`, `dashboard_layout`, **`locale`** (`zh-TW` \| `en`).
+**Production config:** stored on **`tenants`** row — `edition`, `modules`, `roles_enabled`, `dashboard_layout`, **`locale`** (`zh-TW` \| `en`).
 
-Presets: `deploy/presets/personal.yaml`, `professional.yaml`. Locale set at buyer onboarding; immutable in app UI.
+**Presets:** `deploy/presets/personal.yaml`, `professional.yaml` — applied at tenant onboarding. **`deploy/config.yaml`** — local dev / single-tenant bootstrap only until tenant-backed config ships.
 
 **Backend:**
 
 ```text
 core/deployment.py, capabilities.py, db.py (SQLAlchemy)
+core/tenant.py (resolution, current tenant context)
 alembic/
 modules/{inventory,orders,analytics}/
-repositories/postgres/   # PG only — no mongo/
+repositories/postgres/   # tenant-scoped
 schemas/, models/
 ```
 
-`main.py`: conditional routers by module. `GET /api/deployment` → modules, capabilities, **locale**.
+`main.py`: **register all module routers**; enforce modules per request via capabilities → `module_disabled` (ADR 005). Do **not** omit routers at startup based on global YAML.
 
-**Frontend:** i18n (`react-i18next` or similar); load **one** locale from deployment config at startup — no language picker for merchants.
+`GET /api/deployment` → current tenant's modules, capabilities, **locale**, `dashboard_layout`.
 
-**Repositories:** `StockRepository`, `OrderRepository`; services never use raw SQL in routes.
+**Frontend:** i18n (`react-i18next`). Always show a language control (`zh-TW` \| `en`) in the header or settings — user can switch at any time. Prefer the saved user choice; if none, fall back to tenant `locale` from `GET /api/deployment`, then `en`. Language is **not** a module and is **not** locked at signup.
 
-**Avoid:** `MONGO_URI`; `staff`/`guest` roles; UI-only module hides; v1 `tea` schemas on product branch.
+**Repositories:** `StockRepository`, `OrderRepository`; tenant-scoped queries; services never use raw SQL in routes.
+
+**Avoid:** `MONGO_URI`; `staff` / `guest` roles; UI-only module hides; non-stock inventory schemas; global single-owner signup gate.

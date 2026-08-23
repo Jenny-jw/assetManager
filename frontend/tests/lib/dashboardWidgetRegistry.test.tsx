@@ -1,5 +1,20 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/services/analyticsServices", () => ({
+  getProfitSummary: vi.fn().mockResolvedValue({
+    total_retail_value: 0,
+    total_cost_value: 0,
+    unrealized_profit: 0,
+    priced_assets: 0,
+    costed_assets: 0,
+    complete_assets: 0,
+    uncosted_assets: 0,
+    by_origin: {},
+    by_genre: {},
+    lines: [],
+  }),
+}));
 import {
   DASHBOARD_WIDGET_IDS,
   dashboardWidgetRegistry,
@@ -29,7 +44,7 @@ const emptyContext: DashboardWidgetContext = {
 
 describe("dashboardWidgetRegistry", () => {
   it("maps every DashboardWidget id to a renderer", () => {
-    expect(DASHBOARD_WIDGET_IDS).toHaveLength(5);
+    expect(DASHBOARD_WIDGET_IDS).toHaveLength(6);
 
     for (const widgetId of DASHBOARD_WIDGET_IDS) {
       expect(dashboardWidgetRegistry[widgetId]).toBeTypeOf("function");

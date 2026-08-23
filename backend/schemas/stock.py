@@ -23,6 +23,7 @@ class StockBase(BaseModel):
     quantity: QuantityRange = 0
     score: Score | None = None
     price_per_jin: PricePerJin | None = None
+    cost_per_jin: PricePerJin | None = None
     comment: str | None = None
 
 class StockCreate(StockBase):
@@ -39,6 +40,7 @@ class StockUpdate(BaseModel):
     quantity: QuantityRange | None = None
     score: Score | None = None
     price_per_jin: PricePerJin | None = None
+    cost_per_jin: PricePerJin | None = None
     comment: str | None = None
 
 class StockResponse(StockBase):

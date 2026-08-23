@@ -18,10 +18,21 @@ export const DashboardWidget = {
   GENRE: "genre",
   RECENT_ASSETS: "recent_assets",
   PENDING_ORDERS: "pending_orders",
+  PROFIT: "profit",
 } as const;
 
 export type DashboardWidgetId =
   (typeof DashboardWidget)[keyof typeof DashboardWidget];
+
+export const Capability = {
+  MANAGE_INVENTORY: "manage_inventory",
+  VIEW_PRICING: "view_pricing",
+  VIEW_PROFIT: "view_profit",
+  APPROVE_ORDERS: "approve_orders",
+  VIEW_CATALOG: "view_catalog",
+} as const;
+
+export type Capability = (typeof Capability)[keyof typeof Capability];
 
 export type DeploymentModules = {
   inventory: boolean;
@@ -40,4 +51,5 @@ export type Deployment = {
   locale: Locale;
   modules: DeploymentModules;
   dashboard_layout: DashboardWidgetId[];
+  capabilities: Capability[];
 };

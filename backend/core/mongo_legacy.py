@@ -1,8 +1,9 @@
 # TEMPORARY — v1 routes (tea, auth, orders) still import this module.
 # Product branch uses PostgreSQL via core/db.py. Delete mongo_legacy when those
 # routes are rewritten or removed (P0 #6+).
-from pymongo import MongoClient
 import os
+
+from pymongo import MongoClient
 
 import core.env  # noqa: F401
 

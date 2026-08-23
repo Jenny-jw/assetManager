@@ -1,21 +1,18 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
-import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
+import pytest
 
+from core.deployment import get_deployment, load_professional_preset
+from core.errors import register_exception_handlers
 import core.mongo_legacy as mongo_legacy_module
-import services.order_service as order_service_module
-from core.deployment import load_deployment_config
 from dependencies.mongo_auth import get_current_user
-from main import create_app
+from modules.orders.mongo_routes import router as mongo_orders_router
+import services.order_service as order_service_module
 from tests.mongo_fake import FakeDB, make_user, seed_orderable_tea
-
-_PROFESSIONAL_PRESET = (
-    Path(__file__).resolve().parents[3] / "deploy" / "presets" / "professional.yaml"
-)
 
 def _build_v1_client(
     monkeypatch,
@@ -37,7 +34,12 @@ def _build_v1_client(
 
 @pytest.fixture
 def orders_api_app():
-    return create_app(load_deployment_config(_PROFESSIONAL_PRESET))
+    app = FastAPI()
+    register_exception_handlers(app)
+    professional = load_professional_preset()
+    app.dependency_overrides[get_deployment] = lambda: professional
+    app.include_router(mongo_orders_router, prefix="/api")
+    return app
 
 @pytest.fixture
 def fake_db():
