@@ -24,7 +24,7 @@ schemas/, models/
 
 `GET /api/deployment` → current tenant's modules, capabilities, **locale**, `dashboard_layout`.
 
-**Frontend:** i18n (`react-i18next` or similar); load **one** locale from tenant config at startup — no language picker for merchants.
+**Frontend:** i18n (`react-i18next`). Always show a language control (`zh-TW` \| `en`) in the header or settings — user can switch at any time. Prefer the saved user choice; if none, fall back to tenant `locale` from `GET /api/deployment`, then `en`. Language is **not** a module and is **not** locked at signup.
 
 **Repositories:** `StockRepository`, `OrderRepository`; tenant-scoped queries; services never use raw SQL in routes.
 

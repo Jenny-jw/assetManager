@@ -16,7 +16,7 @@ Sellable SaaS: shared app + shared PostgreSQL + `tenant_id` (ADR 005). Self-serv
 
 **DB:** `POSTGRES_URL` only (ADR 004).
 
-**Locale:** `zh-TW` \| `en` on tenant at onboarding; fixed per tenant.
+**Locale:** UI language is **`zh-TW` \| `en`**, chosen by the person in the chrome (header or settings) at any time — not a signup field, not a module. Persist on the device (e.g. `localStorage`). Tenant `locale` remains a stored default for first visit / fallback only.
 
 **Domain:** **stock** — `schemas/`, `models/`.
 

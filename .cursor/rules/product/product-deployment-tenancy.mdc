@@ -13,7 +13,7 @@ alwaysApply: false
 | DB       | Shared PG + `tenant_id`     | PG per buyer                  |
 | Signup   | Self-service trial → tenant | Manual provision per buyer    |
 | Billing  | Subscription (`status`)     | Per-deploy contract           |
-| Language | `locale` on tenant row      | `locale` in buyer YAML        |
+| Language | User picker (`zh-TW` \| `en`); tenant `locale` is default only | Same picker; YAML `locale` is default only |
 
 ## Tenant lifecycle
 
