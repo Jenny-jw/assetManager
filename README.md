@@ -8,21 +8,21 @@ Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) (WSL2
 
 ## When do you need Postgres?
 
-| You are doing | Start Postgres? |
-| ------------- | --------------- |
-| `pytest` / `npm run test` | **No** — tests use in-memory SQLite / no DB |
-| Edit code only | **No** |
-| `alembic upgrade head` | **Yes** |
-| `uvicorn` on the host, or frontend hitting that API | **Yes** |
-| pgAdmin / `psql` | **Yes** |
-| Full stack via `docker-compose.product.yml` | Compose **starts** it for you |
+| You are doing                                       | Start Postgres?                             |
+| --------------------------------------------------- | ------------------------------------------- |
+| `pytest` / `npm run test`                           | **No** — tests use in-memory SQLite / no DB |
+| Edit code only                                      | **No**                                      |
+| `alembic upgrade head`                              | **Yes**                                     |
+| `uvicorn` on the host, or frontend hitting that API | **Yes**                                     |
+| pgAdmin / `psql`                                    | **Yes**                                     |
+| Full stack via `docker-compose.product.yml`         | Compose **starts** it for you               |
 
 Two start paths (both need repo-root `.env` from `.env.example`):
 
-| Path | When | How the API finds the DB | Command |
-| ---- | ---- | ------------------------ | ------- |
-| **Local** (host `uvicorn` / Alembic / pgAdmin) | Daily product coding | `POSTGRES_URL` host = **`localhost`** | `docker compose -f docker-compose.product.yml up -d postgres` |
-| **Compose / CI-style** (API container + DB) | Want the API in Docker too | Compose sets host = **`postgres`** | `docker compose -f docker-compose.product.yml up --build -d` |
+| Path                                           | When                       | How the API finds the DB              | Command                                                       |
+| ---------------------------------------------- | -------------------------- | ------------------------------------- | ------------------------------------------------------------- |
+| **Local** (host `uvicorn` / Alembic / pgAdmin) | Daily product coding       | `POSTGRES_URL` host = **`localhost`** | `docker compose -f docker-compose.product.yml up -d postgres` |
+| **Compose / CI-style** (API container + DB)    | Want the API in Docker too | Compose sets host = **`postgres`**    | `docker compose -f docker-compose.product.yml up --build -d`  |
 
 There is no cloud Postgres in this repo yet. GitHub Actions pytest does **not** start Postgres; `compose-smoke` is the Mongo stack on `main`.
 
@@ -50,19 +50,22 @@ cd ~/assetManager
 docker compose -f docker-compose.product.yml up -d postgres
 docker compose -f docker-compose.product.yml ps    # postgres must be "healthy"
 
-# 2) Run migrations (Alembic — must run from backend/)
+# 2) Activate venv, then run migrations (Alembic — from backend/)
 cd ~/assetManager/backend
+source venv/bin/activate
 alembic upgrade head
 alembic current
 
-# 3) Optional: run API locally (not in Docker)
-source venv/bin/activate
+# 3) Optional: run API locally (not in Docker; venv already on)
 uvicorn main:app --reload
 ```
+
+`alembic` and `uvicorn` both live in `backend/venv`. Skip `source venv/bin/activate` only if you call the binaries directly (`./venv/bin/alembic`, `./venv/bin/uvicorn`).
 
 **Alembic from repo root** (if you are not in `backend/`):
 
 ```bash
+source backend/venv/bin/activate
 alembic -c backend/alembic.ini upgrade head
 ```
 
@@ -162,7 +165,7 @@ docker compose -f docker-compose.product.yml down
 docker compose -f docker-compose.product.yml up -d postgres
 ```
 
-Re-run `alembic upgrade head` from `backend/`.
+From `backend/`, activate the venv (or use `./venv/bin/alembic`) and re-run `alembic upgrade head`.
 
 **If credentials changed after first `docker compose up`**, reset the volume (deletes DB data):
 
@@ -195,7 +198,7 @@ If connection fails: `docker compose -f docker-compose.product.yml ps` — `post
 
 ## 5. Database migrations (Alembic)
 
-`alembic.ini` lives in `backend/`. Run Alembic one of these ways:
+`alembic.ini` lives in `backend/`. Alembic is installed in `backend/venv` — activate that venv first, or invoke `./venv/bin/alembic`. Then run one of:
 
 | Where you are | Command                                       |
 | ------------- | --------------------------------------------- |
@@ -206,6 +209,7 @@ Check current revision:
 
 ```bash
 cd ~/assetManager/backend
+source venv/bin/activate
 alembic current
 ```
 
@@ -215,6 +219,7 @@ After `upgrade head`, pgAdmin should show `users`, `stocks`, and `alembic_versio
 
 | Error                                           | Cause                                                | Fix                                                                  |
 | ----------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------- |
+| `alembic: command not found`                    | venv not activated (Alembic is not on system PATH)   | `cd backend && source venv/bin/activate`, or `./venv/bin/alembic`    |
 | `No 'script_location' key found`                | Ran `alembic` outside `backend/` without `-c`        | `cd backend` or use `-c backend/alembic.ini`                         |
 | `password authentication failed for user "..."` | Wrong DB instance (local PG on 5432) or stale volume | See **§3.D**; check `POSTGRES_URL` matches repo-root `.env`          |
 | `POSTGRES_URL is required`                      | `.env` missing or empty                              | Fill repo-root `.env`; run from `backend/` so `core/env.py` loads it |
