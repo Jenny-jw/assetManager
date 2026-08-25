@@ -4,6 +4,7 @@ import {
   LOCALE_STORAGE_KEY,
   readStoredLocale,
   resolveInitialLocale,
+  resolvePreferredLocale,
   writeStoredLocale,
 } from "@/i18n/localeStorage";
 
@@ -29,5 +30,13 @@ describe("localeStorage", () => {
     expect(resolveInitialLocale(Locale.EN)).toBe(Locale.EN);
     writeStoredLocale(Locale.ZH_TW);
     expect(resolveInitialLocale(Locale.EN)).toBe(Locale.ZH_TW);
+  });
+
+  it("resolvePreferredLocale prefers storage over tenant locale", () => {
+    expect(resolvePreferredLocale(Locale.ZH_TW, Locale.EN)).toBe(Locale.ZH_TW);
+    writeStoredLocale(Locale.EN);
+    expect(resolvePreferredLocale(Locale.ZH_TW, Locale.EN)).toBe(Locale.EN);
+    window.localStorage.clear();
+    expect(resolvePreferredLocale(null, Locale.EN)).toBe(Locale.EN);
   });
 });

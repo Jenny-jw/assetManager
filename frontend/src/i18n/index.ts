@@ -6,7 +6,9 @@ import zhTW from "./locales/zh-TW.json";
 import { Locale, type Locale as TenantLocale } from "../types/Deployment";
 import {
   isSupportedLocale,
+  readStoredLocale,
   resolveInitialLocale,
+  resolvePreferredLocale,
   writeStoredLocale,
 } from "./localeStorage";
 
@@ -37,6 +39,17 @@ export const applyDeploymentLocale = (
     return;
   }
   void i18n.changeLanguage(FALLBACK_LOCALE);
+};
+
+export const applyPreferredLocale = (
+  tenantLocale?: TenantLocale | null,
+): void => {
+  if (!readStoredLocale() && isSupportedLocale(tenantLocale)) {
+    writeStoredLocale(tenantLocale);
+  }
+  void i18n.changeLanguage(
+    resolvePreferredLocale(tenantLocale, FALLBACK_LOCALE),
+  );
 };
 
 export default i18n;

@@ -24,3 +24,10 @@ export const writeStoredLocale = (locale: UiLocale): void => {
 
 export const resolveInitialLocale = (fallback: UiLocale): UiLocale =>
   readStoredLocale() ?? fallback;
+
+export const resolvePreferredLocale = (
+  tenantLocale: UiLocale | null | undefined,
+  fallback: UiLocale,
+): UiLocale =>
+  readStoredLocale() ??
+  (isSupportedLocale(tenantLocale) ? tenantLocale : fallback);

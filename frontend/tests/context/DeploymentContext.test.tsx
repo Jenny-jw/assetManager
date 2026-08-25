@@ -1,6 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Edition } from "@/types/Deployment";
+import i18n from "@/i18n";
+import { LOCALE_STORAGE_KEY } from "@/i18n/localeStorage";
+import { Edition, Locale } from "@/types/Deployment";
 import { AuthContext } from "@/context/authContextImpl";
 import type { AuthContextType } from "@/context/authContextImpl";
 
@@ -60,24 +62,28 @@ function renderWithAuth(user: AuthContextType["user"], authLoading = false) {
   );
 }
 
+const ownerUser = {
+  id: "owner-1",
+  tenant_id: "a1111111-b222-c333-d444-e55555555555",
+  username: "owner1",
+  name: "Owner",
+  email: "owner@example.com",
+  role: "owner" as const,
+  is_active: true,
+  created_at: "2026-01-01T00:00:00Z",
+};
+
 describe("DeploymentProvider", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    window.localStorage.clear();
     getDeploymentMock.mockReset();
+    await i18n.changeLanguage(Locale.EN);
   });
 
   it("loads deployment when authenticated user is present", async () => {
     getDeploymentMock.mockResolvedValue(personalDeployment);
 
-    renderWithAuth({
-      id: "owner-1",
-      tenant_id: "a1111111-b222-c333-d444-e55555555555",
-      username: "owner1",
-      name: "Owner",
-      email: "owner@example.com",
-      role: "owner",
-      is_active: true,
-      created_at: "2026-01-01T00:00:00Z",
-    });
+    renderWithAuth(ownerUser);
 
     expect(screen.getByText("loading")).toBeInTheDocument();
 
@@ -101,20 +107,71 @@ describe("DeploymentProvider", () => {
   it("sets deployment to null when fetch fails", async () => {
     getDeploymentMock.mockRejectedValue(new Error("network error"));
 
-    renderWithAuth({
-      id: "owner-1",
-      tenant_id: "a1111111-b222-c333-d444-e55555555555",
-      username: "owner1",
-      name: "Owner",
-      email: "owner@example.com",
-      role: "owner",
-      is_active: true,
-      created_at: "2026-01-01T00:00:00Z",
-    });
+    renderWithAuth(ownerUser);
 
     await waitFor(() => {
       expect(screen.getByText("no deployment")).toBeInTheDocument();
     });
+  });
+
+  it("does not overwrite a saved locale with tenant locale", async () => {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, Locale.EN);
+    getDeploymentMock.mockResolvedValue(personalDeployment);
+
+    renderWithAuth(ownerUser);
+
+    await waitFor(() => {
+      expect(screen.getByText(`edition:${Edition.PERSONAL}`)).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(i18n.language).toBe(Locale.EN);
+    });
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.EN);
+  });
+
+  it("seeds storage from tenant locale when nothing is saved", async () => {
+    getDeploymentMock.mockResolvedValue(personalDeployment);
+
+    renderWithAuth(ownerUser);
+
+    await waitFor(() => {
+      expect(screen.getByText(`edition:${Edition.PERSONAL}`)).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(i18n.language).toBe(Locale.ZH_TW);
+    });
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.ZH_TW);
+  });
+
+  it("keeps a saved locale after logout", async () => {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, Locale.ZH_TW);
+    await i18n.changeLanguage(Locale.ZH_TW);
+
+    renderWithAuth(null);
+
+    await waitFor(() => {
+      expect(screen.getByText("no deployment")).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(i18n.language).toBe(Locale.ZH_TW);
+    });
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.ZH_TW);
+  });
+
+  it("keeps a saved locale when deployment fetch fails", async () => {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, Locale.ZH_TW);
+    await i18n.changeLanguage(Locale.ZH_TW);
+    getDeploymentMock.mockRejectedValue(new Error("network error"));
+
+    renderWithAuth(ownerUser);
+
+    await waitFor(() => {
+      expect(screen.getByText("no deployment")).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(i18n.language).toBe(Locale.ZH_TW);
+    });
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.ZH_TW);
   });
 
   it("useDeployment throws outside provider", () => {

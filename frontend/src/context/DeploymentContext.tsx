@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { applyDeploymentLocale } from "../i18n";
+import { applyPreferredLocale } from "../i18n";
 import { getDeployment } from "../services/deploymentServices";
 import type { Deployment } from "../types/Deployment";
 import { useAuth } from "./useAuth";
@@ -16,7 +16,7 @@ export const DeploymentProvider = ({ children }: { children: React.ReactNode }) 
     }
     if (!user) {
       setDeployment(null);
-      applyDeploymentLocale(null);
+      applyPreferredLocale();
       setLoading(false);
       return;
     }
@@ -27,12 +27,12 @@ export const DeploymentProvider = ({ children }: { children: React.ReactNode }) 
         const config = await getDeployment();
         if (mounted) {
           setDeployment(config);
-          applyDeploymentLocale(config.locale);
+          applyPreferredLocale(config.locale);
         }
       } catch {
         if (mounted) {
           setDeployment(null);
-          applyDeploymentLocale(null);
+          applyPreferredLocale();
         }
       } finally {
         if (mounted) setLoading(false);

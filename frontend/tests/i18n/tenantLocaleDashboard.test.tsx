@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import i18n from "@/i18n";
+import { LOCALE_STORAGE_KEY } from "@/i18n/localeStorage";
 import { Locale } from "@/types/Deployment";
 import { AuthContext } from "@/context/authContextImpl";
 import type { AuthContextType } from "@/context/authContextImpl";
@@ -55,6 +56,7 @@ const zhTWDeployment = {
 
 describe("tenant locale i18n", () => {
   beforeEach(async () => {
+    window.localStorage.clear();
     getDeploymentMock.mockReset();
     getStockSummaryMock.mockReset();
     listStocksMock.mockReset();
@@ -103,5 +105,42 @@ describe("tenant locale i18n", () => {
 
     expect(screen.getByText("登出")).toBeInTheDocument();
     expect(screen.getByText("新增資產")).toBeInTheDocument();
+  });
+
+  it("keeps a saved English locale when tenant locale is zh-TW", async () => {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, Locale.EN);
+    getDeploymentMock.mockResolvedValue(zhTWDeployment);
+
+    render(
+      <AuthContext.Provider
+        value={{
+          ...baseAuth,
+          user: {
+            id: "owner-1",
+            tenant_id: "a1111111-b222-c333-d444-e55555555555",
+            username: "owner1",
+            name: "Owner",
+            email: "owner@example.com",
+            role: "owner",
+            is_active: true,
+            created_at: "2026-01-01T00:00:00Z",
+          },
+        }}
+      >
+        <DeploymentProvider>
+          <MemoryRouter>
+            <Dashboard />
+          </MemoryRouter>
+        </DeploymentProvider>
+      </AuthContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Tea Keeper Dashboard")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Log out")).toBeInTheDocument();
+    expect(screen.getByText("Add Asset")).toBeInTheDocument();
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.EN);
   });
 });

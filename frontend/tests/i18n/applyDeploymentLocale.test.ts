@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import i18n, { applyDeploymentLocale, FALLBACK_LOCALE } from "@/i18n";
+import i18n, {
+  applyDeploymentLocale,
+  applyPreferredLocale,
+  FALLBACK_LOCALE,
+} from "@/i18n";
 import { LOCALE_STORAGE_KEY } from "@/i18n/localeStorage";
 import { Locale } from "@/types/Deployment";
 
@@ -29,6 +33,43 @@ describe("applyDeploymentLocale", () => {
     applyDeploymentLocale(null);
     await i18n.changeLanguage(FALLBACK_LOCALE);
     expect(i18n.language).toBe(FALLBACK_LOCALE);
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.ZH_TW);
+  });
+});
+
+describe("applyPreferredLocale", () => {
+  beforeEach(async () => {
+    window.localStorage.clear();
+    await i18n.changeLanguage(FALLBACK_LOCALE);
+  });
+
+  it("keeps a saved locale and does not overwrite it with tenant locale", async () => {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, Locale.EN);
+    applyPreferredLocale(Locale.ZH_TW);
+    await i18n.changeLanguage(Locale.EN);
+    expect(i18n.language).toBe(Locale.EN);
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.EN);
+  });
+
+  it("seeds storage from tenant locale when nothing is saved", async () => {
+    applyPreferredLocale(Locale.ZH_TW);
+    await i18n.changeLanguage(Locale.ZH_TW);
+    expect(i18n.language).toBe(Locale.ZH_TW);
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.ZH_TW);
+  });
+
+  it("falls back to en without writing storage when nothing is saved", async () => {
+    applyPreferredLocale();
+    await i18n.changeLanguage(FALLBACK_LOCALE);
+    expect(i18n.language).toBe(FALLBACK_LOCALE);
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBeNull();
+  });
+
+  it("keeps a saved locale when tenant locale is absent", async () => {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, Locale.ZH_TW);
+    applyPreferredLocale();
+    await i18n.changeLanguage(Locale.ZH_TW);
+    expect(i18n.language).toBe(Locale.ZH_TW);
     expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.ZH_TW);
   });
 });
