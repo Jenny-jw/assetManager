@@ -1,4 +1,5 @@
 edition: professional
+# First-visit UI default (zh-TW | en). Not a module; the chrome picker can change it anytime.
 locale: zh-TW
 roles_enabled:
   - owner

@@ -41,7 +41,7 @@ alwaysApply: true
 | 10  | Inventory API on PG — see **P1-10 breakdown**; cleanup after → `product-branch-cleanup.mdc` | [x] |
 | 11  | Dashboard widget registry — see **P1-11 breakdown** below                                   | [x] |
 | 12  | Frontend routes gated by modules — no Orders nav/pages on personal                          | [x] |
-| 13  | i18n — user language picker (`zh-TW` \| `en`); see **P1-13 breakdown**                      | [~] |
+| 13  | i18n — user language picker (`zh-TW` \| `en`); see **P1-13 breakdown**                      | [x] |
 | 14  | Personal edition tests — capabilities, orders off, widgets, stock API (pytest + Vitest)     | [x] |
 
 ### P1-11 — Dashboard widget registry (incremental)
@@ -69,7 +69,7 @@ Language is a **user preference**, not a module and not a signup field. Tenant /
 | 13c | Always-visible language control on login, signup, and app chrome | [x] |
 | 13d | Translate remaining English-only screens (`CreateAsset`, `EditAsset`, much of `AssetList`) | [x] |
 | 13e | Vitest: tenant locale is fallback, not override (`applyDeploymentLocale`, `tenantLocaleDashboard`) | [x] |
-| 13f | Optional YAML comment on `locale` in `deploy/presets/*.yaml` and `deploy/config.yaml` (default only; no new module key) | [ ] |
+| 13f | Optional YAML comment on `locale` in `deploy/presets/*.yaml` and `deploy/config.yaml` (default only; no new module key) | [x] |
 
 Frontend inventory client uses `/api/stock`. Remaining i18n (picker + leftover English screens) → **#13**.
 
@@ -124,4 +124,4 @@ Frontend inventory client uses `/api/stock`. Remaining i18n (picker + leftover E
 | Multi-DB import (N buyer PGs → one PG)  | No independent-deploy buyers to merge (ADR 005)            |
 | Fleet / per-buyer Docker + dedicated PG | Optional data-sovereignty tier later; not default delivery |
 
-**Next:** P1 **#13** (user language picker). Then P4 **#23** / **#24**, cleanup **10x-e/f**, or customer-facing shop browse. **This version:** `owner` only on all editions.
+**Next:** P4 **#23** / **#24**, cleanup **10x-e/f**, or customer-facing shop browse. **This version:** `owner` only on all editions.
