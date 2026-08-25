@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import i18n from "@/i18n";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import i18n, { applyDeploymentLocale } from "@/i18n";
 import { LOCALE_STORAGE_KEY } from "@/i18n/localeStorage";
 import { Locale } from "@/types/Deployment";
 import { AuthContext } from "@/context/authContextImpl";
@@ -54,6 +54,34 @@ const zhTWDeployment = {
   dashboard_layout: ["summary", "origin", "genre", "recent_assets"],
 } as const;
 
+const enDeployment = {
+  ...zhTWDeployment,
+  locale: Locale.EN,
+} as const;
+
+const ownerUser = {
+  id: "owner-1",
+  tenant_id: "a1111111-b222-c333-d444-e55555555555",
+  username: "owner1",
+  name: "Owner",
+  email: "owner@example.com",
+  role: "owner" as const,
+  is_active: true,
+  created_at: "2026-01-01T00:00:00Z",
+};
+
+function renderOwnerDashboard() {
+  return render(
+    <AuthContext.Provider value={{ ...baseAuth, user: ownerUser }}>
+      <DeploymentProvider>
+        <MemoryRouter>
+          <Dashboard />
+        </MemoryRouter>
+      </DeploymentProvider>
+    </AuthContext.Provider>,
+  );
+}
+
 describe("tenant locale i18n", () => {
   beforeEach(async () => {
     window.localStorage.clear();
@@ -72,32 +100,15 @@ describe("tenant locale i18n", () => {
     listStocksMock.mockResolvedValue({ data: [] });
   });
 
-  it("renders dashboard labels in zh-TW after deployment loads", async () => {
+  afterEach(async () => {
+    window.localStorage.clear();
+    await i18n.changeLanguage(Locale.EN);
+  });
+
+  it("uses tenant locale as first-visit fallback and persists it", async () => {
     getDeploymentMock.mockResolvedValue(zhTWDeployment);
 
-    render(
-      <AuthContext.Provider
-        value={{
-          ...baseAuth,
-          user: {
-            id: "owner-1",
-            tenant_id: "a1111111-b222-c333-d444-e55555555555",
-            username: "owner1",
-            name: "Owner",
-            email: "owner@example.com",
-            role: "owner",
-            is_active: true,
-            created_at: "2026-01-01T00:00:00Z",
-          },
-        }}
-      >
-        <DeploymentProvider>
-          <MemoryRouter>
-            <Dashboard />
-          </MemoryRouter>
-        </DeploymentProvider>
-      </AuthContext.Provider>,
-    );
+    renderOwnerDashboard();
 
     await waitFor(() => {
       expect(screen.getByText("茶葉管家儀表板")).toBeInTheDocument();
@@ -105,35 +116,14 @@ describe("tenant locale i18n", () => {
 
     expect(screen.getByText("登出")).toBeInTheDocument();
     expect(screen.getByText("新增資產")).toBeInTheDocument();
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.ZH_TW);
   });
 
   it("keeps a saved English locale when tenant locale is zh-TW", async () => {
     window.localStorage.setItem(LOCALE_STORAGE_KEY, Locale.EN);
     getDeploymentMock.mockResolvedValue(zhTWDeployment);
 
-    render(
-      <AuthContext.Provider
-        value={{
-          ...baseAuth,
-          user: {
-            id: "owner-1",
-            tenant_id: "a1111111-b222-c333-d444-e55555555555",
-            username: "owner1",
-            name: "Owner",
-            email: "owner@example.com",
-            role: "owner",
-            is_active: true,
-            created_at: "2026-01-01T00:00:00Z",
-          },
-        }}
-      >
-        <DeploymentProvider>
-          <MemoryRouter>
-            <Dashboard />
-          </MemoryRouter>
-        </DeploymentProvider>
-      </AuthContext.Provider>,
-    );
+    renderOwnerDashboard();
 
     await waitFor(() => {
       expect(screen.getByText("Tea Keeper Dashboard")).toBeInTheDocument();
@@ -142,5 +132,35 @@ describe("tenant locale i18n", () => {
     expect(screen.getByText("Log out")).toBeInTheDocument();
     expect(screen.getByText("Add Asset")).toBeInTheDocument();
     expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.EN);
+  });
+
+  it("does not let tenant locale override applyDeploymentLocale", async () => {
+    applyDeploymentLocale(Locale.EN);
+    await i18n.changeLanguage(Locale.EN);
+    getDeploymentMock.mockResolvedValue(zhTWDeployment);
+
+    renderOwnerDashboard();
+
+    await waitFor(() => {
+      expect(screen.getByText("Tea Keeper Dashboard")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Log out")).toBeInTheDocument();
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.EN);
+  });
+
+  it("keeps a saved zh-TW locale when tenant locale is en", async () => {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, Locale.ZH_TW);
+    await i18n.changeLanguage(Locale.ZH_TW);
+    getDeploymentMock.mockResolvedValue(enDeployment);
+
+    renderOwnerDashboard();
+
+    await waitFor(() => {
+      expect(screen.getByText("茶葉管家儀表板")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("登出")).toBeInTheDocument();
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.ZH_TW);
   });
 });

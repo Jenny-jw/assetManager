@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import i18n, {
   applyDeploymentLocale,
   applyPreferredLocale,
@@ -8,8 +8,14 @@ import { LOCALE_STORAGE_KEY } from "@/i18n/localeStorage";
 import { Locale } from "@/types/Deployment";
 
 describe("applyDeploymentLocale", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     window.localStorage.clear();
+    await i18n.changeLanguage(FALLBACK_LOCALE);
+  });
+
+  afterEach(async () => {
+    window.localStorage.clear();
+    await i18n.changeLanguage(FALLBACK_LOCALE);
   });
 
   it("switches to zh-TW and persists it", async () => {
@@ -35,10 +41,25 @@ describe("applyDeploymentLocale", () => {
     expect(i18n.language).toBe(FALLBACK_LOCALE);
     expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.ZH_TW);
   });
+
+  it("does not let a later tenant locale override the persisted user choice", async () => {
+    applyDeploymentLocale(Locale.EN);
+    await i18n.changeLanguage(Locale.EN);
+    applyPreferredLocale(Locale.ZH_TW);
+    await i18n.changeLanguage(Locale.EN);
+    expect(i18n.language).toBe(Locale.EN);
+    expect(i18n.t("dashboard.title")).toBe("Tea Keeper Dashboard");
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.EN);
+  });
 });
 
 describe("applyPreferredLocale", () => {
   beforeEach(async () => {
+    window.localStorage.clear();
+    await i18n.changeLanguage(FALLBACK_LOCALE);
+  });
+
+  afterEach(async () => {
     window.localStorage.clear();
     await i18n.changeLanguage(FALLBACK_LOCALE);
   });
@@ -70,6 +91,16 @@ describe("applyPreferredLocale", () => {
     applyPreferredLocale();
     await i18n.changeLanguage(Locale.ZH_TW);
     expect(i18n.language).toBe(Locale.ZH_TW);
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.ZH_TW);
+  });
+
+  it("uses tenant locale only as fallback after applyDeploymentLocale", async () => {
+    applyDeploymentLocale(Locale.ZH_TW);
+    await i18n.changeLanguage(Locale.ZH_TW);
+    applyPreferredLocale(Locale.EN);
+    await i18n.changeLanguage(Locale.ZH_TW);
+    expect(i18n.language).toBe(Locale.ZH_TW);
+    expect(i18n.t("dashboard.title")).toBe("茶葉管家儀表板");
     expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.ZH_TW);
   });
 });
