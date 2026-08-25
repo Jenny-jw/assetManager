@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
+
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import type { CreateAssetType } from "../types/Asset";
 import { getApiErrorMessage } from "../lib/apiError";
@@ -20,19 +23,21 @@ const INITIAL_FORM: CreateAssetType = {
   producer: "",
 };
 
+const GENRE_OPTIONS = ["Green", "Oolong", "Black", "White"] as const;
+
 type FieldErrors = Partial<Record<keyof CreateAssetType, string>>;
 
 function validateForm(form: CreateAssetType): FieldErrors {
   const errors: FieldErrors = {};
 
   if (!(form.name ?? "").trim()) {
-    errors.name = "Name is required.";
+    errors.name = "inventory.errors.nameRequired";
   }
   if (!form.genre) {
-    errors.genre = "Please select a genre";
+    errors.genre = "inventory.errors.genreSelect";
   }
   if (form.price == null || Number.isNaN(form.price) || form.price < 0) {
-    errors.price = "Price per 斤 is required";
+    errors.price = "inventory.errors.priceRequired";
   }
   if (
     form.weight == null ||
@@ -40,24 +45,25 @@ function validateForm(form: CreateAssetType): FieldErrors {
       form.weight as (typeof PACKAGE_WEIGHT_OPTIONS)[number],
     )
   ) {
-    errors.weight = "Please select package weight (75g or 150g).";
+    errors.weight = "inventory.errors.weightRequired";
   }
   if (
     form.quantity == null ||
     Number.isNaN(form.quantity) ||
     form.quantity < 0
   ) {
-    errors.quantity = "Number of packages is required";
+    errors.quantity = "inventory.errors.quantityRequired";
   }
 
   return errors;
 }
 
-function formatApiError(error: unknown): string {
-  return getApiErrorMessage(error, "Failed to create asset. Please try again.");
+function formatApiError(error: unknown, t: TFunction): string {
+  return getApiErrorMessage(error, t("inventory.create.failed"));
 }
 
 const CreateAsset = () => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<CreateAssetType>(INITIAL_FORM);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState("");
@@ -120,7 +126,7 @@ const CreateAsset = () => {
     const errors = validateForm(form);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      setFormError("Please complete all required fields before submitting.");
+      setFormError(t("inventory.create.incomplete"));
       return;
     }
 
@@ -130,10 +136,10 @@ const CreateAsset = () => {
 
     try {
       await createStock(form);
-      setSuccessMessage("Added successfully! You can now add the next asset.");
+      setSuccessMessage(t("inventory.create.success"));
       resetForm();
     } catch (error) {
-      setFormError(formatApiError(error));
+      setFormError(formatApiError(error, t));
     } finally {
       setIsSubmitting(false);
     }
@@ -144,7 +150,7 @@ const CreateAsset = () => {
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">Create Asset</h1>
+        <h1 className="text-3xl font-bold">{t("inventory.create.title")}</h1>
         <LanguageSwitcher />
       </div>
       <form onSubmit={handleSubmit} className="space-y-6" noValidate>
@@ -161,7 +167,9 @@ const CreateAsset = () => {
 
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block font-medium mb-1">Name *</label>
+            <label className="block font-medium mb-1">
+              {t("inventory.fields.name")} *
+            </label>
             <input
               name="name"
               value={form.name ?? ""}
@@ -170,11 +178,13 @@ const CreateAsset = () => {
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6] disabled:opacity-60"
             />
             {fieldErrors.name && (
-              <p className={fieldErrorClass}>{fieldErrors.name}</p>
+              <p className={fieldErrorClass}>{t(fieldErrors.name)}</p>
             )}
           </div>
           <div>
-            <label className="block font-medium mb-1">Producer</label>
+            <label className="block font-medium mb-1">
+              {t("inventory.fields.producer")}
+            </label>
             <input
               name="producer"
               value={form.producer || ""}
@@ -187,7 +197,9 @@ const CreateAsset = () => {
 
         <div className="grid md:grid-cols-3 gap-4">
           <div>
-            <label className="block font-medium mb-1">Price per 斤 *</label>
+            <label className="block font-medium mb-1">
+              {t("inventory.fields.pricePerJin")} *
+            </label>
             <input
               type="number"
               name="price"
@@ -198,12 +210,12 @@ const CreateAsset = () => {
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6] disabled:opacity-60"
             />
             {fieldErrors.price && (
-              <p className={fieldErrorClass}>{fieldErrors.price}</p>
+              <p className={fieldErrorClass}>{t(fieldErrors.price)}</p>
             )}
           </div>
           <div>
             <label className="block font-medium mb-1">
-              Weight per Package (g) *
+              {t("inventory.fields.weightPerPackage")} *
             </label>
             <select
               name="weight"
@@ -212,20 +224,20 @@ const CreateAsset = () => {
               disabled={isSubmitting}
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6] disabled:opacity-60"
             >
-              <option value="">Select weight</option>
+              <option value="">{t("inventory.create.selectWeight")}</option>
               {PACKAGE_WEIGHT_OPTIONS.map((grams) => (
                 <option key={grams} value={grams}>
-                  {grams} g
+                  {t("inventory.weightGrams", { grams })}
                 </option>
               ))}
             </select>
             {fieldErrors.weight && (
-              <p className={fieldErrorClass}>{fieldErrors.weight}</p>
+              <p className={fieldErrorClass}>{t(fieldErrors.weight)}</p>
             )}
           </div>
           <div>
             <label className="block font-medium mb-1">
-              Number of Packages *
+              {t("inventory.fields.packages")} *
             </label>
             <input
               type="number"
@@ -237,14 +249,16 @@ const CreateAsset = () => {
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6] disabled:opacity-60"
             />
             {fieldErrors.quantity && (
-              <p className={fieldErrorClass}>{fieldErrors.quantity}</p>
+              <p className={fieldErrorClass}>{t(fieldErrors.quantity)}</p>
             )}
           </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block font-medium mb-1">Harvest Time</label>
+            <label className="block font-medium mb-1">
+              {t("inventory.fields.harvestTime")}
+            </label>
             <input
               type="date"
               name="harvest_time"
@@ -255,7 +269,9 @@ const CreateAsset = () => {
           </div>
           <div>
             <label className="block font-medium mb-2">
-              Roast Level: {form.roast_level}
+              {t("inventory.fields.roastLevelWithValue", {
+                level: form.roast_level,
+              })}
             </label>
             <input
               type="range"
@@ -268,16 +284,18 @@ const CreateAsset = () => {
               className="w-full accent-[#b8cb75] disabled:opacity-60"
             />
             <div className="flex justify-between text-sm text-[#ccd989]">
-              <span>Light</span>
-              <span>Medium</span>
-              <span>Dark</span>
+              <span>{t("inventory.roast.light")}</span>
+              <span>{t("inventory.roast.medium")}</span>
+              <span>{t("inventory.roast.dark")}</span>
             </div>
           </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">
           <div>
-            <label className="block font-medium mb-1">Origin</label>
+            <label className="block font-medium mb-1">
+              {t("inventory.fields.origin")}
+            </label>
             <input
               name="origin"
               value={form.origin || ""}
@@ -287,7 +305,9 @@ const CreateAsset = () => {
             />
           </div>
           <div>
-            <label className="block font-medium mb-1">Genre *</label>
+            <label className="block font-medium mb-1">
+              {t("inventory.fields.genre")} *
+            </label>
             <select
               name="genre"
               value={form.genre || ""}
@@ -295,19 +315,22 @@ const CreateAsset = () => {
               disabled={isSubmitting}
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6] disabled:opacity-60"
             >
-              <option value="">Select genre</option>
-              <option value="Green">Green</option>
-              <option value="Oolong">Oolong</option>
-              <option value="Black">Black</option>
-              <option value="White">White</option>
+              <option value="">{t("inventory.create.selectGenre")}</option>
+              {GENRE_OPTIONS.map((genre) => (
+                <option key={genre} value={genre}>
+                  {t(`inventory.genres.${genre}`)}
+                </option>
+              ))}
             </select>
             {fieldErrors.genre && (
-              <p className={fieldErrorClass}>{fieldErrors.genre}</p>
+              <p className={fieldErrorClass}>{t(fieldErrors.genre)}</p>
             )}
           </div>
 
           <div>
-            <label className="block font-medium mb-1">Score</label>
+            <label className="block font-medium mb-1">
+              {t("inventory.fields.score")}
+            </label>
             <input
               name="score"
               value={form.score ?? ""}
@@ -320,7 +343,9 @@ const CreateAsset = () => {
 
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block font-medium mb-1">Comment</label>
+            <label className="block font-medium mb-1">
+              {t("inventory.fields.comment")}
+            </label>
             <input
               name="comment"
               value={form.comment ?? ""}
@@ -335,7 +360,9 @@ const CreateAsset = () => {
             disabled={isSubmitting}
             className="bg-[#78a043] text-white px-6 py-2 rounded-lg transition disabled:opacity-60 disabled:cursor-not-allowed min-w-36"
           >
-            {isSubmitting ? "Creating…" : "Create Asset"}
+            {isSubmitting
+              ? t("inventory.create.submitting")
+              : t("inventory.create.submit")}
           </button>
         </div>
 
@@ -344,7 +371,7 @@ const CreateAsset = () => {
             to="/dashboard"
             className="text-[#ccd989] hover:text-[#b8cb75] hover:underline transition"
           >
-            ← Go back to Dashboard
+            {t("inventory.create.backToDashboard")}
           </Link>
         </div>
       </form>

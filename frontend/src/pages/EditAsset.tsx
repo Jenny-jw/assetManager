@@ -2,6 +2,9 @@ import type { ChangeEvent, SubmitEvent } from "react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { isAxiosError } from "axios";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
+
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import { getApiErrorMessage } from "../lib/apiError";
 import { getStock, updateStock } from "../services/stockServices";
@@ -32,13 +35,13 @@ type ValidationDetail = {
   msg: string;
 };
 
-const FIELD_LABELS: Partial<Record<keyof EditForm, string>> = {
-  name: "Name",
-  genre: "Genre",
-  price: "Price per 斤",
-  weight: "Weight per package",
-  quantity: "Number of packages",
-  harvest_time: "Harvest time",
+const FIELD_LABEL_KEYS: Partial<Record<keyof EditForm, string>> = {
+  name: "inventory.fields.name",
+  genre: "inventory.fields.genre",
+  price: "inventory.fields.pricePerJin",
+  weight: "inventory.fields.weightPerPackage",
+  quantity: "inventory.fields.packages",
+  harvest_time: "inventory.fields.harvestTime",
 };
 
 function nullableString(value: string): string | null {
@@ -49,40 +52,40 @@ function validateForm(form: EditForm): FieldErrors {
   const errors: FieldErrors = {};
 
   if (!(form.name ?? "").trim()) {
-    errors.name = "Name is required";
+    errors.name = "inventory.errors.nameRequired";
   }
   if (!(form.genre ?? "").trim()) {
-    errors.genre = "Genre is required";
+    errors.genre = "inventory.errors.genreRequired";
   }
   if (form.price.trim() === "") {
-    errors.price = "Price per 斤 is required";
+    errors.price = "inventory.errors.priceRequired";
   } else if (Number.isNaN(Number(form.price)) || Number(form.price) < 0) {
-    errors.price = "Enter a valid price";
+    errors.price = "inventory.errors.priceInvalid";
   }
   if (form.weight.trim() === "") {
-    errors.weight = "Please select package weight";
+    errors.weight = "inventory.errors.weightRequired";
   }
   if (form.quantity.trim() === "") {
-    errors.quantity = "Number of packages is required";
+    errors.quantity = "inventory.errors.quantityRequired";
   } else {
     const qty = Number(form.quantity);
     if (Number.isNaN(qty) || qty < 0) {
-      errors.quantity = "Enter a valid number of packages";
+      errors.quantity = "inventory.errors.quantityInvalid";
     }
   }
   if (form.harvest_time.trim() !== "") {
     const harvest = Number(form.harvest_time);
     if (Number.isNaN(harvest) || harvest < 20100101 || harvest > 22001231) {
-      errors.harvest_time = "Pick a valid harvest date";
+      errors.harvest_time = "inventory.errors.harvestInvalid";
     }
   }
 
   return errors;
 }
 
-function formatApiError(error: unknown): string {
+function formatApiError(error: unknown, t: TFunction): string {
   if (!isAxiosError(error)) {
-    return "Failed to update tea. Please try again.";
+    return t("inventory.editPage.updateFailed");
   }
 
   const data = error.response?.data as {
@@ -99,15 +102,14 @@ function formatApiError(error: unknown): string {
     return details
       .map((item) => {
         const fieldKey = String(item.loc[item.loc.length - 1] ?? "field");
-        const label =
-          FIELD_LABELS[fieldKey as keyof EditForm] ??
-          fieldKey.replace(/_/g, " ");
+        const labelKey = FIELD_LABEL_KEYS[fieldKey as keyof EditForm];
+        const label = labelKey ? t(labelKey) : fieldKey.replace(/_/g, " ");
         return `${label}: ${item.msg}`;
       })
       .join(" · ");
   }
 
-  return getApiErrorMessage(error, "Failed to update tea. Please try again.");
+  return getApiErrorMessage(error, t("inventory.editPage.updateFailed"));
 }
 
 function buildPayload(form: EditForm) {
@@ -127,6 +129,7 @@ function buildPayload(form: EditForm) {
 }
 
 const EditAsset = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -152,7 +155,7 @@ const EditAsset = () => {
   useEffect(() => {
     const fetchAsset = async () => {
       if (!id) {
-        setErrMsg("Invalid tea id.");
+        setErrMsg(t("inventory.editPage.invalidId"));
         setIsLoading(false);
         return;
       }
@@ -175,14 +178,14 @@ const EditAsset = () => {
         });
       } catch (error) {
         console.error("Failed to load tea:", error);
-        setErrMsg("Failed to load tea.");
+        setErrMsg(t("inventory.editPage.loadFailed"));
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchAsset();
-  }, [id]);
+  }, [id, t]);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -214,7 +217,7 @@ const EditAsset = () => {
     const errors = validateForm(form);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      setErrMsg("Please fix the highlighted fields.");
+      setErrMsg(t("inventory.editPage.fixFields"));
       return;
     }
 
@@ -227,7 +230,7 @@ const EditAsset = () => {
       navigate("/assets");
     } catch (error) {
       console.error("Failed to update tea:", error);
-      setErrMsg(formatApiError(error));
+      setErrMsg(formatApiError(error, t));
     } finally {
       setIsSaving(false);
     }
@@ -241,7 +244,7 @@ const EditAsset = () => {
         <div className="flex justify-end px-2">
           <LanguageSwitcher />
         </div>
-        <p className="text-[#ece2ba]">Loading...</p>
+        <p className="text-[#ece2ba]">{t("inventory.editPage.loading")}</p>
       </div>
     );
   }
@@ -250,8 +253,10 @@ const EditAsset = () => {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex items-start justify-between gap-4 px-2">
         <div className="text-left">
-          <h1 className="text-3xl font-bold">Edit Asset</h1>
-          <p className="text-sm text-[#d6d1c5]">Update tea details</p>
+          <h1 className="text-3xl font-bold">{t("inventory.editPage.title")}</h1>
+          <p className="text-sm text-[#d6d1c5]">
+            {t("inventory.editPage.subtitle")}
+          </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
@@ -261,7 +266,7 @@ const EditAsset = () => {
             onClick={() => navigate("/assets")}
             className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
           >
-            Back
+            {t("inventory.editPage.back")}
           </button>
         </div>
       </div>
@@ -278,7 +283,9 @@ const EditAsset = () => {
 
         <div className="grid md:grid-cols-2 gap-4">
           <label className="space-y-2">
-            <span className="text-sm font-medium text-gray-600">Name</span>
+            <span className="text-sm font-medium text-gray-600">
+              {t("inventory.fields.name")}
+            </span>
             <input
               name="name"
               value={form.name}
@@ -287,11 +294,13 @@ const EditAsset = () => {
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
             {fieldErrors.name && (
-              <p className={fieldErrorClass}>{fieldErrors.name}</p>
+              <p className={fieldErrorClass}>{t(fieldErrors.name)}</p>
             )}
           </label>
           <label className="space-y-2">
-            <span className="text-sm font-medium text-gray-600">Producer</span>
+            <span className="text-sm font-medium text-gray-600">
+              {t("inventory.fields.producer")}
+            </span>
             <input
               name="producer"
               value={form.producer}
@@ -304,7 +313,7 @@ const EditAsset = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <label className="space-y-2">
             <span className="text-sm font-medium text-gray-600">
-              Price per 斤
+              {t("inventory.fields.pricePerJin")}
             </span>
             <input
               type="number"
@@ -316,12 +325,12 @@ const EditAsset = () => {
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
             {fieldErrors.price && (
-              <p className={fieldErrorClass}>{fieldErrors.price}</p>
+              <p className={fieldErrorClass}>{t(fieldErrors.price)}</p>
             )}
           </label>
           <label className="space-y-2">
             <span className="text-sm font-medium text-gray-600">
-              Weight per Package (g)
+              {t("inventory.fields.weightPerPackage")}
             </span>
             <select
               name="weight"
@@ -332,17 +341,17 @@ const EditAsset = () => {
             >
               {PACKAGE_WEIGHT_OPTIONS.map((grams) => (
                 <option key={grams} value={grams}>
-                  {grams} g
+                  {t("inventory.weightGrams", { grams })}
                 </option>
               ))}
             </select>
             {fieldErrors.weight && (
-              <p className={fieldErrorClass}>{fieldErrors.weight}</p>
+              <p className={fieldErrorClass}>{t(fieldErrors.weight)}</p>
             )}
           </label>
           <label className="space-y-2">
             <span className="text-sm font-medium text-gray-600">
-              Number of Packages
+              {t("inventory.fields.packages")}
             </span>
             <input
               type="number"
@@ -355,14 +364,16 @@ const EditAsset = () => {
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
             {fieldErrors.quantity && (
-              <p className={fieldErrorClass}>{fieldErrors.quantity}</p>
+              <p className={fieldErrorClass}>{t(fieldErrors.quantity)}</p>
             )}
           </label>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="space-y-2">
-            <span className="text-sm font-medium text-gray-600">Genre</span>
+            <span className="text-sm font-medium text-gray-600">
+              {t("inventory.fields.genre")}
+            </span>
             <input
               name="genre"
               value={form.genre}
@@ -371,11 +382,13 @@ const EditAsset = () => {
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
             {fieldErrors.genre && (
-              <p className={fieldErrorClass}>{fieldErrors.genre}</p>
+              <p className={fieldErrorClass}>{t(fieldErrors.genre)}</p>
             )}
           </label>
           <label className="space-y-2">
-            <span className="text-sm font-medium text-gray-600">Origin</span>
+            <span className="text-sm font-medium text-gray-600">
+              {t("inventory.fields.origin")}
+            </span>
             <input
               name="origin"
               value={form.origin}
@@ -385,7 +398,7 @@ const EditAsset = () => {
           </label>
           <label className="space-y-2">
             <span className="text-sm font-medium text-gray-600">
-              Harvest Time
+              {t("inventory.fields.harvestTime")}
             </span>
             <input
               type="date"
@@ -395,11 +408,13 @@ const EditAsset = () => {
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
             {fieldErrors.harvest_time && (
-              <p className={fieldErrorClass}>{fieldErrors.harvest_time}</p>
+              <p className={fieldErrorClass}>{t(fieldErrors.harvest_time)}</p>
             )}
           </label>
           <label className="space-y-2">
-            <span className="text-sm font-medium text-gray-600">Score</span>
+            <span className="text-sm font-medium text-gray-600">
+              {t("inventory.fields.score")}
+            </span>
             <input
               type="number"
               name="score"
@@ -413,7 +428,9 @@ const EditAsset = () => {
         </div>
 
         <label className="space-y-2 block">
-          <span className="text-sm font-medium text-gray-600">Roast Level</span>
+          <span className="text-sm font-medium text-gray-600">
+            {t("inventory.fields.roastLevel")}
+          </span>
           <input
             type="range"
             name="roast_level"
@@ -429,7 +446,9 @@ const EditAsset = () => {
         </label>
 
         <label className="space-y-2 block">
-          <span className="text-sm font-medium text-gray-600">Comment</span>
+          <span className="text-sm font-medium text-gray-600">
+            {t("inventory.fields.comment")}
+          </span>
           <textarea
             name="comment"
             value={form.comment}
@@ -445,14 +464,14 @@ const EditAsset = () => {
             onClick={() => navigate("/assets")}
             className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
           >
-            Cancel
+            {t("inventory.editPage.cancel")}
           </button>
           <button
             type="submit"
             disabled={isSaving}
             className="px-4 py-2 rounded-lg bg-[#78a043] text-white hover:bg-lime-900 transition disabled:opacity-60"
           >
-            {isSaving ? "Saving..." : "Save"}
+            {isSaving ? t("inventory.editPage.saving") : t("inventory.editPage.save")}
           </button>
         </div>
       </form>

@@ -152,7 +152,7 @@ const AssetList = () => {
       } catch (error) {
         if (cancelled) return;
         console.error("Failed to load assets:", error);
-        setLoadError("Failed to load assets. Please try again.");
+        setLoadError(t("inventory.loadFailed"));
         setAssets([]);
         setTotal(0);
       } finally {
@@ -167,7 +167,7 @@ const AssetList = () => {
     return () => {
       cancelled = true;
     };
-  }, [page, debouncedSearch, genreFilter, originFilter, sortKey, sortDirection]);
+  }, [page, debouncedSearch, genreFilter, originFilter, sortKey, sortDirection, t]);
 
   const totalPages = Math.max(1, Math.ceil(total / DEFAULT_STOCK_PAGE_SIZE));
   const rangeStart = total === 0 ? 0 : (page - 1) * DEFAULT_STOCK_PAGE_SIZE + 1;
@@ -204,9 +204,7 @@ const AssetList = () => {
   };
 
   const handleDelete = async (assetId: string) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this tea?",
-    );
+    const confirmed = window.confirm(t("inventory.deleteConfirm"));
 
     if (!confirmed) return;
 
@@ -225,7 +223,7 @@ const AssetList = () => {
       await refreshAssets();
     } catch (error) {
       console.error("Delete failed:", error);
-      alert("Failed to delete tea. Please try again.");
+      alert(t("inventory.deleteFailed"));
     }
   };
 
@@ -281,6 +279,9 @@ const AssetList = () => {
     );
   };
 
+  const genreLabel = (genre: string | undefined) =>
+    genre ? t(`inventory.genres.${genre}`, { defaultValue: genre }) : "-";
+
   const handleSort = (key: TeaSortField) => {
     if (sortKey === key) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -332,40 +333,46 @@ const AssetList = () => {
       <div className="bg-white rounded-2xl shadow-sm border p-4 md:p-5 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           <label className="space-y-1 text-left xl:col-span-2">
-            <span className="text-sm font-medium text-gray-600">Search</span>
+            <span className="text-sm font-medium text-gray-600">
+              {t("inventory.search")}
+            </span>
             <input
               type="search"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search name, producer, or comment"
+              placeholder={t("inventory.searchPlaceholder")}
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />
           </label>
 
           <label className="space-y-1 text-left">
-            <span className="text-sm font-medium text-gray-600">Genre</span>
+            <span className="text-sm font-medium text-gray-600">
+              {t("inventory.fields.genre")}
+            </span>
             <select
               value={genreFilter}
               onChange={(e) => handleGenreFilterChange(e.target.value)}
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             >
-              <option value="">All genres</option>
+              <option value="">{t("inventory.allGenres")}</option>
               {genreOptions.map((genre) => (
                 <option key={genre} value={genre}>
-                  {genre}
+                  {genreLabel(genre)}
                 </option>
               ))}
             </select>
           </label>
 
           <label className="space-y-1 text-left">
-            <span className="text-sm font-medium text-gray-600">Origin</span>
+            <span className="text-sm font-medium text-gray-600">
+              {t("inventory.fields.origin")}
+            </span>
             <select
               value={originFilter}
               onChange={(e) => handleOriginFilterChange(e.target.value)}
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             >
-              <option value="">All origins</option>
+              <option value="">{t("inventory.allOrigins")}</option>
               {originOptions.map((origin) => (
                 <option key={origin} value={origin}>
                   {origin}
@@ -378,10 +385,14 @@ const AssetList = () => {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-gray-600 text-left">
             {isLoading
-              ? "Loading assets..."
+              ? t("inventory.loadingAssets")
               : total === 0
-                ? "No assets found"
-                : `Showing ${rangeStart}-${rangeEnd} of ${total}`}
+                ? t("inventory.noAssetsFound")
+                : t("inventory.showingRange", {
+                    start: rangeStart,
+                    end: rangeEnd,
+                    total,
+                  })}
           </p>
 
           <div className="flex items-center gap-2 justify-end">
@@ -391,7 +402,7 @@ const AssetList = () => {
                 onClick={clearFilters}
                 className="px-3 py-2 text-sm rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
               >
-                Clear filters
+                {t("inventory.clearFilters")}
               </button>
             )}
             <button
@@ -400,10 +411,10 @@ const AssetList = () => {
               disabled={isLoading || page <= 1}
               className="px-3 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition disabled:opacity-50"
             >
-              Previous
+              {t("inventory.previous")}
             </button>
             <span className="text-sm text-gray-700 min-w-[6rem] text-center">
-              Page {page} / {totalPages}
+              {t("inventory.pageOf", { page, totalPages })}
             </span>
             <button
               type="button"
@@ -413,7 +424,7 @@ const AssetList = () => {
               disabled={isLoading || page >= totalPages}
               className="px-3 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition disabled:opacity-50"
             >
-              Next
+              {t("inventory.next")}
             </button>
           </div>
         </div>
@@ -429,55 +440,63 @@ const AssetList = () => {
       <div className="hidden lg:block bg-white rounded-2xl shadow-sm border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-[#dee8ae] text-[#64794d] text-xs">
+            <thead className="bg-[#dee8ae] text-[#64794d] text-xs uppercase">
               <tr>
-                <th className="px-4 py-3">NAME</th>
+                <th className="px-4 py-3">{t("inventory.fields.name")}</th>
                 <SortableHeader
-                  label="GENRE"
+                  label={t("inventory.fields.genre")}
                   sortKey="genre"
                   currentSortKey={sortKey}
                   sortDirection={sortDirection}
                   onSort={handleSort}
                 />
                 <SortableHeader
-                  label="ORIGIN"
+                  label={t("inventory.fields.origin")}
                   sortKey="origin"
                   currentSortKey={sortKey}
                   sortDirection={sortDirection}
                   onSort={handleSort}
                 />
-                <th className="px-4 py-3">WEIGHT/ PKG (G)</th>
+                <th className="px-4 py-3">
+                  {t("inventory.fields.weightPerPkgShort")}
+                </th>
                 <SortableHeader
-                  label="PACKAGES"
+                  label={t("inventory.fields.packagesShort")}
                   sortKey="quantity"
                   currentSortKey={sortKey}
                   sortDirection={sortDirection}
                   onSort={handleSort}
                 />
                 <SortableHeader
-                  label="SCORE"
+                  label={t("inventory.fields.score")}
                   sortKey="score"
                   currentSortKey={sortKey}
                   sortDirection={sortDirection}
                   onSort={handleSort}
                 />
                 <SortableHeader
-                  label="PRICE PER 斤"
+                  label={t("inventory.fields.pricePerJin")}
                   sortKey="price"
                   currentSortKey={sortKey}
                   sortDirection={sortDirection}
                   onSort={handleSort}
                 />
-                <th className="px-4 py-3">PRICE/ PKG</th>
-                {showTotalValue && <th className="px-4 py-3">TOTAL VALUE</th>}
+                <th className="px-4 py-3">
+                  {t("inventory.fields.pricePerPkgShort")}
+                </th>
+                {showTotalValue && (
+                  <th className="px-4 py-3">
+                    {t("inventory.fields.totalValue")}
+                  </th>
+                )}
                 <SortableHeader
-                  label="HARVEST TIME"
+                  label={t("inventory.fields.harvestTime")}
                   sortKey="harvest_time"
                   currentSortKey={sortKey}
                   sortDirection={sortDirection}
                   onSort={handleSort}
                 />
-                <th className="px-4 py-3">ACTIONS</th>
+                <th className="px-4 py-3">{t("inventory.fields.actions")}</th>
               </tr>
             </thead>
 
@@ -495,7 +514,7 @@ const AssetList = () => {
               {assets.map((asset) => (
                 <tr key={asset.id} className="hover:bg-[#fcf6de] transition">
                   <td className="px-4 py-3 font-medium">{asset.name}</td>
-                  <td className="px-4 py-3">{asset.genre ?? "-"}</td>
+                  <td className="px-4 py-3">{genreLabel(asset.genre)}</td>
                   <td className="px-4 py-3">{asset.origin ?? "-"}</td>
                   <td className="px-4 py-3">{asset.weight ?? "-"}</td>
                   <td className="px-4 py-3">{asset.quantity ?? "-"}</td>
@@ -523,30 +542,30 @@ const AssetList = () => {
         <table className="min-w-full text-sm">
           <thead className="bg-[#dee8ae] text-[#64794d] uppercase text-xs">
             <tr>
-              <th className="px-4 py-3">Name</th>
+              <th className="px-4 py-3">{t("inventory.fields.name")}</th>
               <SortableHeader
-                label="Genre"
+                label={t("inventory.fields.genre")}
                 sortKey="genre"
                 currentSortKey={sortKey}
                 sortDirection={sortDirection}
                 onSort={handleSort}
               />
               <SortableHeader
-                label="Origin"
+                label={t("inventory.fields.origin")}
                 sortKey="origin"
                 currentSortKey={sortKey}
                 sortDirection={sortDirection}
                 onSort={handleSort}
               />
               <SortableHeader
-                label="Packages"
+                label={t("inventory.fields.packagesShort")}
                 sortKey="quantity"
                 currentSortKey={sortKey}
                 sortDirection={sortDirection}
                 onSort={handleSort}
               />
               <SortableHeader
-                label="Score"
+                label={t("inventory.fields.score")}
                 sortKey="score"
                 currentSortKey={sortKey}
                 sortDirection={sortDirection}
@@ -570,7 +589,7 @@ const AssetList = () => {
                 className="cursor-pointer hover:bg-gray-50 transition"
               >
                 <td className="px-4 py-3 font-medium">{asset.name}</td>
-                <td className="px-4 py-3">{asset.genre ?? "-"}</td>
+                <td className="px-4 py-3">{genreLabel(asset.genre)}</td>
                 <td className="px-4 py-3">{asset.origin ?? "-"}</td>
                 <td className="px-4 py-3">{asset.quantity ?? "-"}</td>
                 <td className="px-4 py-3">{asset.score ?? "-"}</td>
@@ -599,12 +618,14 @@ const AssetList = () => {
                   {asset.name}
                 </h2>
                 <p className="text-sm text-gray-500 wrap-break-word">
-                  {asset.genre ?? "-"} / {asset.origin ?? "-"}
+                  {genreLabel(asset.genre)} / {asset.origin ?? "-"}
                 </p>
               </div>
 
               <div className="shrink-0 text-right">
-                <p className="text-xs text-gray-400">Score</p>
+                <p className="text-xs text-gray-400">
+                  {t("inventory.fields.score")}
+                </p>
                 <p className="font-bold text-lg text-[#9f655d]">
                   {asset.score ?? "-"}
                 </p>
@@ -629,7 +650,9 @@ const AssetList = () => {
                 <h2 className="text-2xl font-bold text-gray-500">
                   {selectedAsset.name}
                 </h2>
-                <p className="text-gray-500 text-left">More details</p>
+                <p className="text-gray-500 text-left">
+                  {t("inventory.moreDetails")}
+                </p>
               </div>
 
               <button
@@ -643,42 +666,57 @@ const AssetList = () => {
             <div className="space-y-3">
               {detailsMode === "full" && (
                 <>
-                  <DetailRow label="Genre" value={selectedAsset.genre} />
-                  <DetailRow label="Origin" value={selectedAsset.origin} />
-                  <DetailRow label="Producer" value={selectedAsset.producer} />
                   <DetailRow
-                    label="Harvest Time"
+                    label={t("inventory.fields.genre")}
+                    value={genreLabel(selectedAsset.genre)}
+                  />
+                  <DetailRow
+                    label={t("inventory.fields.origin")}
+                    value={selectedAsset.origin}
+                  />
+                  <DetailRow
+                    label={t("inventory.fields.producer")}
+                    value={selectedAsset.producer}
+                  />
+                  <DetailRow
+                    label={t("inventory.fields.harvestTime")}
                     value={selectedAsset.harvest_time}
                   />
                   <DetailRow
-                    label="Roast Level"
+                    label={t("inventory.fields.roastLevel")}
                     value={selectedAsset.roast_level}
                   />
-                  <DetailRow label="Score" value={selectedAsset.score} />
-                  <DetailRow label="Comment" value={selectedAsset.comment} />
+                  <DetailRow
+                    label={t("inventory.fields.score")}
+                    value={selectedAsset.score}
+                  />
+                  <DetailRow
+                    label={t("inventory.fields.comment")}
+                    value={selectedAsset.comment}
+                  />
                 </>
               )}
               <DetailRow
-                label="Weight per package (g)"
+                label={t("inventory.fields.weightPerPackage")}
                 value={selectedAsset.weight}
               />
               <DetailRow
-                label="Number of packages"
+                label={t("inventory.fields.packages")}
                 value={selectedAsset.quantity}
               />
               <DetailRow
-                label="Price per 斤"
+                label={t("inventory.fields.pricePerJin")}
                 value={formatMoney(selectedAsset.price)}
               />
               <DetailRow
-                label="Price per package"
+                label={t("inventory.fields.pricePerPackage")}
                 value={formatMoney(
                   pricePerPackage(selectedAsset.price, selectedAsset.weight),
                 )}
               />
               {showTotalValue && (
                 <DetailRow
-                  label="Total value"
+                  label={t("inventory.fields.totalValue")}
                   value={formatMoney(lineTotalValue(selectedAsset))}
                 />
               )}

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AssetList from "@/pages/AssetList";
 import i18n from "@/i18n";
 import { AuthContext } from "@/context/authContextImpl";
@@ -102,6 +102,11 @@ describe("AssetList", () => {
     });
   });
 
+  afterEach(async () => {
+    window.localStorage.clear();
+    await i18n.changeLanguage(Locale.EN);
+  });
+
   it("loads teas and renders search and filter controls", async () => {
     renderAssetList();
 
@@ -116,6 +121,24 @@ describe("AssetList", () => {
     expect(screen.getByText("Showing 1-2 of 2")).toBeInTheDocument();
     expect(listStocksMock).toHaveBeenCalled();
     expect(screen.getByRole("group", { name: "Language" })).toBeInTheDocument();
+  });
+
+  it("switches remaining list copy to zh-TW", async () => {
+    renderAssetList();
+
+    expect(
+      await screen.findByPlaceholderText("Search name, producer, or comment"),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "中文" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText("搜尋名稱、製茶師或備註"),
+      ).toBeInTheDocument();
+    });
+    expect(screen.getByText("顯示 1-2／共 2")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "下一頁" })).toBeInTheDocument();
   });
 
   it("requests filtered results when genre changes", async () => {
