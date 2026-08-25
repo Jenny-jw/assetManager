@@ -2,11 +2,12 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AssetList from "@/pages/AssetList";
+import i18n from "@/i18n";
 import { AuthContext } from "@/context/authContextImpl";
 import { DeploymentContext } from "@/context/deploymentContextImpl";
 import type { AuthContextType } from "@/context/authContextImpl";
 import type { Asset } from "@/types/Asset";
-import type { Deployment } from "@/types/Deployment";
+import { Locale, type Deployment } from "@/types/Deployment";
 import type { UserRole } from "@/types/User";
 import { personalDeployment } from "../fixtures/personalDeployment";
 
@@ -89,7 +90,9 @@ function renderAssetList(
 }
 
 describe("AssetList", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    window.localStorage.clear();
+    await i18n.changeLanguage(Locale.EN);
     listStocksMock.mockReset();
     listStocksMock.mockResolvedValue({
       data: sampleAssets,
@@ -112,6 +115,7 @@ describe("AssetList", () => {
 
     expect(screen.getByText("Showing 1-2 of 2")).toBeInTheDocument();
     expect(listStocksMock).toHaveBeenCalled();
+    expect(screen.getByRole("group", { name: "Language" })).toBeInTheDocument();
   });
 
   it("requests filtered results when genre changes", async () => {

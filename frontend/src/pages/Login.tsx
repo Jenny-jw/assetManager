@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import { login, loginErrorMessage } from "../services/authServices";
 import { getApiErrorCode } from "../lib/apiError";
 import { useAuth } from "../context/useAuth";
@@ -38,7 +39,10 @@ const Login = () => {
     }
   };
   return (
-    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
+    <div className="relative min-h-screen grid grid-cols-1 md:grid-cols-2">
+      <div className="absolute top-4 right-4 z-10">
+        <LanguageSwitcher />
+      </div>
       <div className="hidden md:flex flex-col justify-center p-12">
         <h1 className="text-4xl font-bold mb-4 text-left">{t("auth.brandTitle")}</h1>
         <p className="text-[#d6d1c5] mb-8 text-left">{t("auth.brandSubtitle")}</p>

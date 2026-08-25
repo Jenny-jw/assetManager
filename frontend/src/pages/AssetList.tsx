@@ -8,6 +8,7 @@ import {
   extractStockFacets,
   listStocks,
 } from "../services/stockServices";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import { useAuth } from "../context/useAuth";
 import { useDeployment } from "../context/useDeployment";
 import { isModuleEnabled } from "../lib/moduleAccess";
@@ -316,13 +317,16 @@ const AssetList = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate("/dashboard")}
-          className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
-        >
-          {t("inventory.backToDashboard")}
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <LanguageSwitcher />
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard")}
+            className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
+          >
+            {t("inventory.backToDashboard")}
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border p-4 md:p-5 space-y-4">

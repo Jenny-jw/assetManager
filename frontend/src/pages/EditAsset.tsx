@@ -2,6 +2,7 @@ import type { ChangeEvent, SubmitEvent } from "react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { isAxiosError } from "axios";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import { getApiErrorMessage } from "../lib/apiError";
 import { getStock, updateStock } from "../services/stockServices";
 import {
@@ -236,7 +237,10 @@ const EditAsset = () => {
 
   if (isLoading) {
     return (
-      <div className="p-4 md:p-6">
+      <div className="p-4 md:p-6 space-y-6">
+        <div className="flex justify-end px-2">
+          <LanguageSwitcher />
+        </div>
         <p className="text-[#ece2ba]">Loading...</p>
       </div>
     );
@@ -250,13 +254,16 @@ const EditAsset = () => {
           <p className="text-sm text-[#d6d1c5]">Update tea details</p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate("/assets")}
-          className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
-        >
-          Back
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <LanguageSwitcher />
+          <button
+            type="button"
+            onClick={() => navigate("/assets")}
+            className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
+          >
+            Back
+          </button>
+        </div>
       </div>
 
       <form

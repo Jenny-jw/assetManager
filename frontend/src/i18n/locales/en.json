@@ -68,5 +68,8 @@
     "edit": "Edit",
     "delete": "Delete",
     "noMatches": "No teas match your search or filters."
+  },
+  "language": {
+    "label": "Language"
   }
 }

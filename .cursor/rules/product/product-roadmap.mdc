@@ -66,7 +66,7 @@ Language is a **user preference**, not a module and not a signup field. Tenant /
 |-----|------|-----|
 | 13a | Persist `zh-TW` \| `en` in `localStorage`; apply before first paint | [x] |
 | 13b | `DeploymentContext`: saved choice first, else tenant `locale`, else `en`. Do not reset to `en` on logout | [x] |
-| 13c | Always-visible language control on login, signup, and app chrome | [ ] |
+| 13c | Always-visible language control on login, signup, and app chrome | [x] |
 | 13d | Translate remaining English-only screens (`CreateAsset`, `EditAsset`, much of `AssetList`) | [ ] |
 | 13e | Vitest: tenant locale is fallback, not override (`applyDeploymentLocale`, `tenantLocaleDashboard`) | [ ] |
 | 13f | Optional YAML comment on `locale` in `deploy/presets/*.yaml` and `deploy/config.yaml` (default only; no new module key) | [ ] |

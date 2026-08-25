@@ -1,7 +1,9 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Login from "@/pages/Login";
+import i18n from "@/i18n";
+import { Locale } from "@/types/Deployment";
 import { AuthContext } from "@/context/authContextImpl";
 import type { AuthContextType } from "@/context/authContextImpl";
 
@@ -40,11 +42,18 @@ function renderLogin() {
 }
 
 describe("Login", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    window.localStorage.clear();
+    await i18n.changeLanguage(Locale.EN);
     loginMock.mockReset();
     refreshMock.mockReset();
     loginMock.mockResolvedValue({ message: "Login successful" });
     refreshMock.mockResolvedValue(undefined);
+  });
+
+  afterEach(async () => {
+    window.localStorage.clear();
+    await i18n.changeLanguage(Locale.EN);
   });
 
   it("collects slug and username instead of email", () => {
@@ -56,6 +65,18 @@ describe("Login", () => {
     expect(
       screen.queryByText("View Dashboard as Guest →"),
     ).not.toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Language" })).toBeInTheDocument();
+  });
+
+  it("switches the login form to zh-TW without submitting", async () => {
+    renderLogin();
+
+    fireEvent.click(screen.getByRole("button", { name: "中文" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "登入" })).toBeInTheDocument();
+    });
+    expect(loginMock).not.toHaveBeenCalled();
   });
 
   it("submits slug, username, and password", async () => {

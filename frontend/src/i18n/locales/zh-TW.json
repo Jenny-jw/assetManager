@@ -68,5 +68,8 @@
     "edit": "編輯",
     "delete": "刪除",
     "noMatches": "沒有符合搜尋或篩選條件的茶品。"
+  },
+  "language": {
+    "label": "語言"
   }
 }

@@ -1,10 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SignUp from "@/pages/SignUp";
+import i18n from "@/i18n";
 import { AuthContext } from "@/context/authContextImpl";
 import type { AuthContextType } from "@/context/authContextImpl";
-import { Edition } from "@/types/Deployment";
+import { Edition, Locale } from "@/types/Deployment";
 
 const { signupMock, loginMock } = vi.hoisted(() => ({
   signupMock: vi.fn(),
@@ -43,13 +44,20 @@ function renderSignUp() {
 }
 
 describe("SignUp", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    window.localStorage.clear();
+    await i18n.changeLanguage(Locale.EN);
     signupMock.mockReset();
     loginMock.mockReset();
     refreshMock.mockReset();
     signupMock.mockResolvedValue({ id: "u1" });
     loginMock.mockResolvedValue({ message: "Login successful" });
     refreshMock.mockResolvedValue(undefined);
+  });
+
+  afterEach(async () => {
+    window.localStorage.clear();
+    await i18n.changeLanguage(Locale.EN);
   });
 
   it("collects slug, username, and edition", () => {
@@ -59,6 +67,7 @@ describe("SignUp", () => {
     expect(screen.getByPlaceholderText("Username")).toBeInTheDocument();
     expect(screen.getByText("Professional")).toBeInTheDocument();
     expect(screen.getByDisplayValue("personal")).toBeChecked();
+    expect(screen.getByRole("group", { name: "Language" })).toBeInTheDocument();
   });
 
   it("signs up then logs in with the chosen edition", async () => {

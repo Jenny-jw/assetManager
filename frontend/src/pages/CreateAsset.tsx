@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import type { CreateAssetType } from "../types/Asset";
 import { getApiErrorMessage } from "../lib/apiError";
 import { PACKAGE_WEIGHT_OPTIONS } from "../lib/teaPricing";
@@ -142,7 +143,10 @@ const CreateAsset = () => {
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold">Create Asset</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-3xl font-bold">Create Asset</h1>
+        <LanguageSwitcher />
+      </div>
       <form onSubmit={handleSubmit} className="space-y-6" noValidate>
         {successMessage && (
           <p className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800">

@@ -2,12 +2,14 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Dashboard from "@/pages/Dashboard";
+import i18n from "@/i18n";
 import { AuthContext } from "@/context/authContextImpl";
 import { DeploymentContext } from "@/context/deploymentContextImpl";
 import type { AuthContextType } from "@/context/authContextImpl";
 import { personalDeployment } from "../fixtures/personalDeployment";
 import {
   DashboardWidget,
+  Locale,
   type Deployment,
 } from "@/types/Deployment";
 import type { UserRole } from "@/types/User";
@@ -78,7 +80,9 @@ function renderDashboard(
 }
 
 describe("Dashboard", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    window.localStorage.clear();
+    await i18n.changeLanguage(Locale.EN);
     getStockSummaryMock.mockReset();
     listStocksMock.mockReset();
     getStockSummaryMock.mockResolvedValue({
@@ -106,6 +110,7 @@ describe("Dashboard", () => {
       DashboardWidget.PENDING_ORDERS,
     );
     expect(screen.queryByText("Pending Orders Widget")).not.toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Language" })).toBeInTheDocument();
   });
 
   it("renders pending orders widget when layout includes it", async () => {

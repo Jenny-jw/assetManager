@@ -8,6 +8,7 @@ import type { Asset } from "../types/Asset";
 import type { TeaSummary } from "../types/TeaList";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import { useAuth } from "../context/useAuth";
 import { useDeployment } from "../context/useDeployment";
 import {
@@ -118,13 +119,16 @@ const Dashboard = () => {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
-        >
-          {t("auth.logout")}
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <LanguageSwitcher />
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
+          >
+            {t("auth.logout")}
+          </button>
+        </div>
       </div>
       {summaryWidget.map((widgetId, index) => (
         <div key={`${widgetId}-${index}`}>
