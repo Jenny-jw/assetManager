@@ -41,7 +41,7 @@ alwaysApply: true
 | 10  | Inventory API on PG — see **P1-10 breakdown**; cleanup after → `product-branch-cleanup.mdc` | [x] |
 | 11  | Dashboard widget registry — see **P1-11 breakdown** below                                   | [x] |
 | 12  | Frontend routes gated by modules — no Orders nav/pages on personal                          | [x] |
-| 13  | i18n (`react-i18next`) — `zh-TW` \| `en`; **user picker** in chrome (not locked to tenant)  | [~] |
+| 13  | i18n — user language picker (`zh-TW` \| `en`); see **P1-13 breakdown**                      | [~] |
 | 14  | Personal edition tests — capabilities, orders off, widgets, stock API (pytest + Vitest)     | [x] |
 
 ### P1-11 — Dashboard widget registry (incremental)
@@ -58,7 +58,20 @@ alwaysApply: true
 | 11h | Dashboard actions for `owner` (Add Asset / Manage Inventory); defer nav gating to **#12**               | [x] |
 | 11i | Vitest — personal layout hides `PendingOrdersInbox`                                                     | [x] |
 
-**Deferred:** i18n labels → **#13** (done). Frontend inventory client now uses `/api/stock`.
+### P1-13 — User language picker
+
+Language is a **user preference**, not a module and not a signup field. Tenant / YAML `locale` is first-visit default only.
+
+| Sub | Item | St |
+|-----|------|-----|
+| 13a | Persist `zh-TW` \| `en` in `localStorage`; apply before first paint | [x] |
+| 13b | `DeploymentContext`: saved choice first, else tenant `locale`, else `en`. Do not reset to `en` on logout | [ ] |
+| 13c | Always-visible language control on login, signup, and app chrome | [ ] |
+| 13d | Translate remaining English-only screens (`CreateAsset`, `EditAsset`, much of `AssetList`) | [ ] |
+| 13e | Vitest: tenant locale is fallback, not override (`applyDeploymentLocale`, `tenantLocaleDashboard`) | [ ] |
+| 13f | Optional YAML comment on `locale` in `deploy/presets/*.yaml` and `deploy/config.yaml` (default only; no new module key) | [ ] |
+
+Frontend inventory client uses `/api/stock`. Remaining i18n (picker + leftover English screens) → **#13**.
 
 **Deferred from P1-9** (other roadmap items):
 
@@ -98,7 +111,10 @@ alwaysApply: true
 
 ## Future — customer-facing
 
+| — | Item | St |
+|---|------|-----|
 | — | `customer` role; catalog browse; place orders / trades | not started |
+| — | Cross-shop buy: personal user browses a professional shop, owner approves, buyer stock increases | not started |
 
 ## Out of scope / deferred
 
@@ -108,19 +124,4 @@ alwaysApply: true
 | Multi-DB import (N buyer PGs → one PG)  | No independent-deploy buyers to merge (ADR 005)            |
 | Fleet / per-buyer Docker + dedicated PG | Optional data-sovereignty tier later; not default delivery |
 
-**Next (after merge to `product`):** language picker (below); then P4 **#23** / **#24**, or customer-facing shop browse. **This version:** `owner` only on all editions.
-
-## Recorded follow-ups — do not implement on this merge
-
-Language is a **user preference**, not a module. Tenant / YAML `locale` is first-visit default only.
-
-| Area                                                                      | Later change                                                                                                                                                                                  | Notes                       |
-| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| `deploy/presets/personal.yaml`, `professional.yaml`, `deploy/config.yaml` | Keep `locale: zh-TW`. Optional comment: default / fallback only, not a lock. No new module key.                                                                                               | No YAML required for merge. |
-| `frontend/src/i18n/`                                                      | Persist `zh-TW` \| `en` in `localStorage`; apply before first paint.                                                                                                                          |                             |
-| `frontend/src/context/DeploymentContext.tsx`                              | Stop forcing `applyDeploymentLocale(config.locale)` on every login. Use saved choice first; else tenant `locale`; else `en`. Logged-out pages also honor saved choice (do not reset to `en`). |                             |
-| Header / settings                                                         | Always-visible language control on login, signup, and app chrome.                                                                                                                             | Not a signup field.         |
-| `frontend/src/i18n/locales/*.json`                                        | Translate remaining English-only screens (`CreateAsset`, `EditAsset`, much of `AssetList`).                                                                                                   |                             |
-| Vitest                                                                    | Update `applyDeploymentLocale` / `tenantLocaleDashboard` — tenant locale is fallback, not override.                                                                                           |                             |
-
-Out of this language follow-up: **cross-shop buy** (personal user → professional catalog → approve adds buyer stock) stays under Future — customer-facing.
+**Next:** P1 **#13** (user language picker). Then P4 **#23** / **#24**, cleanup **10x-e/f**, or customer-facing shop browse. **This version:** `owner` only on all editions.
