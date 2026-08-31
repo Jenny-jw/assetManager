@@ -1,4 +1,5 @@
 # Product branch: API + PostgreSQL (no MongoDB).
+# Practice stack (not production). See docs/saas-ops.md.
 # Prerequisites: copy .env.example → .env at repo root and fill in POSTGRES_* / JWT_*.
 #   docker compose -f docker-compose.product.yml up --build -d
 

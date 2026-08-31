@@ -6,6 +6,8 @@
 
 Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) (WSL2) or Docker Engine.
 
+**SaaS docs:** [concepts](docs/saas-concepts.md) (tenant, trial, edition vs status) · [ops](docs/saas-ops.md) (`.env`, practice compose, Alembic, manual `status` SQL).
+
 ## When do you need Postgres?
 
 | You are doing                                       | Start Postgres?                             |
@@ -30,7 +32,7 @@ There is no cloud Postgres in this repo yet. GitHub Actions pytest does **not** 
 
 **Product branch:** copy `.env.example` → **`.env`** at the **repository root**. Used by Docker Compose, pgAdmin, and local `uvicorn` on this branch (`core/env.py` loads this file only).
 
-Fill in `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `JWT_SECRET_KEY`. If you run the API with **`uvicorn` on the host** (not in Docker), also set `POSTGRES_URL` in the same file — host must be `localhost`, not `postgres`:
+Fill in `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `JWT_SECRET_KEY`. Optional: `TRIAL_DAYS` (new signups only; default 90). If you run the API with **`uvicorn` on the host** (not in Docker), also set `POSTGRES_URL` in the same file — host must be `localhost`, not `postgres`:
 
 ```text
 POSTGRES_URL=postgresql+psycopg://<user>:<password>@localhost:<port>/<database>
@@ -93,6 +95,8 @@ docker compose -f docker-compose.product.yml up --build -d
 docker compose -f docker-compose.product.yml ps
 curl http://localhost:8000/ready
 ```
+
+Containers healthy does **not** mean tables exist. The API image does not run Alembic. After `up`, still migrate (`alembic upgrade head` on the host, or `docker compose -f docker-compose.product.yml exec api alembic upgrade head`). Details: [docs/saas-ops.md](docs/saas-ops.md) §3.B.
 
 ### C. Stop services
 

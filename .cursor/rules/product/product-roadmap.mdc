@@ -104,10 +104,12 @@ Frontend inventory client uses `/api/stock`. Remaining i18n (picker + leftover E
 
 | #   | Item                                                                           | St  |
 | --- | ------------------------------------------------------------------------------ | --- |
-| 23  | SaaS ops docs (trial, subscription status, compose prod, `.env`)               | [ ] |
+| 23  | SaaS ops docs (trial, status, practice compose, `.env`) — `docs/saas-*.md`     | [x] |
 | 24  | Compose prod profile                                                           | [ ] |
 | 26  | Owner password reset + admin recovery                                          | [ ] |
 | 27  | Payment provider hook for subscription (Stripe or local equivalent) — optional | [ ] |
+| 28  | Shared-PG backups & restore runbook                                            | [ ] |
+| 29  | Monitoring / alerting beyond `/health` + `/ready`                              | [ ] |
 
 ## Future — customer-facing
 
@@ -124,4 +126,4 @@ Frontend inventory client uses `/api/stock`. Remaining i18n (picker + leftover E
 | Multi-DB import (N buyer PGs → one PG)  | No independent-deploy buyers to merge (ADR 005)            |
 | Fleet / per-buyer Docker + dedicated PG | Optional data-sovereignty tier later; not default delivery |
 
-**Next:** P4 **#23** / **#24**, cleanup **10x-e/f**, or customer-facing shop browse. **This version:** `owner` only on all editions.
+**Next:** P4 **#24**, ops follow-ups **#28** / **#29**, cleanup **10x-e/f**, or customer-facing shop browse. **This version:** `owner` only on all editions.
