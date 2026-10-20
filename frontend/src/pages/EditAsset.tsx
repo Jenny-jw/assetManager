@@ -7,12 +7,13 @@ import { useTranslation } from "react-i18next";
 
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import { getApiErrorMessage } from "../lib/apiError";
-import { getStock, updateStock } from "../services/stockServices";
 import {
   dateInputToHarvestInt,
   harvestIntToDateInput,
 } from "../lib/harvestDate";
 import { PACKAGE_WEIGHT_OPTIONS } from "../lib/teaPricing";
+import { getStock, updateStock } from "../services/stockServices";
+import type { UpdateAssetType } from "../types/Asset";
 
 type EditForm = {
   name: string;
@@ -112,7 +113,7 @@ function formatApiError(error: unknown, t: TFunction): string {
   return getApiErrorMessage(error, t("inventory.editPage.updateFailed"));
 }
 
-function buildPayload(form: EditForm) {
+function buildPayload(form: EditForm): UpdateAssetType {
   return {
     name: form.name.trim(),
     genre: form.genre.trim(),

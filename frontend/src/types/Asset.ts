@@ -30,4 +30,11 @@ export type Asset = AssetBase & {
 
 export type CreateAssetType = AssetBase;
 
-export type UpdateAssetType = Partial<AssetBase>;
+/**
+ * PATCH body. Omitted keys stay unchanged; `null` clears a nullable field
+ * (same contract as backend `StockUpdate`). Do not use `Partial<AssetBase>`:
+ * that only allows `undefined`, not `null`.
+ */
+export type UpdateAssetType = {
+  [K in keyof AssetBase]?: Exclude<AssetBase[K], undefined> | null;
+};

@@ -136,6 +136,26 @@ describe("stockServices", () => {
     });
   });
 
+  it("toStockWrite keeps null so PATCH can clear optional fields", () => {
+    expect(
+      toStockWrite({
+        origin: null,
+        producer: null,
+        comment: null,
+        harvest_time: null,
+        roast_level: null,
+        score: null,
+      }),
+    ).toEqual({
+      origin: null,
+      producer: null,
+      comment: null,
+      harvest_time: null,
+      roast_level: null,
+      score: null,
+    });
+  });
+
   it("extractStockFacets returns sorted unique genres and origins", () => {
     const stocks: Asset[] = [
       { id: "1", name: "A", genre: "Black", origin: "Japan" },
