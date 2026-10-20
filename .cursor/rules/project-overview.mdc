@@ -5,20 +5,23 @@ alwaysApply: true
 
 # Project Overview
 
-Tea asset management system (inventory, dashboard, orders).
+Tea inventory SaaS: stock, dashboard, owner-managed orders.
 
-## Roles
+This checkout is the **`product`** line. `main` / `master` is a separate Mongo portfolio demo — do not merge the branches wholesale (ADR 003 / `product-git-workflow.mdc`).
 
-- **admin**: add/edit/delete tea; approve orders (planned)
-- **user**: view assets; place orders
-- **guest**: view asset list only
+## Roles (this branch)
+
+- **owner** on both `personal` and `professional` editions. Owner uses the system alone.
+- **Not now:** `admin`, `user`, `guest`, `customer`, `staff`.
+
+See `product/product-overview.mdc` and `product/product-capabilities.mdc`.
 
 ## Tech Stack
 
-**Frontend:** React 19, TypeScript 5.9, Vite, Tailwind CSS 4.3
+**Frontend:** React 19, TypeScript 5.9, Vite, Tailwind CSS 4.3, i18n (`zh-TW` \| `en`)
 
-**Backend:** Python, FastAPI, PyMongo, structured JSON logging, centralized API errors
+**Backend:** Python, FastAPI, SQLAlchemy, Alembic, structured JSON logging, centralized API errors
 
-**Database:** MongoDB (email uniqueness, tea filters, text search, orders indexes)
+**Database:** PostgreSQL only (`POSTGRES_URL`). Shared multi-tenant (`tenant_id`).
 
 Assume intermediate TypeScript knowledge; explain advanced patterns when used.
