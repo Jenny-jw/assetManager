@@ -26,7 +26,7 @@ Two start paths (both need repo-root `.env` from `.env.example`):
 | **Local** (host `uvicorn` / Alembic / pgAdmin) | Daily product coding       | `POSTGRES_URL` host = **`localhost`** | `docker compose -f docker-compose.product.yml up -d postgres` |
 | **Compose / CI-style** (API container + DB)    | Want the API in Docker too | Compose sets host = **`postgres`**    | `docker compose -f docker-compose.product.yml up --build -d`  |
 
-There is no cloud Postgres in this repo yet. GitHub Actions pytest does **not** start Postgres; `compose-smoke` is the Mongo stack on `main`.
+There is no cloud Postgres in this repo yet. GitHub Actions pytest uses in-memory SQLite (no Docker). On `product`, job `compose-smoke` starts `docker-compose.product.yml`, runs Alembic, then checks `/health` and `/ready`. The Mongo `compose-smoke` stays on `main` / `master`.
 
 ## 1. Environment
 
@@ -347,32 +347,36 @@ Auth tests cover tea mutations: `401` without cookie, `403` for non-admin (`user
 
 ## GitHub Actions CI
 
-Workflow file: `.github/workflows/backend-ci.yml`
+Workflow files: `.github/workflows/backend-ci.yml`, `.github/workflows/frontend-ci.yml`
 
-It runs on every push/PR to `main` or `master`:
+They run on every push/PR to `product`:
 
-**Job `test`**
+**Job `test`** (backend)
 
 1. Checkout code
 2. Install Python 3.10
 3. `pip install -r backend/requirements.txt`
-4. `pytest -v` in `backend/`
+4. `pytest -v` in `backend/` (in-memory SQLite; Postgres is not required)
 
-**Job `compose-smoke`**
+**Job `compose-smoke`** (backend)
 
-1. `docker compose up -d --build --wait`
-2. `curl` `/health` and `/ready`
-3. `docker compose down -v`
+1. Write a throwaway root `.env` (CI dummy `POSTGRES_*` / `JWT_*`; never commit)
+2. `docker compose -f docker-compose.product.yml up -d --build --wait`
+3. `alembic upgrade head` inside the `api` container
+4. `curl` `/health` and `/ready`
+5. `docker compose -f docker-compose.product.yml down -v`
+
+**Frontend CI:** `npm ci`, lint, Vitest, production build.
 
 ### One-time setup on GitHub
 
 1. Push this repository to GitHub (if not already).
 2. Open the repo on GitHub → **Actions** tab.
 3. If prompted, click **Enable workflows**.
-4. Push a commit or open a PR; you should see **Backend CI** running.
+4. Push a commit or open a PR targeting `product`; you should see **Backend CI** and **Frontend CI** running.
 5. Green check = all tests passed.
 
-No repository secrets are required for CI (tests use an in-memory fake DB, not Atlas).
+No repository secrets are required for CI.
 
 Optional: add a status badge to `README.md`:
 

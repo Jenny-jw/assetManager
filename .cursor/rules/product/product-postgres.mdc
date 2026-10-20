@@ -64,7 +64,7 @@ docker compose -f docker-compose.product.yml ps
 curl http://localhost:8000/ready
 ```
 
-**GitHub Actions today** (`backend-ci.yml`) runs pytest without Postgres, and `compose-smoke` is the **Mongo** stack on `main`. Product CI + compose postgres is not wired yet.
+**GitHub Actions on `product`** (`backend-ci.yml`): pytest still uses in-memory SQLite (no Postgres). Job `compose-smoke` starts `docker-compose.product.yml`, runs Alembic, then `curl /health` and `/ready`. The Mongo `compose-smoke` remains on `main` / `master` only.
 
 ## Stop
 

@@ -2,9 +2,9 @@ name: Backend CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [product]
   pull_request:
-    branches: [main, master]
+    branches: [product]
 
 jobs:
   test:
@@ -41,8 +41,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Start api and mongo
-        run: docker compose up -d --build --wait
+      - name: Write CI .env
+        run: |
+          cat > .env <<'EOF'
+          POSTGRES_USER=ci
+          POSTGRES_PASSWORD=ci
+          POSTGRES_DB=assetmanager_ci
+          POSTGRES_PORT=5432
+          JWT_SECRET_KEY=ci-compose-secret
+          JWT_COOKIE_SECURE=false
+          DEPLOY_CONFIG_PATH=deploy/config.yaml
+          TRIAL_DAYS=90
+          EOF
+
+      - name: Start api and postgres
+        run: docker compose -f docker-compose.product.yml up -d --build --wait --wait-timeout 180
+
+      - name: Run Alembic migrations
+        run: docker compose -f docker-compose.product.yml exec -T api alembic upgrade head
 
       - name: Smoke check health endpoints
         run: |
@@ -55,8 +71,8 @@ jobs:
               fi
               if [ "${attempt}" -eq 15 ]; then
                 echo "::error::${endpoint} check failed after ${attempt} attempts"
-                docker compose ps
-                docker compose logs api --tail 100
+                docker compose -f docker-compose.product.yml ps
+                docker compose -f docker-compose.product.yml logs api --tail 100
                 exit 1
               fi
               echo "Waiting for /${endpoint} (attempt ${attempt}/15)..."
@@ -66,4 +82,4 @@ jobs:
 
       - name: Tear down stack
         if: always()
-        run: docker compose down -v
+        run: docker compose -f docker-compose.product.yml down -v

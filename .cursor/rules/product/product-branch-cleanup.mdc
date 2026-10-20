@@ -139,7 +139,7 @@ Update imports project-wide; `alembic/env.py` model imports; delete empty `*/pro
 |------|-----|----------------|
 | `docker-compose.yml` | mongo + api | postgres + api |
 | `.env.example` | PG | no `MONGO_URI` |
-| `.github/workflows/backend-ci.yml` | `main`/`master` + mongo | add **`product`** job: pytest + postgres compose |
+| `.github/workflows/backend-ci.yml` | `product`: pytest + postgres compose-smoke | done (10x-e); Mongo smoke stays on `main` |
 | `README.md` | mixed | product-only PG section |
 
 ---
@@ -193,7 +193,7 @@ Update imports project-wide; `alembic/env.py` model imports; delete empty `*/pro
 | 10x-b | Delete v1 tea/auth/mongo tests + `FakeDB` (Phase 1; `tests/mongo/` until Phase 2) | [~] |
 | 10x-c | Consolidate `tests/product/` → `tests/` | [x] |
 | 10x-d | Update Cursor rules + README | [~] |
-| 10x-e | Product CI + postgres compose | [ ] |
+| 10x-e | Product CI + postgres compose | [x] |
 | 10x-f | Delete mongo orders (after P3) | [ ] |
 
 ---
