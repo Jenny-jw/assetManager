@@ -17,11 +17,3 @@ def register_routes(app: FastAPI) -> None:
     app.include_router(auth_router, prefix="/api")
     app.include_router(deployment_router, prefix="/api")
     app.include_router(security_router, prefix="/api")
-
-def route_paths(app: FastAPI) -> set[str]:
-    paths: set[str] = set()
-    for route in app.routes:
-        path = getattr(route, "path", None)
-        if isinstance(path, str):
-            paths.add(path)
-    return paths

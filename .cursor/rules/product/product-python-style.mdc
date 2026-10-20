@@ -13,7 +13,7 @@ Target **Python 3.10+** (CI `3.10`; Docker `3.11`). Write code and new migration
 | Package | Version / constraint |
 |---------|----------------------|
 | Python | 3.10+ (CI); 3.11 (Docker) |
-| FastAPI | 0.136.x (local) |
+| FastAPI | 0.128–0.151 (`requirements.txt`: `>=0.128,<0.152`) |
 | Pydantic | 2.13.x |
 | SQLAlchemy | ≥2.0 (local 2.0.51) |
 | Alembic | ≥1.13 |
