@@ -21,7 +21,6 @@ extend-immutable-calls = [
     "fastapi.File",
     "fastapi.Security",
     "dependencies.auth.require_owner",
-    "dependencies.mongo_auth.require_role",
     "core.capabilities.require_module",
     "core.capabilities.require_capability",
 ]

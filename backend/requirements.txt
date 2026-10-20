@@ -1,7 +1,6 @@
 fastapi>=0.128,<0.152
 uvicorn[standard]
 python-dotenv
-pymongo
 pydantic[email]
 passlib[bcrypt]
 PyJWT

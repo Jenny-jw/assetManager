@@ -7,9 +7,9 @@ alwaysApply: false
 
 **Transitional checklist** for leftover files still on `product` (Mongo orders path, old names). Branch split policy: **ADR 003** / `product-git-workflow.mdc` — do not merge whole `product` ↔ `main`.
 
-**Current layout (Phase 3 done):** flattened `models/`, `schemas/`, `routes/` (platform), `modules/` (domain HTTP), `dependencies/`, `services/`, `tests/test_*.py`. PG owner orders are in `modules/orders/routes.py`. Legacy Mongo HTTP remains in `modules/orders/mongo_routes.py` and `tests/mongo/` until Phase 2.
+**Current layout (Phase 2–3 done):** flattened folders; PG owner orders in `modules/orders/routes.py`. Mongo HTTP, `mongo_legacy`, `tests/mongo/`, and `pymongo` are **removed** (10x-f).
 
-**Target after Phase 2:** no tea/auth/mongo leftovers; optional `core/stock_pricing.py` rename.
+**Optional leftover:** `core/tea_pricing.py` → `core/stock_pricing.py`; frontend `TeaList` / `teaPricing` names.
 
 See `product-folder-layout.mdc` for paths.
 
@@ -137,10 +137,10 @@ Update imports project-wide; `alembic/env.py` model imports; delete empty `*/pro
 
 | Item | Now | After cleanup |
 |------|-----|----------------|
-| `docker-compose.yml` | mongo + api | postgres + api |
+| `docker-compose.yml` | deleted (Mongo leftover) | use `docker-compose.product.yml` |
 | `.env.example` | PG | no `MONGO_URI` |
 | `.github/workflows/backend-ci.yml` | `product`: pytest + postgres compose-smoke | done (10x-e); Mongo smoke stays on `main` |
-| `README.md` | mixed | product-only PG section |
+| `README.md` | product-only PG | [x] |
 
 ---
 
@@ -164,7 +164,7 @@ Update imports project-wide; `alembic/env.py` model imports; delete empty `*/pro
 | `product-data-schema.mdc` | `schemas/` not `schemas/product/` | [x] |
 | `product-modularization.mdc` | path examples | [x] |
 | `product-roadmap.mdc` | path notes (P0-6) | [x] |
-| `README.md` | product-only PG section | [ ] |
+| `README.md` | product-only PG section | [x] |
 
 ---
 
@@ -190,11 +190,11 @@ Update imports project-wide; `alembic/env.py` model imports; delete empty `*/pro
 | # | Item | St |
 |---|------|-----|
 | 10x-a | Flatten `product/` → top-level folders | [x] |
-| 10x-b | Delete v1 tea/auth/mongo tests + `FakeDB` (Phase 1; `tests/mongo/` until Phase 2) | [~] |
+| 10x-b | Delete v1 tea/auth/mongo tests + `FakeDB` (Phase 1; `tests/mongo/` until Phase 2) | [x] |
 | 10x-c | Consolidate `tests/product/` → `tests/` | [x] |
-| 10x-d | Update Cursor rules + README | [~] |
+| 10x-d | Update Cursor rules + README | [x] |
 | 10x-e | Product CI + postgres compose | [x] |
-| 10x-f | Delete mongo orders (after P3) | [ ] |
+| 10x-f | Delete mongo orders (after P3) | [x] |
 
 ---
 
@@ -202,4 +202,4 @@ Update imports project-wide; `alembic/env.py` model imports; delete empty `*/pro
 
 1. Do **not** merge whole `product` ↔ `main` (see ADR 003).
 2. One PR per layer: flatten imports before deleting files.
-3. Orders stay on legacy Mongo path until P3 PG orders; Phase 1 does not remove `mongo_legacy`.
+3. Do not reintroduce pymongo / `MONGO_URI` on `product`. Mongo portfolio stays on `main`.

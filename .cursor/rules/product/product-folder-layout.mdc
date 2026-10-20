@@ -12,36 +12,31 @@ Backend uses a **single top-level layout** — no `models/product/`, `routes/pro
 | Area | Path |
 |------|------|
 | Models | `backend/models/` (`user.py`, `stock.py`, `order.py`) |
-| Schemas | `backend/schemas/` (`user.py`, `stock.py`, `order.py`; `mongo_order.py` until Phase 2) |
+| Schemas | `backend/schemas/` (`user.py`, `stock.py`, `order.py`) |
 | Routes | `backend/routes/` (platform: `auth`, `security`, `health`, `deployment`) |
 | Modules | `backend/modules/{inventory,orders,analytics}/` (domain HTTP; thin routes) |
-| Dependencies | `backend/dependencies/` (`auth.py` PG owner; `repositories.py`; `mongo_auth.py` until Phase 2 cleanup) |
+| Dependencies | `backend/dependencies/` (`auth.py` PG owner; `repositories.py`) |
 | Repositories | `backend/repositories/postgres/` (`StockRepository`, `OrderRepository`; tenant-scoped) |
-| Services | `backend/services/` (`stock_queries.py`, `stock_summary_service.py`, `profit_analytics_service.py`, …) |
-| Tests | `backend/tests/test_*.py`; legacy orders under `backend/tests/mongo/` until Phase 2 |
+| Services | `backend/services/` (`stock_queries.py`, `stock_summary_service.py`, `profit_analytics_service.py`, `pg_order_service.py`, …) |
+| Tests | `backend/tests/test_*.py` |
 
 ```text
 backend/tests/
-  conftest.py           # PG fixtures, owner clients, skip_startup_postgres_ping
+  conftest.py           # skip_startup_postgres_ping, unauthenticated client
   test_stock_api.py     # stock API
   test_pg_orders_api.py # owner-managed PG orders
   test_auth.py          # owner auth
-  mongo/                # legacy orders tests (Phase 2 delete)
-    conftest.py
-    test_orders_api.py
 ```
 
 ## Roles in tests
 
 | Area | Roles |
 |------|-------|
-| `tests/test_*.py` (PG) | `owner` only |
-| `tests/mongo/` (legacy) | `admin`, `user`, `guest` until Phase 2 |
+| `tests/test_*.py` | `owner` only |
 
 ## Avoid
 
 - Reintroducing `*/product/` subfolders
 - Non-`owner` roles in PG tests
 - Non-stock inventory domain names in new code
-
-See `product-branch-cleanup.mdc` for Phase 2 (remove legacy orders + mongo leftovers).
+- `MONGO_URI` / pymongo on this branch
