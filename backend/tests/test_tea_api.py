@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+import pytest
 from bson import ObjectId
 
 def test_create_tea_rejects_invalid_package_weight(client):
@@ -13,6 +14,20 @@ def test_create_tea_rejects_invalid_package_weight(client):
             "price": 1200,
         },
     )
+
+    assert response.status_code == 422
+
+@pytest.mark.parametrize("field", ["weight", "quantity"])
+def test_create_tea_rejects_missing_package_field(client, field):
+    payload = {
+        "name": "Incomplete Tea",
+        "genre": "Oolong",
+        "weight": 150,
+        "quantity": 1,
+    }
+    del payload[field]
+
+    response = client.post("/api/tea/", json=payload)
 
     assert response.status_code == 422
 
