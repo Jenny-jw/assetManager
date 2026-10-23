@@ -71,9 +71,38 @@ describe("teaServices", () => {
 
   it("extractTeaFacets returns sorted unique genres and origins", () => {
     const teas: Asset[] = [
-      { id: "1", name: "A", genre: "Black", origin: "Japan" },
-      { id: "2", name: "B", genre: "Oolong", origin: "Taiwan" },
-      { id: "3", name: "C", genre: "Oolong" },
+      {
+        id: "1",
+        name: "A",
+        genre: "Black",
+        origin: "Japan",
+        weight: 150,
+        quantity: 1,
+        owner_id: null,
+        created_at: "2026-01-01T00:00:00Z",
+        updated_at: null,
+      },
+      {
+        id: "2",
+        name: "B",
+        genre: "Oolong",
+        origin: "Taiwan",
+        weight: 75,
+        quantity: 1,
+        owner_id: null,
+        created_at: "2026-01-01T00:00:00Z",
+        updated_at: null,
+      },
+      {
+        id: "3",
+        name: "C",
+        genre: "Oolong",
+        weight: 150,
+        quantity: 1,
+        owner_id: null,
+        created_at: "2026-01-01T00:00:00Z",
+        updated_at: null,
+      },
     ];
 
     expect(extractTeaFacets(teas)).toEqual({

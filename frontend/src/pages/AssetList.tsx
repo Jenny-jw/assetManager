@@ -17,6 +17,7 @@ import {
   lineTotalValue,
   pricePerPackage,
 } from "../lib/teaPricing";
+import { formatRecordTime } from "../lib/recordTime";
 
 type SortDirection = "asc" | "desc";
 
@@ -721,6 +722,15 @@ const AssetList = () => {
                   value={formatMoney(lineTotalValue(selectedAsset))}
                 />
               )}
+              <DetailRow label="Owner" value={selectedAsset.owner_id} />
+              <DetailRow
+                label="Created"
+                value={formatRecordTime(selectedAsset.created_at)}
+              />
+              <DetailRow
+                label="Updated"
+                value={formatRecordTime(selectedAsset.updated_at)}
+              />
             </div>
 
             <div className="mt-6 flex justify-end">

@@ -9,16 +9,16 @@
  */
 export type AssetBase = {
   name: string;
+  genre: string;
   origin?: string;
-  genre?: string;
   roast_level?: number;
   harvest_time?: number;
   /** Price per 斤 */
   price?: number;
   /** Grams per package (75 or 150) */
-  weight?: number;
+  weight: 75 | 150;
   /** Number of packages in stock */
-  quantity?: number;
+  quantity: number;
   score?: number;
   comment?: string;
   producer?: string;
@@ -26,6 +26,9 @@ export type AssetBase = {
 
 export type Asset = AssetBase & {
   id: string;
+  owner_id: string | null;
+  created_at: string;
+  updated_at: string | null;
 };
 
 export type CreateAssetType = AssetBase;

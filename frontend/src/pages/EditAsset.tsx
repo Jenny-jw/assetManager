@@ -9,6 +9,7 @@ import {
   harvestIntToDateInput,
 } from "../lib/harvestDate";
 import { PACKAGE_WEIGHT_OPTIONS } from "../lib/teaPricing";
+import { formatRecordTime } from "../lib/recordTime";
 
 type EditForm = {
   name: string;
@@ -150,6 +151,11 @@ const EditAsset = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [errMsg, setErrMsg] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [recordMeta, setRecordMeta] = useState<{
+    owner_id: string | null;
+    created_at: string;
+    updated_at: string | null;
+  } | null>(null);
 
   useEffect(() => {
     const fetchAsset = async () => {
@@ -163,6 +169,11 @@ const EditAsset = () => {
         const res = await axios.get<Asset>(`/tea/${id}`);
         const asset = res.data;
 
+        setRecordMeta({
+          owner_id: asset.owner_id,
+          created_at: asset.created_at,
+          updated_at: asset.updated_at,
+        });
         setForm({
           name: asset.name ?? "",
           origin: asset.origin ?? "",
@@ -271,6 +282,35 @@ const EditAsset = () => {
           <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
             {errMsg}
           </p>
+        )}
+
+        {recordMeta && (
+          <div className="grid md:grid-cols-3 gap-4">
+            <label className="space-y-2">
+              <span className="text-sm font-medium text-gray-600">Owner</span>
+              <input
+                value={recordMeta.owner_id ?? ""}
+                readOnly
+                className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-gray-100"
+              />
+            </label>
+            <label className="space-y-2">
+              <span className="text-sm font-medium text-gray-600">Created</span>
+              <input
+                value={formatRecordTime(recordMeta.created_at)}
+                readOnly
+                className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-gray-100"
+              />
+            </label>
+            <label className="space-y-2">
+              <span className="text-sm font-medium text-gray-600">Updated</span>
+              <input
+                value={formatRecordTime(recordMeta.updated_at)}
+                readOnly
+                className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-gray-100"
+              />
+            </label>
+          </div>
         )}
 
         <div className="grid md:grid-cols-2 gap-4">

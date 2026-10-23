@@ -37,6 +37,9 @@ const sampleAssets: Asset[] = [
     score: 90,
     price: 1200,
     weight: 150,
+    owner_id: "owner-1",
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: null,
   },
   {
     id: "tea-2",
@@ -47,6 +50,9 @@ const sampleAssets: Asset[] = [
     score: 85,
     price: 900,
     weight: 75,
+    owner_id: null,
+    created_at: "2026-01-02T00:00:00Z",
+    updated_at: null,
   },
 ];
 
@@ -98,6 +104,21 @@ describe("AssetList", () => {
     expect(listTeasMock).toHaveBeenCalled();
   });
 
+  it("shows owner and timestamps as read-only details", async () => {
+    renderAssetList();
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Alishan Oolong").length).toBeGreaterThan(0);
+    });
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Details" })[0]);
+
+    expect(await screen.findByText("Owner")).toBeInTheDocument();
+    expect(screen.getByText("owner-1")).toBeInTheDocument();
+    expect(screen.getByText("Created")).toBeInTheDocument();
+    expect(screen.getByText("Updated")).toBeInTheDocument();
+  });
+
   it("requests filtered results when genre changes", async () => {
     renderAssetList();
 
@@ -131,6 +152,9 @@ describe("AssetList", () => {
               score: 10,
               price: 500,
               weight: 150,
+              owner_id: null,
+              created_at: "2026-01-03T00:00:00Z",
+              updated_at: null,
             },
           ],
           page: 2,

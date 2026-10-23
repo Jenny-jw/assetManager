@@ -3,9 +3,18 @@ import { Link } from "react-router-dom";
 import { isAxiosError } from "axios";
 import type { CreateAssetType } from "../types/Asset";
 import axios from "../lib/axios";
-import { PACKAGE_WEIGHT_OPTIONS } from "../lib/teaPricing";
+import {
+  isPackageWeightGrams,
+  PACKAGE_WEIGHT_OPTIONS,
+  type PackageWeightGrams,
+} from "../lib/teaPricing";
 
-const INITIAL_FORM: CreateAssetType = {
+type CreateFormState = Omit<CreateAssetType, "weight" | "quantity"> & {
+  weight?: PackageWeightGrams;
+  quantity?: number;
+};
+
+const INITIAL_FORM: CreateFormState = {
   name: "",
   origin: "",
   genre: "",
@@ -19,14 +28,14 @@ const INITIAL_FORM: CreateAssetType = {
   producer: "",
 };
 
-type FieldErrors = Partial<Record<keyof CreateAssetType, string>>;
+type FieldErrors = Partial<Record<keyof CreateFormState, string>>;
 
 type ValidationDetail = {
   loc: (string | number)[];
   msg: string;
 };
 
-function validateForm(form: CreateAssetType): FieldErrors {
+function validateForm(form: CreateFormState): FieldErrors {
   const errors: FieldErrors = {};
 
   if (!(form.name ?? "").trim()) {
@@ -88,7 +97,7 @@ function formatApiError(error: unknown): string {
 }
 
 const CreateAsset = () => {
-  const [form, setForm] = useState<CreateAssetType>(INITIAL_FORM);
+  const [form, setForm] = useState<CreateFormState>(INITIAL_FORM);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -103,9 +112,11 @@ const CreateAsset = () => {
     setSuccessMessage("");
 
     if (name === "weight") {
+      const grams = Number(value);
       setForm((prev) => ({
         ...prev,
-        weight: value === "" ? undefined : Number(value),
+        weight:
+          value === "" || !isPackageWeightGrams(grams) ? undefined : grams,
       }));
       return;
     }
@@ -151,6 +162,10 @@ const CreateAsset = () => {
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setFormError("Please complete all required fields before submitting.");
+      return;
+    }
+
+    if (form.weight == null || form.quantity == null) {
       return;
     }
 
