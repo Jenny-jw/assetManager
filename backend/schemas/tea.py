@@ -5,7 +5,7 @@ from typing import Literal, Optional, Annotated
 
 Score = Annotated[int, Field(ge=0, le=100)]
 PackageWeightGrams = Literal[75, 150]
-quantityRange = Annotated[int, Field(ge=0)]
+quantityRange = Annotated[int, Field(ge=1)]
 harvestDate = Annotated[int, Field(ge=20100101, le=22001231)]
 pricePerJin = Annotated[int, Field(ge=0, description="Price per 斤 (600g)")]
 
@@ -19,7 +19,7 @@ class TeaBase(BaseModel):
         None, description="Grams per package (75 or 150 only)", example=150
     )
     quantity: Optional[quantityRange] = Field(
-        None, description="Number of packages in stock", example=3
+        None, description="Number of packages in stock (at least 1)", example=3
     )
     score: Optional[Score] = Field(None, example=85)
     price: Optional[pricePerJin] = Field(

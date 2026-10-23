@@ -21,7 +21,7 @@ class TeaInDB(BaseModel):
     harvest_time: Optional[int] = None
     price: Optional[int] = None
     weight: PackageWeightGrams
-    quantity: int = Field(ge=0)
+    quantity: int = Field(ge=1)
     owner_id: Optional[str] = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: Optional[datetime] = None

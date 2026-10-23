@@ -66,8 +66,8 @@ function validateForm(form: EditForm): FieldErrors {
     errors.quantity = "Number of packages is required";
   } else {
     const qty = Number(form.quantity);
-    if (Number.isNaN(qty) || qty < 0) {
-      errors.quantity = "Enter a valid number of packages";
+    if (!Number.isInteger(qty) || qty < 1) {
+      errors.quantity = "Number of packages must be at least 1";
     }
   }
   if (form.harvest_time.trim() !== "") {
@@ -387,7 +387,7 @@ const EditAsset = () => {
               value={form.quantity}
               onChange={handleChange}
               required
-              min={0}
+              min={1}
               step={1}
               className="w-full rounded-lg border px-3 py-2 text-gray-800 bg-[#d3d4be80]"
             />

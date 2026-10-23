@@ -47,7 +47,7 @@ def list_teas(
     ),
     sort_direction: str = Query("desc", pattern="^(asc|desc)$"),
 ):
-    filters = {}
+    filters: dict = {"quantity": {"$gte": 1}}
     if search:
         filters["$text"] = {"$search": search}
     if genre:

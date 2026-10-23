@@ -71,7 +71,7 @@ def test_admin_can_create_tea(client):
     assert response.json()["name"] == "Test Tea"
 
 def test_user_can_list_teas(client_user, fake_db):
-    fake_db.teas.seed({"name": "Readable Tea", "genre": "Green", "origin": "Taiwan"})
+    fake_db.teas.seed({"name": "Readable Tea", "genre": "Green", "origin": "Taiwan", "quantity": 1})
     response = client_user.get("/api/tea/")
     assert response.status_code == 200
     assert response.json()["total"] == 1

@@ -6,15 +6,9 @@ import axios from "../lib/axios";
 import {
   isPackageWeightGrams,
   PACKAGE_WEIGHT_OPTIONS,
-  type PackageWeightGrams,
 } from "../lib/teaPricing";
 
-type CreateFormState = Omit<CreateAssetType, "weight" | "quantity"> & {
-  weight?: PackageWeightGrams;
-  quantity?: number;
-};
-
-const INITIAL_FORM: CreateFormState = {
+const INITIAL_FORM: CreateAssetType = {
   name: "",
   origin: "",
   genre: "",
@@ -28,14 +22,14 @@ const INITIAL_FORM: CreateFormState = {
   producer: "",
 };
 
-type FieldErrors = Partial<Record<keyof CreateFormState, string>>;
+type FieldErrors = Partial<Record<keyof CreateAssetType, string>>;
 
 type ValidationDetail = {
   loc: (string | number)[];
   msg: string;
 };
 
-function validateForm(form: CreateFormState): FieldErrors {
+function validateForm(form: CreateAssetType): FieldErrors {
   const errors: FieldErrors = {};
 
   if (!(form.name ?? "").trim()) {
@@ -57,10 +51,10 @@ function validateForm(form: CreateFormState): FieldErrors {
   }
   if (
     form.quantity == null ||
-    Number.isNaN(form.quantity) ||
-    form.quantity < 0
+    !Number.isInteger(form.quantity) ||
+    form.quantity < 1
   ) {
-    errors.quantity = "Number of packages is required";
+    errors.quantity = "Number of packages must be at least 1";
   }
 
   return errors;
@@ -97,7 +91,7 @@ function formatApiError(error: unknown): string {
 }
 
 const CreateAsset = () => {
-  const [form, setForm] = useState<CreateFormState>(INITIAL_FORM);
+  const [form, setForm] = useState<CreateAssetType>(INITIAL_FORM);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -113,23 +107,22 @@ const CreateAsset = () => {
 
     if (name === "weight") {
       const grams = Number(value);
-      setForm((prev) => ({
-        ...prev,
-        weight:
-          value === "" || !isPackageWeightGrams(grams) ? undefined : grams,
-      }));
+      if (!isPackageWeightGrams(grams)) return;
+      setForm((prev) => ({ ...prev, weight: grams }));
       return;
     }
     if (name === "name" || name === "genre") {
       setForm((prev) => ({ ...prev, [name]: value }));
       return;
     }
-    if (
-      name === "price" ||
-      name === "quantity" ||
-      name === "score" ||
-      name === "roast_level"
-    ) {
+    if (name === "quantity") {
+      if (value === "") return;
+      const quantity = Number(value);
+      if (Number.isNaN(quantity)) return;
+      setForm((prev) => ({ ...prev, quantity }));
+      return;
+    }
+    if (name === "price" || name === "score" || name === "roast_level") {
       setForm((prev) => ({
         ...prev,
         [name]: value === "" ? undefined : Number(value),
@@ -162,10 +155,6 @@ const CreateAsset = () => {
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setFormError("Please complete all required fields before submitting.");
-      return;
-    }
-
-    if (form.weight == null || form.quantity == null) {
       return;
     }
 
@@ -249,12 +238,11 @@ const CreateAsset = () => {
             </label>
             <select
               name="weight"
-              value={form.weight ?? ""}
+              value={form.weight}
               onChange={handleChange}
               disabled={isSubmitting}
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6] disabled:opacity-60"
             >
-              <option value="">Select weight</option>
               {PACKAGE_WEIGHT_OPTIONS.map((grams) => (
                 <option key={grams} value={grams}>
                   {grams} g
@@ -272,8 +260,9 @@ const CreateAsset = () => {
             <input
               type="number"
               name="quantity"
-              min={0}
-              value={form.quantity ?? ""}
+              min={1}
+              step={1}
+              value={form.quantity}
               onChange={handleChange}
               disabled={isSubmitting}
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6] disabled:opacity-60"

@@ -183,7 +183,7 @@ def test_patch_clears_optional_string_fields(client):
     assert clear_via_empty.status_code == 200
     assert clear_via_empty.json().get("origin") is None
 
-def test_patch_allows_zero_packages(client):
+def test_patch_rejects_zero_packages(client):
     create_response = client.post(
         "/api/tea/",
         json={
@@ -198,8 +198,33 @@ def test_patch_allows_zero_packages(client):
 
     response = client.patch(f"/api/tea/{tea_id}", json={"quantity": 0})
 
+    assert response.status_code == 422
+
+def test_create_tea_rejects_zero_quantity(client):
+    response = client.post(
+        "/api/tea/",
+        json={
+            "name": "Empty Stock",
+            "genre": "Oolong",
+            "weight": 150,
+            "quantity": 0,
+        },
+    )
+
+    assert response.status_code == 422
+
+def test_list_omits_teas_with_no_packages(client, fake_db):
+    fake_db.teas.seed(
+        {"name": "In Stock", "genre": "Oolong", "quantity": 2},
+        {"name": "Sold Out", "genre": "Green", "quantity": 0},
+    )
+
+    response = client.get("/api/tea/")
+
     assert response.status_code == 200
-    assert response.json()["quantity"] == 0
+    body = response.json()
+    assert body["total"] == 1
+    assert [tea["name"] for tea in body["data"]] == ["In Stock"]
 
 def test_tea_summary_aggregates_entire_inventory(client, fake_db):
     fake_db.teas.seed(
@@ -218,6 +243,14 @@ def test_tea_summary_aggregates_entire_inventory(client, fake_db):
             "quantity": 1,
             "weight": 75,
             "price": 900,
+        },
+        {
+            "name": "Sold Out",
+            "genre": "Oolong",
+            "origin": "Taiwan",
+            "quantity": 0,
+            "weight": 150,
+            "price": 1200,
         },
     )
 
@@ -313,6 +346,7 @@ def test_list_teas_supports_text_search(client, fake_db):
             "genre": "Oolong",
             "origin": "Alishan",
             "comment": "floral aroma",
+            "quantity": 1,
             "created_at": datetime.now(timezone.utc),
         },
         {
@@ -320,6 +354,7 @@ def test_list_teas_supports_text_search(client, fake_db):
             "genre": "Black",
             "origin": "Nantou",
             "comment": "malty body",
+            "quantity": 1,
             "created_at": datetime.now(timezone.utc),
         },
     )

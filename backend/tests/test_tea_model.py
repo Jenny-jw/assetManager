@@ -17,4 +17,4 @@ def test_tea_in_db_does_not_mint_an_id_and_requires_package_fields():
         TeaInDB(name="Alishan", genre="Oolong", weight=100, quantity=1)
 
     with pytest.raises(ValidationError):
-        TeaInDB(name="Alishan", genre="Oolong", weight=150, quantity=-1)
+        TeaInDB(name="Alishan", genre="Oolong", weight=150, quantity=0)

@@ -25,9 +25,11 @@ def build_tea_summary(teas_collection) -> dict[str, Any]:
             continue
         if "name" not in tea or "genre" not in tea:
             continue
+        quantity = tea.get("quantity")
+        if not isinstance(quantity, int) or quantity < 1:
+            continue
 
         total_assets += 1
-        quantity = tea.get("quantity") or 0
         weight = tea.get("weight") or 0
         price = tea.get("price")
 
