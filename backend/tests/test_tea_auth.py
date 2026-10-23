@@ -5,6 +5,7 @@ TEA_CREATE_PAYLOAD = {
     "genre": "Oolong",
     "origin": "Alishan",
     "quantity": 1,
+    "weight": 150,
 }
 
 @pytest.mark.parametrize(

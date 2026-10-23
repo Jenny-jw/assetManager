@@ -23,6 +23,7 @@ def test_create_and_update_tea(client):
             "name": "Alishan Oolong",
             "genre": "Oolong",
             "origin": "Alishan",
+            "weight": 150,
             "quantity": 3,
             "score": 88,
             "price": 1200,
@@ -50,6 +51,7 @@ def test_create_tea_sets_owner_id_and_ignores_client_value(client, admin_user, f
         json={
             "name": "Owned Tea",
             "genre": "Oolong",
+            "weight": 150,
             "quantity": 1,
             "owner_id": str(ObjectId()),
         },
@@ -64,7 +66,7 @@ def test_create_tea_sets_owner_id_and_ignores_client_value(client, admin_user, f
 def test_patch_does_not_change_owner_id(client, admin_user):
     created = client.post(
         "/api/tea/",
-        json={"name": "Owned Tea", "genre": "Oolong", "quantity": 1},
+        json={"name": "Owned Tea", "genre": "Oolong", "weight": 150, "quantity": 1},
     )
     tea_id = created.json()["id"]
 
@@ -77,6 +79,24 @@ def test_patch_does_not_change_owner_id(client, admin_user):
     body = response.json()
     assert body["owner_id"] == admin_user["id"]
     assert body["quantity"] == 2
+
+def test_create_tea_ignores_client_created_at(client, fake_db):
+    response = client.post(
+        "/api/tea/",
+        json={
+            "name": "Timed Tea",
+            "genre": "Oolong",
+            "weight": 150,
+            "quantity": 1,
+            "created_at": "2000-01-01T00:00:00Z",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert not body["created_at"].startswith("2000-01-01")
+    stored = fake_db.teas.docs[ObjectId(body["id"])]["created_at"]
+    assert stored.year != 2000
 
 def test_existing_tea_without_owner_id_stays_unset(client, fake_db):
     fake_db.teas.seed({"name": "Legacy Tea", "genre": "Green", "quantity": 1})
@@ -96,6 +116,7 @@ def test_patch_clears_optional_string_fields(client):
             "origin": "Japan",
             "producer": "Farmer Tan",
             "comment": "Floral",
+            "weight": 150,
             "quantity": 3,
             "price": 1200,
         },
@@ -121,6 +142,7 @@ def test_patch_allows_zero_packages(client):
         json={
             "name": "Alishan Oolong",
             "genre": "Oolong",
+            "weight": 150,
             "quantity": 3,
             "price": 1200,
         },

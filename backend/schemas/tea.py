@@ -1,10 +1,7 @@
 # Used for API requests and responses
 from pydantic import BaseModel, Field
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Literal, Optional, Annotated
-
-def utcnow():
-    return datetime.now(timezone.utc)
 
 Score = Annotated[int, Field(ge=0, le=100)]
 PackageWeightGrams = Literal[75, 150]
@@ -32,7 +29,8 @@ class TeaBase(BaseModel):
     producer: Optional[str] = None
 
 class TeaCreate(TeaBase):
-    created_at: datetime = Field(default_factory=utcnow)
+    weight: PackageWeightGrams
+    quantity: quantityRange
 
 class TeaUpdate(BaseModel):
     name: Optional[str] = None
@@ -46,8 +44,7 @@ class TeaUpdate(BaseModel):
     price: Optional[pricePerJin] = None
     comment: Optional[str] = None
     producer: Optional[str] = None
-# 不要讓 client 設 updated_at；server 在更新時寫入
-# updated_at: datetime = Field(default_factory=utcnow)
+# owner_id、created_at、updated_at 由伺服器寫入，不在這個請求模型裡
 
 class TeaResponsePublic(TeaBase):
     id: str
