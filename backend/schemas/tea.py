@@ -30,7 +30,6 @@ class TeaBase(BaseModel):
     )
     comment: Optional[str] = Field(None, example="Fruity aroma with a hint of floral notes")
     producer: Optional[str] = None
-    owner_id: Optional[str] = None # reference to user (UUID or str)
 
 class TeaCreate(TeaBase):
     created_at: datetime = Field(default_factory=utcnow)
@@ -47,12 +46,12 @@ class TeaUpdate(BaseModel):
     price: Optional[pricePerJin] = None
     comment: Optional[str] = None
     producer: Optional[str] = None
-    owner_id: Optional[str] = None
 # 不要讓 client 設 updated_at；server 在更新時寫入
 # updated_at: datetime = Field(default_factory=utcnow)
 
 class TeaResponsePublic(TeaBase):
     id: str
+    owner_id: Optional[str] = None
     created_at: datetime
 
 class TeaResponseList(BaseModel):
@@ -71,5 +70,4 @@ class TeaSummaryResponse(BaseModel):
     by_genre: dict[str, int]
 
 class TeaResponseInternal(TeaResponsePublic):
-    owner_id: Optional[str]
     updated_at: Optional[datetime]
