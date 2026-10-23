@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+from bson import ObjectId
+
 def test_create_tea_rejects_invalid_package_weight(client):
     response = client.post(
         "/api/tea/",
@@ -41,6 +43,49 @@ def test_create_and_update_tea(client):
     updated = update_response.json()
     assert updated["quantity"] == 5
     assert updated["score"] == 91
+
+def test_create_tea_sets_owner_id_and_ignores_client_value(client, admin_user, fake_db):
+    response = client.post(
+        "/api/tea/",
+        json={
+            "name": "Owned Tea",
+            "genre": "Oolong",
+            "quantity": 1,
+            "owner_id": str(ObjectId()),
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert ObjectId.is_valid(body["owner_id"])
+    assert body["owner_id"] == admin_user["id"]
+    assert fake_db.teas.docs[ObjectId(body["id"])]["owner_id"] == admin_user["id"]
+
+def test_patch_does_not_change_owner_id(client, admin_user):
+    created = client.post(
+        "/api/tea/",
+        json={"name": "Owned Tea", "genre": "Oolong", "quantity": 1},
+    )
+    tea_id = created.json()["id"]
+
+    response = client.patch(
+        f"/api/tea/{tea_id}",
+        json={"owner_id": str(ObjectId()), "quantity": 2},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["owner_id"] == admin_user["id"]
+    assert body["quantity"] == 2
+
+def test_existing_tea_without_owner_id_stays_unset(client, fake_db):
+    fake_db.teas.seed({"name": "Legacy Tea", "genre": "Green", "quantity": 1})
+
+    response = client.get("/api/tea/")
+
+    assert response.status_code == 200
+    assert response.json()["data"][0]["owner_id"] is None
+    assert next(iter(fake_db.teas.docs.values())).get("owner_id") is None
 
 def test_patch_clears_optional_string_fields(client):
     create_response = client.post(

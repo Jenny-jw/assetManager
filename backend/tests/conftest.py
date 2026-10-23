@@ -240,8 +240,12 @@ def _build_client(monkeypatch, fake_db: FakeDB, auth_user: dict[str, Any] | None
     app.dependency_overrides.clear()
 
 @pytest.fixture
-def client(monkeypatch, fake_db: FakeDB):
-    yield from _build_client(monkeypatch, fake_db, _make_user("admin"))
+def admin_user() -> dict[str, Any]:
+    return _make_user("admin")
+
+@pytest.fixture
+def client(monkeypatch, fake_db: FakeDB, admin_user: dict[str, Any]):
+    yield from _build_client(monkeypatch, fake_db, admin_user)
 
 @pytest.fixture
 def client_no_auth(monkeypatch, fake_db: FakeDB):
