@@ -26,8 +26,9 @@ router = APIRouter(
 )
 
 @router.post("/", response_model=TeaResponsePublic)
-def create_tea(tea: TeaCreate, _: dict = Depends(require_role(UserRole.admin))):
+def create_tea(tea: TeaCreate, current_user: dict = Depends(require_role(UserRole.admin))):
     tea_dict = tea.model_dump()
+    tea_dict["owner_id"] = current_user["id"]
     result = db.teas.insert_one(tea_dict)
     tea_dict["id"] = str(result.inserted_id)
     return tea_dict
