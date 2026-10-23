@@ -98,6 +98,38 @@ def test_create_tea_ignores_client_created_at(client, fake_db):
     stored = fake_db.teas.docs[ObjectId(body["id"])]["created_at"]
     assert stored.year != 2000
 
+def test_patch_ignores_client_owner_and_timestamps(client, admin_user, fake_db):
+    created = client.post(
+        "/api/tea/",
+        json={
+            "name": "Timed Tea",
+            "genre": "Oolong",
+            "weight": 150,
+            "quantity": 1,
+        },
+    )
+    created_body = created.json()
+    tea_id = created_body["id"]
+
+    response = client.patch(
+        f"/api/tea/{tea_id}",
+        json={
+            "quantity": 4,
+            "owner_id": str(ObjectId()),
+            "created_at": "1999-01-01T00:00:00Z",
+            "updated_at": "1999-01-01T00:00:00Z",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["quantity"] == 4
+    assert body["owner_id"] == admin_user["id"]
+    assert body["created_at"] == created_body["created_at"]
+    assert not str(body["updated_at"]).startswith("1999")
+    stored = fake_db.teas.docs[ObjectId(tea_id)]
+    assert stored["updated_at"].year != 1999
+
 def test_existing_tea_without_owner_id_stays_unset(client, fake_db):
     fake_db.teas.seed({"name": "Legacy Tea", "genre": "Green", "quantity": 1})
 

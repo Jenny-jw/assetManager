@@ -50,6 +50,7 @@ class TeaResponsePublic(TeaBase):
     id: str
     owner_id: Optional[str] = None
     created_at: datetime
+    updated_at: Optional[datetime] = None
 
 class TeaResponseList(BaseModel):
     data: list[TeaResponsePublic]
@@ -65,6 +66,3 @@ class TeaSummaryResponse(BaseModel):
     total_value: int
     by_origin: dict[str, int]
     by_genre: dict[str, int]
-
-class TeaResponseInternal(TeaResponsePublic):
-    updated_at: Optional[datetime]
