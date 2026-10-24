@@ -310,16 +310,18 @@ const AssetList = () => {
           Details
         </button>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            void handleOrder(asset);
-          }}
-          disabled={isOrdering}
-          className="px-3 py-1 text-sm rounded-lg bg-lime-700 text-white hover:bg-lime-900 transition disabled:opacity-60 disabled:cursor-not-allowed min-w-[5.5rem]"
-        >
-          {orderingAssetId === asset.id ? "Ordering…" : "Order"}
-        </button>
+        {user?.role === "user" && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              void handleOrder(asset);
+            }}
+            disabled={isOrdering}
+            className="px-3 py-1 text-sm rounded-lg bg-lime-700 text-white hover:bg-lime-900 transition disabled:opacity-60 disabled:cursor-not-allowed min-w-[5.5rem]"
+          >
+            {orderingAssetId === asset.id ? "Ordering…" : "Order"}
+          </button>
+        )}
       </div>
     );
   };
@@ -734,7 +736,7 @@ const AssetList = () => {
             </div>
 
             <div className="mt-6 flex justify-end">
-              {user?.role === "admin" ? (
+              {user?.role === "admin" && (
                 <>
                   <button
                     onClick={() => {
@@ -755,7 +757,8 @@ const AssetList = () => {
                     Delete
                   </button>
                 </>
-              ) : (
+              )}
+              {user?.role === "user" && (
                 <button
                   onClick={() => {
                     void handleOrder(selectedAsset);

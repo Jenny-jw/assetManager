@@ -78,6 +78,14 @@ const Login = () => {
               Sign Up
             </Link>
           </p>
+          <p className="text-center text-sm md:hidden">
+            <Link
+              to="/dashboard"
+              className="text-[#ccd989] hover:text-[#b8cb75]"
+            >
+              View Dashboard as Guest
+            </Link>
+          </p>
         </form>
       </div>
     </div>

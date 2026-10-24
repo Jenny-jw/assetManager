@@ -56,19 +56,21 @@ const sampleAssets: Asset[] = [
   },
 ];
 
-function renderAssetList(role: "admin" | "user" = "user") {
+function renderAssetList(role: "admin" | "user" | null = "user") {
   return render(
     <AuthContext.Provider
       value={{
         ...baseAuth,
-        user: {
-          id: "user-1",
-          email: "user@example.com",
-          name: "User",
-          role,
-          is_active: true,
-          created_at: "2026-01-01T00:00:00Z",
-        },
+        user: role
+          ? {
+              id: "user-1",
+              email: "user@example.com",
+              name: "User",
+              role,
+              is_active: true,
+              created_at: "2026-01-01T00:00:00Z",
+            }
+          : null,
       }}
     >
       <MemoryRouter>
@@ -102,6 +104,21 @@ describe("AssetList", () => {
 
     expect(screen.getByText("Showing 1-2 of 2")).toBeInTheDocument();
     expect(listTeasMock).toHaveBeenCalled();
+    expect(screen.getAllByRole("button", { name: "Order" }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+  });
+
+  it("shows a read-only list when nobody is logged in", async () => {
+    renderAssetList(null);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Alishan Oolong").length).toBeGreaterThan(0);
+    });
+
+    expect(screen.getAllByRole("button", { name: "Details" }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: "Order" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
   });
 
   it("shows owner and timestamps as read-only details", async () => {

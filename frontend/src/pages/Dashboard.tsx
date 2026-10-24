@@ -82,13 +82,23 @@ const Dashboard = () => {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
-        >
-          Log out
-        </button>
+        {user ? (
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
+          >
+            Log out
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => navigate("/login")}
+            className="px-4 py-2 text-sm rounded-lg bg-[#64794d] text-white hover:bg-lime-900 transition"
+          >
+            Log in
+          </button>
+        )}
       </div>
       <Summary summary={summary} showTotalValue={isAdmin} />
       <div
@@ -135,7 +145,7 @@ const Dashboard = () => {
               Order
             </button>
           )}
-          {user?.role === "guest" && (
+          {!user && (
             <button
               className="flex-1 rounded-xl bg-[#b8cb75] hover:border-lime-100 text-white"
               onClick={() => navigate("/assets")}
