@@ -110,8 +110,11 @@ def test_create_tea_ignores_client_created_at(client, fake_db):
     assert response.status_code == 200
     body = response.json()
     assert not body["created_at"].startswith("2000-01-01")
+    assert body["created_at"].endswith("Z")
     stored = fake_db.teas.docs[ObjectId(body["id"])]["created_at"]
     assert stored.year != 2000
+    assert stored.utcoffset() is not None
+    assert stored.utcoffset().total_seconds() == 0
 
 def test_patch_ignores_client_owner_and_timestamps(client, admin_user, fake_db):
     created = client.post(

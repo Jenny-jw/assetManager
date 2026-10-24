@@ -42,6 +42,27 @@ def test_admin_approve_order_reduces_stock(client, client_user, fake_db):
     tea = fake_db.teas.find_one({"_id": next(iter(fake_db.teas.docs))})
     assert tea["quantity"] == 3
     assert len(fake_db.stock_movements.docs) == 1
+    movement = next(iter(fake_db.stock_movements.docs.values()))
+    assert movement["created_at"].utcoffset() is not None
+    assert movement["created_at"].utcoffset().total_seconds() == 0
+
+def test_order_created_at_is_server_utc_and_ignores_client_value(client_user, fake_db):
+    tea_id = seed_orderable_tea(fake_db)
+    response = client_user.post(
+        "/api/orders/",
+        json={
+            "items": [{"tea_id": tea_id, "quantity": 1}],
+            "created_at": "1999-01-01T00:00:00Z",
+        },
+    )
+
+    assert response.status_code == 201
+    created_at = response.json()["created_at"]
+    assert created_at.endswith("Z")
+    assert not created_at.startswith("1999-")
+    stored = next(iter(fake_db.orders.docs.values()))
+    assert stored["created_at"].utcoffset() is not None
+    assert stored["created_at"].year != 1999
 
 def test_admin_reject_order_does_not_reduce_stock(client, client_user, fake_db):
     tea_id = seed_orderable_tea(fake_db, quantity=5, price=1200)
