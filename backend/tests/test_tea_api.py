@@ -89,6 +89,35 @@ def test_create_tea_allows_missing_price(client):
     assert response.status_code == 200
     assert response.json()["price"] is None
 
+@pytest.mark.parametrize("score", [101, -1])
+def test_create_tea_rejects_score_outside_range(client, score):
+    response = client.post(
+        "/api/tea/",
+        json={
+            "name": "Bad Score",
+            "genre": "Oolong",
+            "weight": 150,
+            "quantity": 1,
+            "score": score,
+        },
+    )
+
+    assert response.status_code == 422
+
+def test_create_tea_allows_missing_score(client):
+    response = client.post(
+        "/api/tea/",
+        json={
+            "name": "Unscored",
+            "genre": "Oolong",
+            "weight": 150,
+            "quantity": 1,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["score"] is None
+
 def test_create_and_update_tea(client):
     create_response = client.post(
         "/api/tea/",

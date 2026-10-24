@@ -60,6 +60,12 @@ function validateForm(form: CreateAssetType): FieldErrors {
   if (form.harvest_time != null && !isHarvestYyyymmdd(form.harvest_time)) {
     errors.harvest_time = "Pick a valid harvest date";
   }
+  if (
+    form.score != null &&
+    (!Number.isInteger(form.score) || form.score < 0 || form.score > 100)
+  ) {
+    errors.score = "Score must be a whole number from 0 to 100";
+  }
 
   return errors;
 }
@@ -348,12 +354,19 @@ const CreateAsset = () => {
           <div>
             <label className="block font-medium mb-1">Score</label>
             <input
+              type="number"
               name="score"
+              min={0}
+              max={100}
+              step={1}
               value={form.score ?? ""}
               onChange={handleChange}
               disabled={isSubmitting}
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6] disabled:opacity-60"
             />
+            {fieldErrors.score && (
+              <p className={fieldErrorClass}>{fieldErrors.score}</p>
+            )}
           </div>
         </div>
 

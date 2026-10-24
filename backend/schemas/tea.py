@@ -22,7 +22,9 @@ class TeaBase(BaseModel):
     quantity: Optional[quantityRange] = Field(
         None, description="Number of packages in stock (at least 1)", example=3
     )
-    score: Optional[Score] = Field(None, example=85)
+    score: Optional[Score] = Field(
+        None, description="Quality score from 0 to 100", example=85
+    )
     price: Optional[pricePerJin] = Field(
         None, description="Price per 斤 (600g)", example=1200
     )
