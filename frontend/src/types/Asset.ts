@@ -11,6 +11,7 @@ export type AssetBase = {
   name: string;
   genre: string;
   origin?: string;
+  /** Roast scale: 0 light, 100 heavy */
   roast_level?: number;
   harvest_time?: number;
   /** Price per 斤 */
@@ -19,6 +20,7 @@ export type AssetBase = {
   weight: 75 | 150;
   /** Number of packages in stock */
   quantity: number;
+  /** Quality score from 0 to 100 */
   score?: number;
   comment?: string;
   producer?: string;

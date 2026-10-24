@@ -18,8 +18,12 @@ class TeaInDB(BaseModel):
     origin: Optional[str] = None
     producer: Optional[str] = None
     comment: Optional[str] = None
-    roast_level: Optional[int] = None
-    score: Optional[int] = None
+    roast_level: Optional[int] = Field(
+        default=None, ge=0, le=100, description="Roast scale from 0 (light) to 100 (heavy)"
+    )
+    score: Optional[int] = Field(
+        default=None, ge=0, le=100, description="Quality score from 0 to 100"
+    )
     harvest_time: Optional[HarvestYyyymmdd] = None
     price: Optional[int] = Field(default=None, ge=0)
     weight: PackageWeightGrams

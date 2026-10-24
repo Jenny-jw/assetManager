@@ -6,6 +6,7 @@ from typing import Literal, Optional, Annotated
 from core.harvest_date import HarvestYyyymmdd
 
 Score = Annotated[int, Field(ge=0, le=100)]
+RoastLevel = Annotated[int, Field(ge=0, le=100)]
 PackageWeightGrams = Literal[75, 150]
 quantityRange = Annotated[int, Field(ge=1)]
 pricePerJin = Annotated[int, Field(ge=0, description="Price per 斤 (600g)")]
@@ -14,7 +15,9 @@ class TeaBase(BaseModel):
     name: str = Field(..., example="High mountain oolong tea")
     origin: Optional[str] = Field(None, example="Alishan")
     genre: str = Field(..., example="Oolong")
-    roast_level: Optional[Score] = Field(None, example=50)
+    roast_level: Optional[RoastLevel] = Field(
+        None, description="Roast scale from 0 (light) to 100 (heavy)", example=50
+    )
     harvest_time: Optional[HarvestYyyymmdd] = Field(None, example=20260517)
     weight: Optional[PackageWeightGrams] = Field(
         None, description="Grams per package (75 or 150 only)", example=150
@@ -39,7 +42,7 @@ class TeaUpdate(BaseModel):
     name: Optional[str] = None
     origin: Optional[str] = None
     genre: Optional[str] = None
-    roast_level: Optional[Score] = None
+    roast_level: Optional[RoastLevel] = None
     harvest_time: Optional[HarvestYyyymmdd] = None
     weight: Optional[PackageWeightGrams] = None
     quantity: Optional[quantityRange] = None

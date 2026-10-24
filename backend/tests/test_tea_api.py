@@ -118,6 +118,39 @@ def test_create_tea_allows_missing_score(client):
     assert response.status_code == 200
     assert response.json()["score"] is None
 
+@pytest.mark.parametrize("roast_level", [101, -1])
+def test_create_tea_rejects_roast_level_outside_range(client, roast_level):
+    response = client.post(
+        "/api/tea/",
+        json={
+            "name": "Bad Roast",
+            "genre": "Oolong",
+            "weight": 150,
+            "quantity": 1,
+            "roast_level": roast_level,
+        },
+    )
+
+    assert response.status_code == 422
+
+def test_create_tea_keeps_roast_level_separate_from_score(client):
+    response = client.post(
+        "/api/tea/",
+        json={
+            "name": "Light Roast",
+            "genre": "Oolong",
+            "weight": 150,
+            "quantity": 1,
+            "roast_level": 0,
+            "score": 100,
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["roast_level"] == 0
+    assert body["score"] == 100
+
 def test_create_and_update_tea(client):
     create_response = client.post(
         "/api/tea/",
