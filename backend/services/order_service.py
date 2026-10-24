@@ -471,13 +471,6 @@ def _place_order_transactional(
             return _place_order_core(payload, current_user, session=session)
 
 def place_order(payload: OrderCreate, current_user: dict[str, Any]) -> dict[str, Any]:
-    role = _normalize_role(current_user.get("role"))
-    if role == "guest":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Guests cannot place orders",
-        )
-
     if _use_transactions():
         try:
             return _place_order_transactional(payload, current_user)

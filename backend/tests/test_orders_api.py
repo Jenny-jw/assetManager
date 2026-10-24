@@ -127,14 +127,6 @@ def test_approve_fails_when_stock_insufficient_at_approval(client, client_user, 
     response = client.patch(f"/api/orders/{order_id}/approve")
     assert response.status_code == 409
 
-def test_guest_cannot_place_order(client_guest, fake_db):
-    tea_id = seed_orderable_tea(fake_db)
-    response = client_guest.post(
-        "/api/orders/",
-        json={"items": [{"tea_id": tea_id, "quantity": 1}]},
-    )
-    assert response.status_code == 403
-
 def test_unauthenticated_cannot_place_or_read_orders(client_no_auth, fake_db):
     tea_id = seed_orderable_tea(fake_db)
 

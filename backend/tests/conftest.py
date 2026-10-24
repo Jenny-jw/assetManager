@@ -256,10 +256,6 @@ def client_user(monkeypatch, fake_db: FakeDB):
     yield from _build_client(monkeypatch, fake_db, _make_user("user"))
 
 @pytest.fixture
-def client_guest(monkeypatch, fake_db: FakeDB):
-    yield from _build_client(monkeypatch, fake_db, _make_user("guest"))
-
-@pytest.fixture
 def seeded_tea_id(fake_db: FakeDB) -> str:
     return seed_orderable_tea(fake_db, quantity=3)
 

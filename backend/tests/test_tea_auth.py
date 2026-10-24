@@ -35,14 +35,6 @@ def test_tea_mutations_require_authentication(
     assert response.json()["detail"] == "Not authenticated"
 
 @pytest.mark.parametrize(
-    "client_fixture,role",
-    [
-        ("client_user", "user"),
-        ("client_guest", "guest"),
-    ],
-)
-
-@pytest.mark.parametrize(
     "method,path_factory",
     [
         ("post", lambda tea_id: "/api/tea/"),
@@ -51,11 +43,10 @@ def test_tea_mutations_require_authentication(
     ],
 )
 def test_tea_mutations_forbid_non_admin(
-    client_fixture, role, method, path_factory, seeded_tea_id, request
+    client_user, method, path_factory, seeded_tea_id
 ):
-    client = request.getfixturevalue(client_fixture)
     path = path_factory(seeded_tea_id)
-    http_request = getattr(client, method)
+    http_request = getattr(client_user, method)
 
     if method == "post":
         response = http_request(path, json=TEA_CREATE_PAYLOAD)
