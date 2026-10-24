@@ -135,6 +135,21 @@ def test_guest_cannot_place_order(client_guest, fake_db):
     )
     assert response.status_code == 403
 
+def test_unauthenticated_cannot_place_or_read_orders(client_no_auth, fake_db):
+    tea_id = seed_orderable_tea(fake_db)
+
+    placed = client_no_auth.post(
+        "/api/orders/",
+        json={"items": [{"tea_id": tea_id, "quantity": 1}]},
+    )
+    listed = client_no_auth.get("/api/orders/")
+    detail = client_no_auth.get("/api/orders/000000000000000000000000")
+
+    assert placed.status_code == 401
+    assert listed.status_code == 401
+    assert detail.status_code == 401
+    assert len(fake_db.orders.docs) == 0
+
 def test_order_rejects_tea_without_package_weight(client_user, fake_db):
     tea_id = seed_orderable_tea(fake_db)
     tea_oid = next(iter(fake_db.teas.docs))
