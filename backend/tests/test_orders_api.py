@@ -127,6 +127,19 @@ def test_order_rejects_tea_without_package_weight(client_user, fake_db):
     )
     assert response.status_code == 400
 
+def test_order_rejects_tea_without_price(client_user, fake_db):
+    tea_id = seed_orderable_tea(fake_db)
+    tea_oid = next(iter(fake_db.teas.docs))
+    fake_db.teas.docs[tea_oid]["price"] = None
+
+    response = client_user.post(
+        "/api/orders/",
+        json={"items": [{"tea_id": tea_id, "quantity": 1}]},
+    )
+
+    assert response.status_code == 400
+    assert fake_db.teas.docs[tea_oid]["quantity"] == 5
+
 def test_insufficient_stock_returns_409(client_user, fake_db):
     tea_id = seed_orderable_tea(fake_db, quantity=1, price=900)
     response = client_user.post(

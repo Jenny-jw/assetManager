@@ -21,7 +21,7 @@ class TeaInDB(BaseModel):
     roast_level: Optional[int] = None
     score: Optional[int] = None
     harvest_time: Optional[HarvestYyyymmdd] = None
-    price: Optional[int] = None
+    price: Optional[int] = Field(default=None, ge=0)
     weight: PackageWeightGrams
     quantity: int = Field(ge=1)
     owner_id: Optional[str] = None

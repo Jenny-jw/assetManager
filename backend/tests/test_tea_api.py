@@ -61,6 +61,34 @@ def test_create_tea_keeps_real_harvest_date_as_integer(client):
     assert response.status_code == 200
     assert response.json()["harvest_time"] == 20240229
 
+def test_create_tea_rejects_fractional_price(client):
+    response = client.post(
+        "/api/tea/",
+        json={
+            "name": "Fractional Price",
+            "genre": "Oolong",
+            "weight": 150,
+            "quantity": 1,
+            "price": 1200.5,
+        },
+    )
+
+    assert response.status_code == 422
+
+def test_create_tea_allows_missing_price(client):
+    response = client.post(
+        "/api/tea/",
+        json={
+            "name": "Unpriced",
+            "genre": "Oolong",
+            "weight": 150,
+            "quantity": 1,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["price"] is None
+
 def test_create_and_update_tea(client):
     create_response = client.post(
         "/api/tea/",
