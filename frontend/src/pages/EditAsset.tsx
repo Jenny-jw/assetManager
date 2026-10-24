@@ -7,6 +7,7 @@ import axios from "../lib/axios";
 import {
   dateInputToHarvestInt,
   harvestIntToDateInput,
+  isHarvestYyyymmdd,
 } from "../lib/harvestDate";
 import { PACKAGE_WEIGHT_OPTIONS } from "../lib/teaPricing";
 import { formatRecordTime } from "../lib/recordTime";
@@ -72,7 +73,7 @@ function validateForm(form: EditForm): FieldErrors {
   }
   if (form.harvest_time.trim() !== "") {
     const harvest = Number(form.harvest_time);
-    if (Number.isNaN(harvest) || harvest < 20100101 || harvest > 22001231) {
+    if (!isHarvestYyyymmdd(harvest)) {
       errors.harvest_time = "Pick a valid harvest date";
     }
   }

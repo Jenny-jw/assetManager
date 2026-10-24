@@ -7,6 +7,7 @@ import {
   isPackageWeightGrams,
   PACKAGE_WEIGHT_OPTIONS,
 } from "../lib/teaPricing";
+import { dateInputToHarvestInt, isHarvestYyyymmdd } from "../lib/harvestDate";
 
 const INITIAL_FORM: CreateAssetType = {
   name: "",
@@ -55,6 +56,9 @@ function validateForm(form: CreateAssetType): FieldErrors {
     form.quantity < 1
   ) {
     errors.quantity = "Number of packages must be at least 1";
+  }
+  if (form.harvest_time != null && !isHarvestYyyymmdd(form.harvest_time)) {
+    errors.harvest_time = "Pick a valid harvest date";
   }
 
   return errors;
@@ -135,9 +139,10 @@ const CreateAsset = () => {
   const handleDateChange = (field: "harvest_time", value: string) => {
     setFormError("");
     setSuccessMessage("");
+    const digits = dateInputToHarvestInt(value);
     setForm((prev) => ({
       ...prev,
-      [field]: value ? Number(value.replace("-", "")) : undefined,
+      [field]: digits ? Number(digits) : undefined,
     }));
   };
 
@@ -283,6 +288,9 @@ const CreateAsset = () => {
               disabled={isSubmitting}
               className="w-full border rounded-lg p-2 bg-[#d3d4be80] text-[#ffffffE6] disabled:opacity-60"
             />
+            {fieldErrors.harvest_time && (
+              <p className={fieldErrorClass}>{fieldErrors.harvest_time}</p>
+            )}
           </div>
           <div>
             <label className="block font-medium mb-2">

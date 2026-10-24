@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   dateInputToHarvestInt,
   harvestIntToDateInput,
+  isHarvestYyyymmdd,
 } from "@/lib/harvestDate";
 
 describe("harvestDate", () => {
@@ -14,5 +15,11 @@ describe("harvestDate", () => {
   it("converts date input value to stored YYYYMMDD", () => {
     expect(dateInputToHarvestInt("2026-05-17")).toBe("20260517");
     expect(dateInputToHarvestInt("")).toBe("");
+  });
+
+  it("rejects calendar dates that do not exist", () => {
+    expect(isHarvestYyyymmdd(20240229)).toBe(true);
+    expect(isHarvestYyyymmdd(20260231)).toBe(false);
+    expect(isHarvestYyyymmdd(20260229)).toBe(false);
   });
 });

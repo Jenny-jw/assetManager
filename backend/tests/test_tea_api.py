@@ -31,6 +31,36 @@ def test_create_tea_rejects_missing_package_field(client, field):
 
     assert response.status_code == 422
 
+@pytest.mark.parametrize("harvest_time", [20260231, 20260230, 20260229])
+def test_create_tea_rejects_impossible_harvest_date(client, harvest_time):
+    response = client.post(
+        "/api/tea/",
+        json={
+            "name": "Bad Harvest",
+            "genre": "Oolong",
+            "weight": 150,
+            "quantity": 1,
+            "harvest_time": harvest_time,
+        },
+    )
+
+    assert response.status_code == 422
+
+def test_create_tea_keeps_real_harvest_date_as_integer(client):
+    response = client.post(
+        "/api/tea/",
+        json={
+            "name": "Leap Harvest",
+            "genre": "Oolong",
+            "weight": 150,
+            "quantity": 1,
+            "harvest_time": 20240229,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["harvest_time"] == 20240229
+
 def test_create_and_update_tea(client):
     create_response = client.post(
         "/api/tea/",

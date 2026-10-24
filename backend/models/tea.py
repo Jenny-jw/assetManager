@@ -4,6 +4,8 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
+from core.harvest_date import HarvestYyyymmdd
+
 def utcnow():
     return datetime.now(timezone.utc)
 
@@ -18,7 +20,7 @@ class TeaInDB(BaseModel):
     comment: Optional[str] = None
     roast_level: Optional[int] = None
     score: Optional[int] = None
-    harvest_time: Optional[int] = None
+    harvest_time: Optional[HarvestYyyymmdd] = None
     price: Optional[int] = None
     weight: PackageWeightGrams
     quantity: int = Field(ge=1)

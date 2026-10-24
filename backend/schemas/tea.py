@@ -3,10 +3,11 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Literal, Optional, Annotated
 
+from core.harvest_date import HarvestYyyymmdd
+
 Score = Annotated[int, Field(ge=0, le=100)]
 PackageWeightGrams = Literal[75, 150]
 quantityRange = Annotated[int, Field(ge=1)]
-harvestDate = Annotated[int, Field(ge=20100101, le=22001231)]
 pricePerJin = Annotated[int, Field(ge=0, description="Price per 斤 (600g)")]
 
 class TeaBase(BaseModel):
@@ -14,7 +15,7 @@ class TeaBase(BaseModel):
     origin: Optional[str] = Field(None, example="Alishan")
     genre: str = Field(..., example="Oolong")
     roast_level: Optional[Score] = Field(None, example=50)
-    harvest_time: Optional[harvestDate] = Field(None, example=20260517)
+    harvest_time: Optional[HarvestYyyymmdd] = Field(None, example=20260517)
     weight: Optional[PackageWeightGrams] = Field(
         None, description="Grams per package (75 or 150 only)", example=150
     )
@@ -37,7 +38,7 @@ class TeaUpdate(BaseModel):
     origin: Optional[str] = None
     genre: Optional[str] = None
     roast_level: Optional[Score] = None
-    harvest_time: Optional[harvestDate] = None
+    harvest_time: Optional[HarvestYyyymmdd] = None
     weight: Optional[PackageWeightGrams] = None
     quantity: Optional[quantityRange] = None
     score: Optional[Score] = None
