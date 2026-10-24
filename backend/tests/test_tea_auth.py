@@ -1,5 +1,7 @@
 import pytest
 
+from tests.conftest import seed_orderable_tea
+
 TEA_CREATE_PAYLOAD = {
     "name": "Test Tea",
     "genre": "Oolong",
@@ -75,3 +77,18 @@ def test_user_can_list_teas(client_user, fake_db):
     response = client_user.get("/api/tea/")
     assert response.status_code == 200
     assert response.json()["total"] == 1
+
+def test_unauthenticated_can_read_tea_list_detail_and_summary(client_no_auth, fake_db):
+    tea_id = seed_orderable_tea(fake_db, quantity=1)
+
+    listed = client_no_auth.get("/api/tea/")
+    assert listed.status_code == 200
+    assert listed.json()["total"] == 1
+
+    detail = client_no_auth.get(f"/api/tea/{tea_id}")
+    assert detail.status_code == 200
+    assert detail.json()["id"] == tea_id
+
+    summary = client_no_auth.get("/api/tea/summary")
+    assert summary.status_code == 200
+    assert summary.json()["total_assets"] == 1

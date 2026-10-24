@@ -12,7 +12,7 @@ from core.db import db
 from bson.objectid import ObjectId
 from pymongo import ReturnDocument
 from starlette.status import HTTP_206_PARTIAL_CONTENT
-from dependencies.auth import get_current_user, require_role
+from dependencies.auth import require_role
 from models.user import UserRole
 from datetime import datetime, timezone
 import json
@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter(
     prefix="/tea",
     tags=["Tea"],
-    dependencies=[Depends(get_current_user)],
 )
 
 @router.post("/", response_model=TeaResponsePublic)
