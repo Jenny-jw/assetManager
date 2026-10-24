@@ -24,6 +24,25 @@ def test_user_place_order_creates_pending_without_stock_change(client_user, fake
     assert tea["quantity"] == 5
     assert len(fake_db.stock_movements.docs) == 0
 
+def test_order_amounts_stay_fixed_after_tea_price_changes(client_user, fake_db):
+    tea_id = seed_orderable_tea(fake_db, quantity=5, price=1200)
+    placed = client_user.post(
+        "/api/orders/",
+        json={"items": [{"tea_id": tea_id, "quantity": 2}]},
+    )
+    order_id = placed.json()["id"]
+
+    tea_oid = next(iter(fake_db.teas.docs))
+    fake_db.teas.docs[tea_oid]["price"] = 2400
+
+    response = client_user.get(f"/api/orders/{order_id}")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["items"][0]["unit_price"] == 300
+    assert body["items"][0]["line_total"] == 600
+    assert body["total_amount"] == 600
+
 def test_admin_approve_order_reduces_stock(client, client_user, fake_db):
     tea_id = seed_orderable_tea(fake_db, quantity=5, price=1200)
     placed = client_user.post(
