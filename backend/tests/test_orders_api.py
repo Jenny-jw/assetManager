@@ -17,13 +17,18 @@ def test_user_place_order_creates_pending_without_stock_change(client_user, fake
 
     assert response.status_code == 201
     body = response.json()
+    stored_order = next(iter(fake_db.orders.docs.values()))
+    stored_item = next(iter(fake_db.order_items.docs.values()))
+    assert isinstance(body["id"], str)
+    assert body["id"] == str(stored_order["_id"])
+    assert isinstance(body["items"][0]["id"], str)
+    assert body["items"][0]["id"] == str(stored_item["_id"])
+    assert isinstance(body["items"][0]["order_id"], str)
     assert body["status"] == "pending"
     assert body["total_amount"] == 600
     assert body["items"][0]["unit_price"] == 300
     assert len(body["items"]) == 1
 
-    stored_order = next(iter(fake_db.orders.docs.values()))
-    stored_item = next(iter(fake_db.order_items.docs.values()))
     assert isinstance(stored_order["_id"], ObjectId)
     assert stored_item["order_id"] == str(stored_order["_id"])
     assert len(stored_order["user_id"]) == 24
