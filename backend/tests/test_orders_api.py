@@ -1,3 +1,5 @@
+from bson import ObjectId
+
 from dependencies.auth import get_current_user
 from main import app
 from tests.conftest import _make_user, seed_orderable_tea
@@ -19,6 +21,13 @@ def test_user_place_order_creates_pending_without_stock_change(client_user, fake
     assert body["total_amount"] == 600
     assert body["items"][0]["unit_price"] == 300
     assert len(body["items"]) == 1
+
+    stored_order = next(iter(fake_db.orders.docs.values()))
+    stored_item = next(iter(fake_db.order_items.docs.values()))
+    assert isinstance(stored_order["_id"], ObjectId)
+    assert stored_item["order_id"] == stored_order["_id"]
+    assert "id" not in stored_order
+    assert "id" not in stored_item
 
     tea = fake_db.teas.find_one({"_id": next(iter(fake_db.teas.docs))})
     assert tea["quantity"] == 5

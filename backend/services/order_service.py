@@ -12,7 +12,13 @@ from pymongo.client_session import ClientSession
 
 from core.db import client, db
 from core.tea_pricing import price_per_package
-from models.order import OrderStatus, StockMovementReason
+from models.order import (
+    OrderInDB,
+    OrderItemInDB,
+    OrderStatus,
+    StockMovementInDB,
+    StockMovementReason,
+)
 from schemas.order import OrderCreate
 from services.stock_transactions import run_optional_transaction
 
@@ -270,15 +276,15 @@ def _insert_order_items(
 ) -> list[dict[str, Any]]:
     item_docs: list[dict[str, Any]] = []
     for spec in line_specs:
-        item_doc = {
-            "order_id": order_oid,
-            "tea_id": spec["tea_id"],
-            "tea_name": spec["tea_name"],
-            "quantity": spec["quantity"],
-            "unit_price": spec["unit_price"],
-            "line_total": spec["line_total"],
-            "created_at": now,
-        }
+        item_doc = OrderItemInDB(
+            order_id=order_oid,
+            tea_id=spec["tea_id"],
+            tea_name=spec["tea_name"],
+            quantity=spec["quantity"],
+            unit_price=spec["unit_price"],
+            line_total=spec["line_total"],
+            created_at=now,
+        ).model_dump()
         item_insert = db.order_items.insert_one(item_doc, session=session)
         item_doc["_id"] = item_insert.inserted_id
         item_docs.append(item_doc)
@@ -299,13 +305,13 @@ def _place_order_core(
     line_specs = _build_line_specs(payload, session=session)
     total_amount = sum(spec["line_total"] for spec in line_specs)
 
-    order_doc = {
-        "user_id": user_id,
-        "status": OrderStatus.pending.value,
-        "total_amount": total_amount,
-        "created_at": now,
-        "updated_at": now,
-    }
+    order_doc = OrderInDB(
+        user_id=user_id,
+        status=OrderStatus.pending,
+        total_amount=total_amount,
+        created_at=now,
+        updated_at=now,
+    ).model_dump()
     order_insert = db.orders.insert_one(order_doc, session=session)
     order_oid = order_insert.inserted_id
 
@@ -392,17 +398,17 @@ def _fulfill_pending_order(
             qty_before = tea_before["quantity"]
             qty_after = qty_before - item["quantity"]
 
-            movement_doc = {
-                "tea_id": item["tea_id"],
-                "delta": -item["quantity"],
-                "quantity_before": qty_before,
-                "quantity_after": qty_after,
-                "reason": StockMovementReason.order.value,
-                "ref_type": "order",
-                "ref_id": str(order_oid),
-                "created_by": actor_id,
-                "created_at": now,
-            }
+            movement_doc = StockMovementInDB(
+                tea_id=item["tea_id"],
+                delta=-item["quantity"],
+                quantity_before=qty_before,
+                quantity_after=qty_after,
+                reason=StockMovementReason.order,
+                ref_type="order",
+                ref_id=str(order_oid),
+                created_by=actor_id,
+                created_at=now,
+            ).model_dump()
             db.stock_movements.insert_one(movement_doc, session=session)
     except Exception:
         if session is None:
