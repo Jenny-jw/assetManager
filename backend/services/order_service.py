@@ -104,6 +104,26 @@ def _serialize_order(
 def _load_order_items(order_oid: ObjectId) -> list[dict[str, Any]]:
     return list(db.order_items.find({"order_id": str(order_oid)}))
 
+def convert_order_item_order_ids(items=None) -> int:
+    """Rewrite legacy order_items.order_id values from ObjectId to a hex string."""
+    collection = db.order_items if items is None else items
+    converted = 0
+    for item in list(collection.find({})):
+        order_id = item.get("order_id")
+        if not isinstance(order_id, ObjectId):
+            continue
+        collection.update_one(
+            {"_id": item["_id"]},
+            {"$set": {"order_id": str(order_id)}},
+        )
+        converted += 1
+    if converted:
+        logger.info(
+            "converted order item order_id values to strings",
+            extra={"count": converted},
+        )
+    return converted
+
 def _get_pending_order(order_id: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     if not ObjectId.is_valid(order_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid order id")

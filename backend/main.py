@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.errors import register_exception_handlers
 from core.indexes import ensure_indexes
 from core.logging import RequestLoggingMiddleware, configure_logging
+from services.order_service import convert_order_item_order_ids
 from contextlib import asynccontextmanager
 
 load_dotenv()
@@ -21,6 +22,7 @@ origins = [
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ensure_indexes()
+    convert_order_item_order_ids()
     yield
 
 app = FastAPI(title="Asset Manager API", version="0.1.0", lifespan=lifespan)

@@ -66,3 +66,25 @@ def test_reference_ids_are_hex_strings_and_primary_key_is_not_stored():
             created_at=now,
             updated_at=now,
         )
+
+def test_existing_order_item_order_ids_are_converted_once(fake_db):
+    from services.order_service import convert_order_item_order_ids
+
+    legacy_order_id = ObjectId()
+    legacy_item_id = ObjectId()
+    current_order_id = str(ObjectId())
+    current_item_id = ObjectId()
+    fake_db.order_items.docs[legacy_item_id] = {
+        "_id": legacy_item_id,
+        "order_id": legacy_order_id,
+    }
+    fake_db.order_items.docs[current_item_id] = {
+        "_id": current_item_id,
+        "order_id": current_order_id,
+    }
+
+    assert convert_order_item_order_ids(fake_db.order_items) == 1
+    assert fake_db.order_items.docs[legacy_item_id]["order_id"] == str(legacy_order_id)
+    assert isinstance(fake_db.order_items.docs[legacy_item_id]["_id"], ObjectId)
+    assert fake_db.order_items.docs[current_item_id]["order_id"] == current_order_id
+    assert convert_order_item_order_ids(fake_db.order_items) == 0
