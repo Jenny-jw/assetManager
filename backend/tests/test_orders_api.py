@@ -25,7 +25,9 @@ def test_user_place_order_creates_pending_without_stock_change(client_user, fake
     stored_order = next(iter(fake_db.orders.docs.values()))
     stored_item = next(iter(fake_db.order_items.docs.values()))
     assert isinstance(stored_order["_id"], ObjectId)
-    assert stored_item["order_id"] == stored_order["_id"]
+    assert stored_item["order_id"] == str(stored_order["_id"])
+    assert len(stored_order["user_id"]) == 24
+    assert len(stored_item["tea_id"]) == 24
     assert "id" not in stored_order
     assert "id" not in stored_item
 
@@ -71,6 +73,9 @@ def test_admin_approve_order_reduces_stock(client, client_user, fake_db):
     assert tea["quantity"] == 3
     assert len(fake_db.stock_movements.docs) == 1
     movement = next(iter(fake_db.stock_movements.docs.values()))
+    assert movement["ref_id"] == order_id
+    assert len(movement["tea_id"]) == 24
+    assert len(movement["created_by"]) == 24
     assert movement["created_at"].utcoffset() is not None
     assert movement["created_at"].utcoffset().total_seconds() == 0
 

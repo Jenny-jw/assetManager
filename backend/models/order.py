@@ -1,8 +1,17 @@
 from datetime import datetime
 from enum import Enum
+from typing import Annotated
 
-from bson import ObjectId
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+
+def assert_object_id_hex(value: str) -> str:
+    if not isinstance(value, str) or len(value) != 24:
+        raise ValueError("reference id must be a 24-character hex string")
+    if any(char not in "0123456789abcdef" for char in value):
+        raise ValueError("reference id must be a 24-character hex string")
+    return value
+
+ObjectIdHex = Annotated[str, AfterValidator(assert_object_id_hex)]
 
 class OrderStatus(str, Enum):
     pending = "pending"
@@ -17,17 +26,17 @@ class StockMovementReason(str, Enum):
 class OrderInDB(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
-    user_id: str
+    user_id: ObjectIdHex
     status: OrderStatus
     total_amount: int = Field(ge=0)
     created_at: datetime
     updated_at: datetime
 
 class OrderItemInDB(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True, use_enum_values=True)
+    model_config = ConfigDict(use_enum_values=True)
 
-    order_id: ObjectId
-    tea_id: str
+    order_id: ObjectIdHex
+    tea_id: ObjectIdHex
     tea_name: str
     quantity: int = Field(ge=1)
     unit_price: int = Field(ge=0)
@@ -37,12 +46,12 @@ class OrderItemInDB(BaseModel):
 class StockMovementInDB(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
-    tea_id: str
+    tea_id: ObjectIdHex
     delta: int
     quantity_before: int = Field(ge=0)
     quantity_after: int = Field(ge=0)
     reason: StockMovementReason
     ref_type: str
-    ref_id: str
-    created_by: str
+    ref_id: ObjectIdHex
+    created_by: ObjectIdHex
     created_at: datetime

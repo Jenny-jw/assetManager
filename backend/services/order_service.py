@@ -101,8 +101,8 @@ def _serialize_order(
         "items": items,
     }
 
-def _load_order_items(order_id: ObjectId) -> list[dict[str, Any]]:
-    return list(db.order_items.find({"order_id": order_id}))
+def _load_order_items(order_oid: ObjectId) -> list[dict[str, Any]]:
+    return list(db.order_items.find({"order_id": str(order_oid)}))
 
 def _get_pending_order(order_id: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     if not ObjectId.is_valid(order_id):
@@ -277,7 +277,7 @@ def _insert_order_items(
     item_docs: list[dict[str, Any]] = []
     for spec in line_specs:
         item_doc = OrderItemInDB(
-            order_id=order_oid,
+            order_id=str(order_oid),
             tea_id=spec["tea_id"],
             tea_name=spec["tea_name"],
             quantity=spec["quantity"],
@@ -291,7 +291,7 @@ def _insert_order_items(
     return item_docs
 
 def _rollback_order(order_oid: ObjectId, item_docs: list[dict[str, Any]]) -> None:
-    db.order_items.delete_many({"order_id": order_oid})
+    db.order_items.delete_many({"order_id": str(order_oid)})
     db.orders.delete_one({"_id": order_oid})
 
 def _place_order_core(
